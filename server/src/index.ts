@@ -1,5 +1,7 @@
+import path from "node:path";
 import express from "express";
 import cors from "cors";
+import multer from "multer";
 import { clerkMiddleware } from "@clerk/express";
 import { env } from "./config/env.js";
 import { connectDB } from "./config/db.js";
@@ -9,6 +11,10 @@ import { questionsRouter } from "./routes/questions.js";
 import { aboutMeRouter } from "./routes/aboutMe.js";
 import { preferencesRouter } from "./routes/preferences.js";
 import { dealBreakersRouter } from "./routes/dealBreakers.js";
+import { profileRouter } from "./routes/profile.js";
+import { profilePhotosRouter } from "./routes/profilePhotos.js";
+import { voiceIntroRouter } from "./routes/voiceIntro.js";
+import { publicProfilesRouter } from "./routes/publicProfiles.js";
 
 const app = express();
 
@@ -18,16 +24,27 @@ app.use(express.json());
 // (unauthenticated requests just get an empty auth, they aren't rejected here).
 app.use(clerkMiddleware());
 
+// Local-disk upload storage for now (see storageService.ts) — served directly.
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+
 app.use("/api/health", healthRouter);
 app.use("/api/v1/me", meRouter);
 app.use("/api/v1/questions", questionsRouter);
 app.use("/api/v1/me/about-me", aboutMeRouter);
 app.use("/api/v1/me/preferences", preferencesRouter);
 app.use("/api/v1/me/deal-breakers", dealBreakersRouter);
+app.use("/api/v1/me/profile/photos", profilePhotosRouter);
+app.use("/api/v1/me/profile/voice-intro", voiceIntroRouter);
+app.use("/api/v1/me/profile", profileRouter);
+app.use("/api/v1/profiles", publicProfilesRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(
   (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    if (err instanceof multer.MulterError || (err instanceof Error && err.message.includes("Unsupported"))) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   },

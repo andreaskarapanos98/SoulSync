@@ -59,6 +59,16 @@ function OnboardingStatus() {
           </Link>
         )}
       </p>
+      <p>
+        {me.onboardingStatus === "not_started" || me.onboardingStatus === "about_me" ? (
+          "Complete Ideal Soulmate first to unlock your Profile"
+        ) : (
+          <Link to="/profile/edit">
+            {me.onboardingStatus === "preferences" ? "Start Your Profile" : "Edit Your Profile"}
+          </Link>
+        )}
+      </p>
+      {me.onboardingStatus === "complete" && <p>Onboarding complete — you're all set!</p>}
     </>
   );
 }

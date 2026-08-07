@@ -81,7 +81,7 @@ export async function saveAboutMeAnswers(clerkId: string, incoming: Record<strin
   const doc = await AboutMeAnswerModel.findOneAndUpdate(
     { clerkId },
     { $set: Object.fromEntries(Object.entries(incoming).map(([k, v]) => [`answers.${k}`, v])) },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
   );
 
   return doc;
@@ -147,7 +147,7 @@ export async function savePreferenceAnswers(clerkId: string, incoming: Record<st
   const doc = await PreferenceAnswerModel.findOneAndUpdate(
     { clerkId },
     { $set: Object.fromEntries(Object.entries(toStore).map(([k, v]) => [`answers.${k}`, v])) },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
   );
 
   return doc;

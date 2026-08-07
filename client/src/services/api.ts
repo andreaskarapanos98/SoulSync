@@ -3,10 +3,14 @@ import type {
   AnswerValue,
   DealBreakersDTO,
   MeDTO,
+  OwnProfileDTO,
+  PhotosResponseDTO,
   PreferenceAnswerValue,
   PreferenceAnswersDTO,
+  ProfileDTO,
   QuestionDTO,
   SaveAnswersResponseDTO,
+  VoiceIntroResponseDTO,
 } from "@soulsync/shared-types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -38,7 +42,22 @@ export function createApiClient(getToken: GetToken) {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new ApiError(res.status, body.issues);
+      throw new ApiError(res.status, body.issues ?? (body.error ? [body.error] : undefined));
+    }
+    return res.json() as Promise<T>;
+  }
+
+  async function requestMultipart<T>(path: string, method: string, formData: FormData): Promise<T> {
+    const token = await getToken();
+    const res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body.issues ?? (body.error ? [body.error] : undefined));
     }
     return res.json() as Promise<T>;
   }
@@ -65,6 +84,35 @@ export function createApiClient(getToken: GetToken) {
         method: "PUT",
         body: JSON.stringify({ dealBreakers }),
       }),
+    getProfile: () => request<OwnProfileDTO>("/api/v1/me/profile"),
+    getPublicProfile: (clerkId: string) => request<ProfileDTO>(`/api/v1/profiles/${clerkId}`),
+    saveBio: (bio: string) =>
+      request<SaveAnswersResponseDTO>("/api/v1/me/profile", {
+        method: "PUT",
+        body: JSON.stringify({ bio }),
+      }),
+    uploadPhoto: (file: File) => {
+      const formData = new FormData();
+      formData.append("photo", file);
+      return requestMultipart<PhotosResponseDTO>("/api/v1/me/profile/photos", "POST", formData);
+    },
+    deletePhoto: (photoId: string) =>
+      request<PhotosResponseDTO>(`/api/v1/me/profile/photos/${photoId}`, { method: "DELETE" }),
+    setPrimaryPhoto: (photoId: string) =>
+      request<PhotosResponseDTO>(`/api/v1/me/profile/photos/${photoId}/primary`, { method: "PATCH" }),
+    setPhotoFocalPoint: (photoId: string, x: number, y: number) =>
+      request<{ photos: PhotosResponseDTO["photos"] }>(`/api/v1/me/profile/photos/${photoId}/focal-point`, {
+        method: "PATCH",
+        body: JSON.stringify({ x, y }),
+      }),
+    uploadVoiceIntro: (blob: Blob, durationSec: number) => {
+      const formData = new FormData();
+      formData.append("audio", blob, "voice-intro.webm");
+      formData.append("durationSec", String(durationSec));
+      return requestMultipart<VoiceIntroResponseDTO>("/api/v1/me/profile/voice-intro", "POST", formData);
+    },
+    deleteVoiceIntro: () =>
+      request<VoiceIntroResponseDTO>("/api/v1/me/profile/voice-intro", { method: "DELETE" }),
   };
 }
 

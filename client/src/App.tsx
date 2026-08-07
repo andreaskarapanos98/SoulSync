@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { OnboardingAboutMePage } from "./pages/OnboardingAboutMePage";
 import { OnboardingPreferencesPage } from "./pages/OnboardingPreferencesPage";
+import { ProfileEditPage } from "./pages/ProfileEditPage";
 import { RequireAuth } from "./components/RequireAuth";
 import "./App.css";
 
@@ -22,6 +23,14 @@ function App() {
         element={
           <RequireAuth>
             <OnboardingPreferencesPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/edit"
+        element={
+          <RequireAuth>
+            <ProfileEditPage />
           </RequireAuth>
         }
       />

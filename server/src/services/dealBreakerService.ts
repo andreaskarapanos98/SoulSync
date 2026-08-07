@@ -51,7 +51,7 @@ export async function saveDealBreakers(clerkId: string, incoming: Record<string,
   const doc = await DealBreakerModel.findOneAndUpdate(
     { clerkId },
     { $set: Object.fromEntries(Object.entries(toStore).map(([k, v]) => [`dealBreakers.${k}`, v])) },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
   );
 
   return doc;

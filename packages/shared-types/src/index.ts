@@ -69,3 +69,52 @@ export interface PreferenceAnswersDTO {
 export interface DealBreakersDTO {
   dealBreakers: Record<string, string[]>;
 }
+
+export interface PhotoDTO {
+  id: string;
+  url: string;
+  isPrimary: boolean;
+  // Where the circular avatar crop centers on this photo, as percentages (0-100).
+  focalPoint: { x: number; y: number };
+}
+
+export interface VoiceIntroDTO {
+  url: string;
+  durationSec: number;
+}
+
+export interface ProfileTraitDTO {
+  key: string;
+  category: string;
+  label: string;
+  value: AnswerValue;
+}
+
+export interface ProfileDTO {
+  firstName: string;
+  age?: number;
+  nationality?: string;
+  country?: string;
+  city?: string;
+  occupation?: string;
+  education?: string;
+  languages?: string[];
+  bio: string;
+  photos: PhotoDTO[];
+  voiceIntro: VoiceIntroDTO | null;
+  traits: ProfileTraitDTO[];
+}
+
+export interface OwnProfileDTO extends ProfileDTO {
+  missingRequired: string[];
+}
+
+export interface PhotosResponseDTO {
+  photos: PhotoDTO[];
+  missingRequired: string[];
+}
+
+export interface VoiceIntroResponseDTO {
+  voiceIntro: VoiceIntroDTO | null;
+  missingRequired?: string[];
+}
