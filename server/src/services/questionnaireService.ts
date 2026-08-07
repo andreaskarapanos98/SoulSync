@@ -24,8 +24,8 @@ function validateValue(question: QuestionDefinition, value: unknown): string | n
     case "scale":
     case "number": {
       if (typeof value !== "number" || Number.isNaN(value)) return `${question.key}: must be a number`;
-      if (question.min !== undefined && value < question.min) return `${question.key}: must be >= ${question.min}`;
-      if (question.max !== undefined && value > question.max) return `${question.key}: must be <= ${question.max}`;
+      if (question.min != null && value < question.min) return `${question.key}: must be >= ${question.min}`;
+      if (question.max != null && value > question.max) return `${question.key}: must be <= ${question.max}`;
       return null;
     }
     case "text": {
