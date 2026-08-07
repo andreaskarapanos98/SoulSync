@@ -18,4 +18,5 @@ export const CATEGORY_TITLES: Record<string, string> = {
   relationship_goals: "Relationship Goals",
   family: "Family",
   communication: "Communication",
+  deal_breakers: "Deal Breakers",
 };

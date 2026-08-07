@@ -39,13 +39,27 @@ function OnboardingStatus() {
   if (!me) return <p>Loading your account…</p>;
 
   return (
-    <p>
-      Onboarding status: <strong>{me.onboardingStatus}</strong>
-      {" — "}
-      <Link to="/onboarding/about-me">
-        {me.onboardingStatus === "not_started" ? "Start About Me" : "Edit About Me answers"}
-      </Link>
-    </p>
+    <>
+      <p>
+        Onboarding status: <strong>{me.onboardingStatus}</strong>
+      </p>
+      <p>
+        <Link to="/onboarding/about-me">
+          {me.onboardingStatus === "not_started" ? "Start About Me" : "Edit About Me answers"}
+        </Link>
+      </p>
+      <p>
+        {me.onboardingStatus === "not_started" ? (
+          "Complete About Me first to unlock Ideal Soulmate"
+        ) : (
+          <Link to="/onboarding/preferences">
+            {me.onboardingStatus === "about_me"
+              ? "Start Ideal Soulmate"
+              : "Edit Ideal Soulmate preferences"}
+          </Link>
+        )}
+      </p>
+    </>
   );
 }
 

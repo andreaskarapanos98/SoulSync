@@ -7,6 +7,8 @@ import { healthRouter } from "./routes/health.js";
 import { meRouter } from "./routes/me.js";
 import { questionsRouter } from "./routes/questions.js";
 import { aboutMeRouter } from "./routes/aboutMe.js";
+import { preferencesRouter } from "./routes/preferences.js";
+import { dealBreakersRouter } from "./routes/dealBreakers.js";
 
 const app = express();
 
@@ -20,6 +22,8 @@ app.use("/api/health", healthRouter);
 app.use("/api/v1/me", meRouter);
 app.use("/api/v1/questions", questionsRouter);
 app.use("/api/v1/me/about-me", aboutMeRouter);
+app.use("/api/v1/me/preferences", preferencesRouter);
+app.use("/api/v1/me/deal-breakers", dealBreakersRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(

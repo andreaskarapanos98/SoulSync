@@ -1,7 +1,10 @@
 import type {
   AboutMeAnswersDTO,
   AnswerValue,
+  DealBreakersDTO,
   MeDTO,
+  PreferenceAnswerValue,
+  PreferenceAnswersDTO,
   QuestionDTO,
   SaveAnswersResponseDTO,
 } from "@soulsync/shared-types";
@@ -42,13 +45,25 @@ export function createApiClient(getToken: GetToken) {
 
   return {
     getMe: () => request<MeDTO>("/api/v1/me"),
-    getAboutMeQuestions: () =>
-      request<{ questions: QuestionDTO[] }>("/api/v1/questions?appliesTo=about_me"),
+    getQuestions: (appliesTo: "about_me" | "preference") =>
+      request<{ questions: QuestionDTO[] }>(`/api/v1/questions?appliesTo=${appliesTo}`),
     getAboutMeAnswers: () => request<AboutMeAnswersDTO>("/api/v1/me/about-me"),
     saveAboutMeAnswers: (answers: Record<string, AnswerValue>) =>
       request<SaveAnswersResponseDTO>("/api/v1/me/about-me", {
         method: "PUT",
         body: JSON.stringify({ answers }),
+      }),
+    getPreferenceAnswers: () => request<PreferenceAnswersDTO>("/api/v1/me/preferences"),
+    savePreferenceAnswers: (answers: Record<string, PreferenceAnswerValue>) =>
+      request<SaveAnswersResponseDTO>("/api/v1/me/preferences", {
+        method: "PUT",
+        body: JSON.stringify({ answers }),
+      }),
+    getDealBreakers: () => request<DealBreakersDTO>("/api/v1/me/deal-breakers"),
+    saveDealBreakers: (dealBreakers: Record<string, string[]>) =>
+      request<{ saved: true }>("/api/v1/me/deal-breakers", {
+        method: "PUT",
+        body: JSON.stringify({ dealBreakers }),
       }),
   };
 }

@@ -24,7 +24,7 @@ export function OnboardingAboutMePage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.getAboutMeQuestions(), api.getAboutMeAnswers()])
+    Promise.all([api.getQuestions("about_me"), api.getAboutMeAnswers()])
       .then(([questionsRes, answersRes]) => {
         setQuestions(questionsRes.questions);
         setAnswers(answersRes.answers);
