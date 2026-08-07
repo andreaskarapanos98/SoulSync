@@ -11,7 +11,8 @@ function required(name: string, fallback?: string): string {
 export const env = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: required("NODE_ENV", "development"),
-  // Populated once we wire Clerk/Mongo in the next step.
-  clerkSecretKey: process.env.CLERK_SECRET_KEY,
+  clerkSecretKey: required("CLERK_SECRET_KEY"),
+  clerkPublishableKey: required("CLERK_PUBLISHABLE_KEY"),
+  // Populated once we wire Mongo in the next step.
   mongoUri: process.env.MONGO_URI,
 };
