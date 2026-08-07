@@ -20,7 +20,7 @@ export class ApiError extends Error {
   issues?: string[];
 
   constructor(status: number, issues?: string[]) {
-    super(`API request failed with status ${status}`);
+    super(issues?.length ? issues.join("; ") : `API request failed with status ${status}`);
     this.status = status;
     this.issues = issues;
   }

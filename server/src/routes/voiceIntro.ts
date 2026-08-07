@@ -18,12 +18,18 @@ const ALLOWED_AUDIO_TYPES: Record<string, string> = {
 // Small buffer over the 30s cap in the brief, for client-side timing imprecision.
 const MAX_DURATION_SEC = 31;
 
+// Browsers report MediaRecorder's mimeType with codec params, e.g.
+// "audio/webm;codecs=opus" — strip everything after ';' before matching.
+function baseMimeType(mimetype: string): string {
+  return mimetype.split(";")[0].trim();
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (!ALLOWED_AUDIO_TYPES[file.mimetype]) {
-      cb(new Error("Unsupported audio type"));
+    if (!ALLOWED_AUDIO_TYPES[baseMimeType(file.mimetype)]) {
+      cb(new Error(`Unsupported audio type: ${file.mimetype}`));
       return;
     }
     cb(null, true);
@@ -57,7 +63,7 @@ voiceIntroRouter.post("/", upload.single("audio"), async (req, res) => {
     await deleteFile(profile.voiceIntro.url);
   }
 
-  const extension = ALLOWED_AUDIO_TYPES[req.file.mimetype];
+  const extension = ALLOWED_AUDIO_TYPES[baseMimeType(req.file.mimetype)];
   const { url } = await saveFile(req.file.buffer, "voice-intros", extension);
 
   profile.voiceIntro = { url, durationSec };
