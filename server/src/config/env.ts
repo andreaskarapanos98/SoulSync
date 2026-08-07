@@ -13,6 +13,5 @@ export const env = {
   nodeEnv: required("NODE_ENV", "development"),
   clerkSecretKey: required("CLERK_SECRET_KEY"),
   clerkPublishableKey: required("CLERK_PUBLISHABLE_KEY"),
-  // Populated once we wire Mongo in the next step.
-  mongoUri: process.env.MONGO_URI,
+  mongoUri: required("MONGO_URI"),
 };
