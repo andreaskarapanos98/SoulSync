@@ -5,6 +5,8 @@ import { env } from "./config/env.js";
 import { connectDB } from "./config/db.js";
 import { healthRouter } from "./routes/health.js";
 import { meRouter } from "./routes/me.js";
+import { questionsRouter } from "./routes/questions.js";
+import { aboutMeRouter } from "./routes/aboutMe.js";
 
 const app = express();
 
@@ -16,6 +18,8 @@ app.use(clerkMiddleware());
 
 app.use("/api/health", healthRouter);
 app.use("/api/v1/me", meRouter);
+app.use("/api/v1/questions", questionsRouter);
+app.use("/api/v1/me/about-me", aboutMeRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(
