@@ -156,7 +156,7 @@ const preferenceQuestions: SeedQuestion[] = [
   { key: "height_cm", category: "basics", type: "single_select", label: "How tall would you prefer your soulmate to be?", scoringMechanic: "relative_self", order: 5,
     options: opts(["taller", "Taller than me"], ["shorter", "Shorter than me"], ["near", "Around my height (±10%)"], ["no_preference", "I don't care"]) },
   { key: "education", category: "basics", type: "single_select", label: "What level of education would you like your soulmate to have?", scoringMechanic: "mini_scale", order: 6,
-    options: opts(["high_school", "High school"], ["bachelors", "Bachelor's"], ["masters", "Master's"], ["phd", "PhD"], ["other", "Other"], [DONT_CARE.value, DONT_CARE.label]) },
+    options: opts(["high_school", "High school"], ["bachelors", "Bachelor's"], ["masters", "Master's"], ["phd", "PhD"], [DONT_CARE.value, DONT_CARE.label]) },
 
   // appearance
   { key: "body_type", category: "appearance", type: "single_select", label: "Rank your preferred body types.", scoringMechanic: "ranking", order: 1,

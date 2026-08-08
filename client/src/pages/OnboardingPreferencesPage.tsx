@@ -35,7 +35,9 @@ export function OnboardingPreferencesPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [showMandatoryNotice, setShowMandatoryNotice] = useState(false);
+  const [missingKeys, setMissingKeys] = useState<Set<string>>(new Set());
+  const [apiErrors, setApiErrors] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
@@ -118,16 +120,30 @@ export function OnboardingPreferencesPage() {
     );
   }
 
+  function handleAnswerChange(question: QuestionDTO, value: AnswerValue) {
+    setAnswers((prev) => ({ ...prev, [question.key]: value }));
+    if (missingKeys.has(question.key) && isAnswered(question, value)) {
+      setMissingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(question.key);
+        return next;
+      });
+    }
+  }
+
   async function goToStep(delta: number) {
-    setErrors([]);
+    setShowMandatoryNotice(false);
+    setApiErrors([]);
 
     if (delta > 0 && !isDealBreakerStep) {
       const missing = stepQuestions.filter((q) => q.required && !isAnswered(q, answers[q.key]));
       if (missing.length > 0) {
-        setErrors(missing.map((q) => `"${q.label}" is required`));
+        setMissingKeys(new Set(missing.map((q) => q.key)));
+        setShowMandatoryNotice(true);
         return;
       }
     }
+    setMissingKeys(new Set());
 
     setSaving(true);
     try {
@@ -146,7 +162,7 @@ export function OnboardingPreferencesPage() {
         setStepIndex((i) => Math.min(Math.max(i + delta, 0), steps.length - 1));
       }
     } catch (err) {
-      setErrors(err instanceof ApiError && err.issues ? err.issues : [String(err)]);
+      setApiErrors(err instanceof ApiError && err.issues ? err.issues : [String(err)]);
     } finally {
       setSaving(false);
     }
@@ -167,9 +183,14 @@ export function OnboardingPreferencesPage() {
         {CATEGORY_TITLES[currentStep] ?? currentStep}
       </h2>
 
-      {errors.length > 0 && (
+      {showMandatoryNotice && (
+        <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700 dark:bg-red-950/40 dark:text-red-400">
+          All questions are mandatory.
+        </p>
+      )}
+      {apiErrors.length > 0 && (
         <ul className="mt-4 list-inside list-disc rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-400">
-          {errors.map((issue) => (
+          {apiErrors.map((issue) => (
             <li key={issue}>{issue}</li>
           ))}
         </ul>
@@ -188,14 +209,16 @@ export function OnboardingPreferencesPage() {
         <div className="mt-6 flex flex-col gap-6">
           {stepQuestions.map((q) => (
             <div key={q.key} className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-neutral-900 dark:text-white">
+              <label
+                className={`text-sm font-medium ${missingKeys.has(q.key) ? "text-red-600 dark:text-red-400" : "text-neutral-900 dark:text-white"}`}
+              >
                 {q.label}
                 {q.required && <span className="text-brand-500"> *</span>}
               </label>
               <PreferenceQuestionField
                 question={q}
                 value={answers[q.key]}
-                onChange={(value) => setAnswers((prev) => ({ ...prev, [q.key]: value }))}
+                onChange={(value) => handleAnswerChange(q, value)}
               />
             </div>
           ))}

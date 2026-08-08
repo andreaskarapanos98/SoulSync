@@ -20,7 +20,9 @@ export function OnboardingAboutMePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [showMandatoryNotice, setShowMandatoryNotice] = useState(false);
+  const [missingKeys, setMissingKeys] = useState<Set<string>>(new Set());
+  const [apiErrors, setApiErrors] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
@@ -87,16 +89,30 @@ export function OnboardingAboutMePage() {
     );
   }
 
+  function handleAnswerChange(key: string, value: AnswerValue) {
+    setAnswers((prev) => ({ ...prev, [key]: value }));
+    if (missingKeys.has(key) && !isEmpty(value)) {
+      setMissingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }
+
   async function goToStep(delta: number) {
-    setErrors([]);
+    setShowMandatoryNotice(false);
+    setApiErrors([]);
 
     if (delta > 0) {
       const missing = stepQuestions.filter((q) => q.required && isEmpty(answers[q.key]));
       if (missing.length > 0) {
-        setErrors(missing.map((q) => `"${q.label}" is required`));
+        setMissingKeys(new Set(missing.map((q) => q.key)));
+        setShowMandatoryNotice(true);
         return;
       }
     }
+    setMissingKeys(new Set());
 
     const payload = buildStepPayload();
     setSaving(true);
@@ -110,7 +126,7 @@ export function OnboardingAboutMePage() {
         setStepIndex((i) => Math.min(Math.max(i + delta, 0), categories.length - 1));
       }
     } catch (err) {
-      setErrors(err instanceof ApiError && err.issues ? err.issues : [String(err)]);
+      setApiErrors(err instanceof ApiError && err.issues ? err.issues : [String(err)]);
     } finally {
       setSaving(false);
     }
@@ -131,9 +147,14 @@ export function OnboardingAboutMePage() {
         {CATEGORY_TITLES[currentCategory] ?? currentCategory}
       </h2>
 
-      {errors.length > 0 && (
+      {showMandatoryNotice && (
+        <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700 dark:bg-red-950/40 dark:text-red-400">
+          All questions are mandatory.
+        </p>
+      )}
+      {apiErrors.length > 0 && (
         <ul className="mt-4 list-inside list-disc rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-400">
-          {errors.map((issue) => (
+          {apiErrors.map((issue) => (
             <li key={issue}>{issue}</li>
           ))}
         </ul>
@@ -142,14 +163,16 @@ export function OnboardingAboutMePage() {
       <div className="mt-6 flex flex-col gap-6">
         {stepQuestions.map((q) => (
           <div key={q.key} className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-neutral-900 dark:text-white">
+            <label
+              className={`text-sm font-medium ${missingKeys.has(q.key) ? "text-red-600 dark:text-red-400" : "text-neutral-900 dark:text-white"}`}
+            >
               {q.label}
               {q.required && <span className="text-brand-500"> *</span>}
             </label>
             <QuestionField
               question={q}
               value={answers[q.key]}
-              onChange={(value) => setAnswers((prev) => ({ ...prev, [q.key]: value }))}
+              onChange={(value) => handleAnswerChange(q.key, value)}
             />
           </div>
         ))}
