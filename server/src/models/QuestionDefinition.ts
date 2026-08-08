@@ -55,7 +55,13 @@ export const scoringMechanics = [
 ] as const;
 
 const optionSchema = new Schema(
-  { value: { type: String, required: true }, label: { type: String, required: true } },
+  {
+    value: { type: String, required: true },
+    label: { type: String, required: true },
+    // multi_select only: checking this option clears every other selection (and vice
+    // versa) — e.g. "No pets" is mutually exclusive with "Dog"/"Cat"/"Other".
+    exclusive: { type: Boolean, default: false },
+  },
   { _id: false },
 );
 

@@ -143,6 +143,22 @@ export function QuestionField({ question, value, onChange }: Props) {
 
     case "multi_select": {
       const selected = new Set(Array.isArray(value) ? (value as string[]) : []);
+      const exclusiveValues = new Set(question.options?.filter((o) => o.exclusive).map((o) => o.value));
+
+      function toggle(optionValue: string, checked: boolean, isExclusive: boolean) {
+        // Checking an exclusive option (e.g. "No pets") clears everything else; checking
+        // any other option clears whichever exclusive option was selected. They can never
+        // coexist.
+        const next = isExclusive
+          ? new Set(checked ? [optionValue] : [])
+          : new Set([...selected].filter((v) => !exclusiveValues.has(v)));
+        if (!isExclusive) {
+          if (checked) next.add(optionValue);
+          else next.delete(optionValue);
+        }
+        onChange(Array.from(next));
+      }
+
       return (
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {question.options?.map((o) => (
@@ -151,12 +167,7 @@ export function QuestionField({ question, value, onChange }: Props) {
                 type="checkbox"
                 className="accent-brand-500"
                 checked={selected.has(o.value)}
-                onChange={(e) => {
-                  const next = new Set(selected);
-                  if (e.target.checked) next.add(o.value);
-                  else next.delete(o.value);
-                  onChange(Array.from(next));
-                }}
+                onChange={(e) => toggle(o.value, e.target.checked, Boolean(o.exclusive))}
               />
               {o.label}
             </label>

@@ -32,6 +32,8 @@ export type ScoringMechanic = "hard_filter" | "ranking" | "mini_scale" | "relati
 export interface QuestionOptionDTO {
   value: string;
   label: string;
+  // multi_select only: checking this option clears every other selection, and vice versa.
+  exclusive?: boolean;
 }
 
 export interface QuestionDTO {

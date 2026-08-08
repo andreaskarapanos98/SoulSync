@@ -17,8 +17,8 @@ type SeedQuestion = {
   canBeDealBreaker?: boolean;
 };
 
-function opts(...pairs: [string, string][]) {
-  return pairs.map(([value, label]) => ({ value, label }));
+function opts(...pairs: ([string, string] | [string, string, true])[]) {
+  return pairs.map(([value, label, exclusive]) => ({ value, label, exclusive }));
 }
 
 // ============================================================================
@@ -71,7 +71,7 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "travel_frequency", category: "lifestyle", type: "single_select", label: "How often do you travel?", order: 6,
     options: opts(["almost_never", "Almost never"], ["once_year", "Once a year"], ["2_3_year", "2-3 times/year"], ["4_6_year", "4-6 times/year"], ["very_frequently", "Very frequently"]) },
   { key: "pets", category: "lifestyle", type: "multi_select", label: "Do you have pets?", order: 7,
-    options: opts(["no_pets", "No pets"], ["dog", "Dog"], ["cat", "Cat"], ["other", "Other"]) },
+    options: opts(["no_pets", "No pets", true], ["dog", "Dog"], ["cat", "Cat"], ["other", "Other"]) },
   { key: "social_lifestyle", category: "lifestyle", type: "single_select", label: "How would you describe your social life?", order: 8,
     options: opts(["almost_always_home", "Almost always at home"], ["mostly_home", "Mostly at home"], ["balanced", "Balanced"], ["very_social", "Very social"], ["extremely_social", "Extremely social"]) },
   { key: "morning_or_night", category: "lifestyle", type: "single_select", label: "When do you feel most energetic?", order: 9,
@@ -188,7 +188,7 @@ const preferenceQuestions: SeedQuestion[] = [
   { key: "travel_frequency", category: "lifestyle", type: "single_select", label: "How often would you like your soulmate to travel?", scoringMechanic: "mini_scale", order: 6,
     options: opts(["almost_never", "Almost never"], ["once_year", "Once a year"], ["2_3_year", "2-3 times/year"], ["4_6_year", "4-6 times/year"], ["very_frequently", "Very frequently"], [DONT_CARE.value, DONT_CARE.label]) },
   { key: "pets", category: "lifestyle", type: "multi_select", label: "Which pets are you comfortable with your soulmate having?", scoringMechanic: "checklist", order: 7,
-    options: opts(["no_pets", "No pets"], ["dog", "Dog"], ["cat", "Cat"], ["other", "Other"]) },
+    options: opts(["no_pets", "No pets", true], ["dog", "Dog"], ["cat", "Cat"], ["other", "Other"]) },
   { key: "social_lifestyle", category: "lifestyle", type: "single_select", label: "What kind of social lifestyle do you prefer in your soulmate?", scoringMechanic: "mini_scale", order: 8,
     options: opts(["almost_always_home", "Almost always at home"], ["mostly_home", "Mostly at home"], ["balanced", "Balanced"], ["very_social", "Very social"], ["extremely_social", "Extremely social"], [DONT_CARE.value, DONT_CARE.label]) },
   { key: "morning_or_night", category: "lifestyle", type: "single_select", label: "What would you prefer your soulmate to be?", scoringMechanic: "mini_scale", order: 9,
