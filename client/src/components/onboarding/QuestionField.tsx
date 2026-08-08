@@ -45,7 +45,7 @@ export function QuestionField({ question, value, onChange }: Props) {
 
     case "scale": {
       const min = question.min ?? 1;
-      const max = question.max ?? 5;
+      const max = question.max ?? 10;
       const current = typeof value === "number" ? value : Math.round((min + max) / 2);
       return (
         <div className="flex items-center gap-3">
@@ -60,6 +60,51 @@ export function QuestionField({ question, value, onChange }: Props) {
           <span className="w-6 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
             {current}
           </span>
+        </div>
+      );
+    }
+
+    case "number_range": {
+      const min = question.min ?? 18;
+      const max = question.max ?? 99;
+      const [lo, hi] =
+        Array.isArray(value) && value.length === 2 && typeof value[0] === "number"
+          ? (value as number[])
+          : [min, max];
+      const options = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+      const labelFor = (n: number) => (n === max ? `${n}+` : String(n));
+
+      return (
+        <div className="flex items-center gap-3">
+          <select
+            className={textInputClass}
+            value={lo}
+            onChange={(e) => {
+              const nextLo = Number(e.target.value);
+              onChange([nextLo, Math.max(nextLo, hi)]);
+            }}
+          >
+            {options.map((n) => (
+              <option key={n} value={n}>
+                {labelFor(n)}
+              </option>
+            ))}
+          </select>
+          <span className="text-sm text-neutral-500">to</span>
+          <select
+            className={textInputClass}
+            value={hi}
+            onChange={(e) => {
+              const nextHi = Number(e.target.value);
+              onChange([Math.min(lo, nextHi), nextHi]);
+            }}
+          >
+            {options.map((n) => (
+              <option key={n} value={n}>
+                {labelFor(n)}
+              </option>
+            ))}
+          </select>
         </div>
       );
     }
@@ -83,7 +128,7 @@ export function QuestionField({ question, value, onChange }: Props) {
       );
 
     case "multi_select": {
-      const selected = new Set(Array.isArray(value) ? value : []);
+      const selected = new Set(Array.isArray(value) ? (value as string[]) : []);
       return (
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {question.options?.map((o) => (

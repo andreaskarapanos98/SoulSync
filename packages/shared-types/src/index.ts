@@ -13,7 +13,9 @@ export interface MeDTO {
   coinBalance: number;
 }
 
-export type QuestionType = "single_select" | "multi_select" | "scale" | "number" | "text" | "date";
+// number_range: two linked numbers within [min, max] (e.g. age range 16-60, where 60
+// means "60+"). Stored as a 2-element [low, high] tuple.
+export type QuestionType = "single_select" | "multi_select" | "scale" | "number" | "number_range" | "text" | "date";
 
 // Preference-only: how this question feeds the (future) compatibility algorithm.
 // hard_filter = mismatch means 0% and stop scoring entirely (gender, age range).
@@ -48,7 +50,7 @@ export interface QuestionDTO {
   canBeDealBreaker?: boolean;
 }
 
-export type AnswerValue = string | number | string[];
+export type AnswerValue = string | number | string[] | number[];
 
 export interface AboutMeAnswersDTO {
   answers: Record<string, AnswerValue>;

@@ -15,7 +15,7 @@ export function PreferenceQuestionField({ question, value, onChange }: Props) {
     return (
       <RankingField
         question={question}
-        value={Array.isArray(value) ? value : undefined}
+        value={Array.isArray(value) ? (value as string[]) : undefined}
         onChange={onChange}
       />
     );

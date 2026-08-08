@@ -45,7 +45,7 @@ const aboutMeQuestions: SeedQuestion[] = [
   // appearance
   { key: "body_type", category: "appearance", type: "single_select", label: "How would you describe your body type?", order: 1,
     options: opts(["slim", "Slim"], ["athletic", "Athletic"], ["average", "Average"], ["muscular", "Muscular"], ["curvy", "Curvy"], ["plus_size", "Plus-size"], ["prefer_not_to_say", "Prefer not to say"]) },
-  { key: "fitness_level", category: "appearance", type: "scale", label: "How would you describe your fitness level?", min: 1, max: 5, order: 2 },
+  { key: "fitness_level", category: "appearance", type: "scale", label: "How would you describe your fitness level?", min: 1, max: 10, order: 2 },
   { key: "hair_color", category: "appearance", type: "single_select", label: "What's your natural hair color?", order: 3,
     options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["grey_white", "Grey/White"], ["other", "Other"]) },
   { key: "eye_color", category: "appearance", type: "single_select", label: "What's your eye color?", order: 4,
@@ -76,19 +76,19 @@ const aboutMeQuestions: SeedQuestion[] = [
     options: opts(["morning", "Morning"], ["afternoon", "Afternoon"], ["evening_night", "Evening/night"], ["no_preference", "No preference"]) },
 
   // personality
-  { key: "introvert_extrovert", category: "personality", type: "scale", label: "Introvert (1) to extrovert (5)?", min: 1, max: 5, order: 1 },
-  { key: "calm_energetic", category: "personality", type: "scale", label: "Calm (1) to energetic (5)?", min: 1, max: 5, order: 2 },
-  { key: "organized_spontaneous", category: "personality", type: "scale", label: "Organized (1) to spontaneous (5)?", min: 1, max: 5, order: 3 },
-  { key: "romantic_practical", category: "personality", type: "scale", label: "Practical (1) to romantic (5)?", min: 1, max: 5, order: 4 },
-  { key: "risk_taking", category: "personality", type: "scale", label: "How comfortable are you with taking risks?", min: 1, max: 5, order: 5 },
+  { key: "introvert_extrovert", category: "personality", type: "scale", label: "Introvert (1) to extrovert (10)?", min: 1, max: 10, order: 1 },
+  { key: "calm_energetic", category: "personality", type: "scale", label: "Calm (1) to energetic (10)?", min: 1, max: 10, order: 2 },
+  { key: "organized_spontaneous", category: "personality", type: "scale", label: "Organized (1) to spontaneous (10)?", min: 1, max: 10, order: 3 },
+  { key: "romantic_practical", category: "personality", type: "scale", label: "Practical (1) to romantic (10)?", min: 1, max: 10, order: 4 },
+  { key: "risk_taking", category: "personality", type: "scale", label: "How comfortable are you with taking risks?", min: 1, max: 10, order: 5 },
   { key: "communication_style", category: "personality", type: "single_select", label: "How would you describe your communication style?", order: 6,
     options: opts(["direct", "Direct"], ["diplomatic", "Diplomatic/gentle"], ["playful", "Playful"], ["analytical", "Analytical"], ["emotional", "Emotional"], ["reserved", "Reserved"]) },
   { key: "conflict_style", category: "personality", type: "single_select", label: "What do you usually do during an argument?", order: 7,
     options: opts(["talk_it_out", "Talk it out immediately"], ["need_space_first", "Take time to calm down first"], ["seek_compromise", "Look for compromise"], ["avoid", "Avoid confrontation"], ["get_emotional", "Become emotional"]) },
-  { key: "need_for_personal_space", category: "personality", type: "scale", label: "How much personal space do you usually need?", min: 1, max: 5, order: 8 },
+  { key: "need_for_personal_space", category: "personality", type: "scale", label: "How much personal space do you usually need?", min: 1, max: 10, order: 8 },
 
   // values
-  { key: "value_honesty", category: "values", type: "scale", label: "How important is honesty in your relationships?", min: 1, max: 5, order: 1 },
+  { key: "value_honesty", category: "values", type: "scale", label: "How important is honesty in your relationships?", min: 1, max: 10, order: 1 },
   { key: "religion", category: "values", type: "single_select", label: "What's your religion?", order: 2,
     options: opts(["not_religious", "Not religious"], ["agnostic", "Agnostic"], ["spiritual", "Spiritual"], ["christian", "Christian"], ["muslim", "Muslim"], ["jewish", "Jewish"], ["hindu", "Hindu"], ["buddhist", "Buddhist"], ["other", "Other"], ["prefer_not_to_say", "Prefer not to say"]) },
   { key: "financial_approach", category: "values", type: "single_select", label: "How do you usually approach money?", order: 3,
@@ -103,17 +103,17 @@ const aboutMeQuestions: SeedQuestion[] = [
   // family
   { key: "has_children", category: "family", type: "single_select", label: "Do you currently have children?", order: 1,
     options: opts(["no", "No"], ["one", "Yes, one"], ["two", "Yes, two"], ["three_plus", "Yes, three or more"], ["prefer_not_to_say", "Prefer not to say"]) },
-  { key: "family_importance", category: "family", type: "scale", label: "How important is family in your life?", min: 1, max: 5, order: 2 },
+  { key: "family_importance", category: "family", type: "scale", label: "How important is family in your life?", min: 1, max: 10, order: 2 },
   { key: "living_with_family", category: "family", type: "single_select", label: "Do you currently live with family?", order: 3,
     options: opts(["no", "No"], ["temporarily", "Yes, temporarily"], ["long_term", "Yes, long-term"], ["other", "Other"]) },
 
   // communication (kept for the emotional_openness dimension carried over from the
   // original questionnaire; personality's conflict_style/communication_style cover the rest)
-  { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open are you with a partner?", min: 1, max: 5, order: 1 },
+  { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open are you with a partner?", min: 1, max: 10, order: 1 },
 
   // career
-  { key: "career_importance", category: "career", type: "scale", label: "How important is your career to your life?", min: 1, max: 5, order: 1 },
-  { key: "ambition", category: "career", type: "scale", label: "How ambitious are you, especially about your career?", min: 1, max: 5, order: 2 },
+  { key: "career_importance", category: "career", type: "scale", label: "How important is your career to your life?", min: 1, max: 10, order: 1 },
+  { key: "ambition", category: "career", type: "scale", label: "How ambitious are you, especially about your career?", min: 1, max: 10, order: 2 },
   { key: "relocation", category: "career", type: "single_select", label: "Would you move to another country for the right relationship?", order: 3,
     options: opts(["definitely", "Definitely"], ["probably", "Probably"], ["maybe", "Maybe"], ["probably_not", "Probably not"], ["definitely_not", "Definitely not"]) },
 
@@ -124,9 +124,9 @@ const aboutMeQuestions: SeedQuestion[] = [
   // connection
   { key: "weekend_preference", category: "connection", type: "single_select", label: "What does your ideal weekend look like?", order: 1,
     options: opts(["staying_home", "Staying home"], ["out_with_friends", "Going out with friends"], ["dates", "Going on dates"], ["outdoor_activities", "Outdoor activities"], ["travelling", "Travelling"], ["nightlife", "Partying/nightlife"], ["family_time", "Family time"], ["combination", "A combination"]) },
-  { key: "affection_level", category: "connection", type: "scale", label: "How affectionate are you physically?", min: 1, max: 5, order: 2 },
-  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important is spending quality time with your partner?", min: 1, max: 5, order: 3 },
-  { key: "gifts_importance", category: "connection", type: "scale", label: "How important are gifts (giving/receiving) in a relationship to you?", min: 1, max: 5, order: 4 },
+  { key: "affection_level", category: "connection", type: "scale", label: "How affectionate are you physically?", min: 1, max: 10, order: 2 },
+  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important is spending quality time with your partner?", min: 1, max: 10, order: 3 },
+  { key: "gifts_importance", category: "connection", type: "scale", label: "How important are gifts (giving/receiving) in a relationship to you?", min: 1, max: 10, order: 4 },
   { key: "humor_style", category: "connection", type: "single_select", label: "How would you describe your sense of humor?", order: 5,
     options: opts(["dry", "Dry"], ["sarcastic", "Sarcastic"], ["playful", "Playful"], ["dark", "Dark"], ["silly", "Silly"], ["intellectual", "Intellectual"], ["romantic", "Romantic"]) },
 ];
@@ -148,8 +148,7 @@ const preferenceQuestions: SeedQuestion[] = [
   // basics
   { key: "gender", category: "basics", type: "multi_select", label: "Which genders are you interested in?", required: true, scoringMechanic: "hard_filter", order: 1,
     options: opts(["man", "Man"], ["woman", "Woman"], ["other", "Other"]) },
-  { key: "age_range", category: "basics", type: "single_select", label: "What age range are you looking for?", required: true, scoringMechanic: "hard_filter", order: 2,
-    options: opts(["18_24", "18-24"], ["25_29", "25-29"], ["30_34", "30-34"], ["35_39", "35-39"], ["40_49", "40-49"], ["50_plus", "50+"]) },
+  { key: "age_range", category: "basics", type: "number_range", label: "What age range are you looking for?", required: true, scoringMechanic: "hard_filter", min: 16, max: 60, order: 2 },
   { key: "country", category: "basics", type: "single_select", label: "Would you like your soulmate to live in your country?", scoringMechanic: "relative_self", order: 3,
     options: opts(["same_country", "Same country as me"], ["anywhere", "Anywhere"]) },
   { key: "languages", category: "basics", type: "multi_select", label: "Which languages would you like your soulmate to speak?", scoringMechanic: "checklist", order: 4,
@@ -162,7 +161,7 @@ const preferenceQuestions: SeedQuestion[] = [
   // appearance
   { key: "body_type", category: "appearance", type: "single_select", label: "Rank your preferred body types.", scoringMechanic: "ranking", order: 1,
     options: opts(["slim", "Slim"], ["athletic", "Athletic"], ["average", "Average"], ["muscular", "Muscular"], ["curvy", "Curvy"], ["plus_size", "Plus-size"]) },
-  { key: "fitness_level", category: "appearance", type: "scale", label: "What fitness level would you like your soulmate to have?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 2 },
+  { key: "fitness_level", category: "appearance", type: "scale", label: "What fitness level would you like your soulmate to have?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
   { key: "hair_color", category: "appearance", type: "single_select", label: "Rank your preferred hair colors.", scoringMechanic: "ranking", order: 3,
     options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["grey_white", "Grey/White"], ["other", "Other"]) },
   { key: "eye_color", category: "appearance", type: "single_select", label: "Rank your preferred eye colors.", scoringMechanic: "ranking", order: 4,
@@ -193,16 +192,16 @@ const preferenceQuestions: SeedQuestion[] = [
     options: opts(["morning", "Morning person"], ["night", "Night person"], ["either", "Either"]) },
 
   // personality
-  { key: "introvert_extrovert", category: "personality", type: "scale", label: "Introvert (1) to extrovert (5) — what's your preference?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 1 },
-  { key: "calm_energetic", category: "personality", type: "scale", label: "Calm (1) to energetic (5) — what's your preference?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 2 },
-  { key: "organized_spontaneous", category: "personality", type: "scale", label: "Organized (1) to spontaneous (5) — what's your preference?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 3 },
-  { key: "romantic_practical", category: "personality", type: "scale", label: "Practical (1) to romantic (5) — what's your preference?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 4 },
-  { key: "risk_taking", category: "personality", type: "scale", label: "How would you prefer your soulmate to approach risk?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 5 },
+  { key: "introvert_extrovert", category: "personality", type: "scale", label: "Introvert (1) to extrovert (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 1 },
+  { key: "calm_energetic", category: "personality", type: "scale", label: "Calm (1) to energetic (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
+  { key: "organized_spontaneous", category: "personality", type: "scale", label: "Organized (1) to spontaneous (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 3 },
+  { key: "romantic_practical", category: "personality", type: "scale", label: "Practical (1) to romantic (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 4 },
+  { key: "risk_taking", category: "personality", type: "scale", label: "How would you prefer your soulmate to approach risk?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 5 },
   { key: "communication_style", category: "personality", type: "single_select", label: "Rank the communication styles you prefer.", scoringMechanic: "ranking", order: 6,
     options: opts(["direct", "Direct"], ["diplomatic", "Diplomatic/gentle"], ["playful", "Playful"], ["analytical", "Analytical"], ["emotional", "Emotional"], ["reserved", "Reserved"]) },
   { key: "conflict_style", category: "personality", type: "single_select", label: "Rank how you'd prefer your soulmate to handle conflict.", scoringMechanic: "ranking", order: 7,
     options: opts(["talk_it_out", "Talk it out immediately"], ["need_space_first", "Take time to calm down first"], ["seek_compromise", "Look for compromise"], ["avoid", "Avoid confrontation"], ["get_emotional", "Become emotional"]) },
-  { key: "need_for_personal_space", category: "personality", type: "scale", label: "How much personal space would you prefer your soulmate to need?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 8 },
+  { key: "need_for_personal_space", category: "personality", type: "scale", label: "How much personal space would you prefer your soulmate to need?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 8 },
 
   // values
   { key: "value_honesty", category: "values", type: "single_select", label: "How important is honesty in your soulmate?", scoringMechanic: "filler", order: 1,
@@ -221,16 +220,16 @@ const preferenceQuestions: SeedQuestion[] = [
   // family
   { key: "has_children", category: "family", type: "single_select", label: "Rank your preference on your soulmate already having children.", scoringMechanic: "ranking", canBeDealBreaker: true, order: 1,
     options: opts(["no", "No children"], ["one", "One is okay"], ["two", "Two is okay"], ["three_plus", "Three or more is okay"], ["doesnt_matter", "Doesn't matter"]) },
-  { key: "family_importance", category: "family", type: "scale", label: "How important would you like family to be to your soulmate?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 2 },
+  { key: "family_importance", category: "family", type: "scale", label: "How important would you like family to be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
   { key: "living_with_family", category: "family", type: "single_select", label: "How would you feel about your soulmate living with family?", scoringMechanic: "filler", order: 3,
     options: opts(["prefer_not", "Prefer they don't"], ["temporarily_ok", "Temporarily is okay"], ["long_term_ok", "Long-term is okay"], ["doesnt_matter", "Doesn't matter"]) },
 
   // communication
-  { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open would you like your soulmate to be?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 1 },
+  { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open would you like your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 1 },
 
   // career
-  { key: "career_importance", category: "career", type: "scale", label: "How important would you prefer your soulmate's career to be to them?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 1 },
-  { key: "ambition", category: "career", type: "scale", label: "How ambitious would you prefer your soulmate to be?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 2 },
+  { key: "career_importance", category: "career", type: "scale", label: "How important would you prefer your soulmate's career to be to them?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 1 },
+  { key: "ambition", category: "career", type: "scale", label: "How ambitious would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
   { key: "relocation", category: "career", type: "single_select", label: "How important is it that your soulmate is willing to relocate?", scoringMechanic: "mini_scale", order: 3,
     options: opts(["definitely", "Definitely willing"], ["probably", "Probably willing"], ["maybe", "Maybe willing"], ["probably_not", "Probably not willing"], ["definitely_not", "Definitely not willing"]) },
 
@@ -241,9 +240,9 @@ const preferenceQuestions: SeedQuestion[] = [
   // connection
   { key: "weekend_preference", category: "connection", type: "single_select", label: "Rank your preferred soulmate's ideal weekend.", scoringMechanic: "ranking", order: 1,
     options: opts(["staying_home", "Staying home"], ["out_with_friends", "Going out with friends"], ["dates", "Going on dates"], ["outdoor_activities", "Outdoor activities"], ["travelling", "Travelling"], ["nightlife", "Partying/nightlife"], ["family_time", "Family time"], ["combination", "A combination"]) },
-  { key: "affection_level", category: "connection", type: "scale", label: "How physically affectionate would you prefer your soulmate to be?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 2 },
-  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important should quality time be to your soulmate?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 3 },
-  { key: "gifts_importance", category: "connection", type: "scale", label: "How important should gifts be to your soulmate?", min: 1, max: 5, scoringMechanic: "mini_scale", order: 4 },
+  { key: "affection_level", category: "connection", type: "scale", label: "How physically affectionate would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
+  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important should quality time be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 3 },
+  { key: "gifts_importance", category: "connection", type: "scale", label: "How important should gifts be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 4 },
   { key: "humor_style", category: "connection", type: "single_select", label: "Rank your preferred sense of humor in a soulmate.", scoringMechanic: "ranking", order: 5,
     options: opts(["dry", "Dry"], ["sarcastic", "Sarcastic"], ["playful", "Playful"], ["dark", "Dark"], ["silly", "Silly"], ["intellectual", "Intellectual"], ["romantic", "Romantic"]) },
 ];

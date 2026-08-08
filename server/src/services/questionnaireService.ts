@@ -29,6 +29,21 @@ function validateValue(question: QuestionDefinition, value: unknown): string | n
       if (question.max != null && value > question.max) return `${question.key}: must be <= ${question.max}`;
       return null;
     }
+    case "number_range": {
+      if (
+        !Array.isArray(value) ||
+        value.length !== 2 ||
+        typeof value[0] !== "number" ||
+        typeof value[1] !== "number"
+      ) {
+        return `${question.key}: must be a [low, high] pair of numbers`;
+      }
+      const [low, high] = value;
+      if (low > high) return `${question.key}: low must be <= high`;
+      if (question.min != null && low < question.min) return `${question.key}: low must be >= ${question.min}`;
+      if (question.max != null && high > question.max) return `${question.key}: high must be <= ${question.max}`;
+      return null;
+    }
     case "text": {
       if (typeof value !== "string" || value.trim().length === 0) return `${question.key}: must be a non-empty string`;
       return null;

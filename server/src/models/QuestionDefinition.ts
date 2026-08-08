@@ -16,11 +16,14 @@ export const questionCategories = [
 
 export const questionAppliesTo = ["about_me", "preference"] as const;
 
+// number_range: two linked numbers within [min, max] (e.g. age range 16-60, where 60
+// means "60+"). Stored as a 2-element [low, high] tuple.
 export const questionTypes = [
   "single_select",
   "multi_select",
   "scale",
   "number",
+  "number_range",
   "text",
   "date",
 ] as const;
