@@ -40,7 +40,7 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "height_cm", category: "basics", type: "number", label: "What's your height (cm)?", min: 120, max: 230, order: 8 },
   { key: "occupation", category: "basics", type: "text", label: "What's your occupation?", order: 9 },
   { key: "education", category: "basics", type: "single_select", label: "What's your highest level of education?", order: 10,
-    options: opts(["high_school", "High school"], ["bachelors", "Bachelor's"], ["masters", "Master's"], ["phd", "PhD"], ["other", "Other"]) },
+    options: opts(["high_school", "High school"], ["bachelors", "Bachelor's"], ["masters", "Master's"], ["phd", "PhD"]) },
 
   // appearance
   { key: "body_type", category: "appearance", type: "single_select", label: "How would you describe your body type?", order: 1,
