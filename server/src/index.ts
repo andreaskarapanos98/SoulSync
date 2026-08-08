@@ -15,6 +15,7 @@ import { profileRouter } from "./routes/profile.js";
 import { profilePhotosRouter } from "./routes/profilePhotos.js";
 import { voiceIntroRouter } from "./routes/voiceIntro.js";
 import { publicProfilesRouter } from "./routes/publicProfiles.js";
+import { matchesRouter } from "./routes/matches.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/v1/me/profile/photos", profilePhotosRouter);
 app.use("/api/v1/me/profile/voice-intro", voiceIntroRouter);
 app.use("/api/v1/me/profile", profileRouter);
 app.use("/api/v1/profiles", publicProfilesRouter);
+app.use("/api/v1/matches", matchesRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(

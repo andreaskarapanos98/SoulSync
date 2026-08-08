@@ -1,17 +1,26 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import { Logo } from "./Logo";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-svh flex flex-col bg-white dark:bg-neutral-950">
+    <div className="min-h-svh flex flex-col bg-gradient-to-b from-brand-50/60 via-white to-white dark:from-brand-950/10 dark:via-neutral-950 dark:to-neutral-950">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-            <span className="text-brand-500">♥</span> SoulSync
+          <Link to="/">
+            <Logo />
           </Link>
 
           <div className="flex items-center gap-3">
+            <SignedIn>
+              <Link
+                to="/matches"
+                className="rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-brand-50 hover:text-brand-600 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Matches
+              </Link>
+            </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">
                 <button className="rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800">

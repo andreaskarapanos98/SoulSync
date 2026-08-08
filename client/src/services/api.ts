@@ -2,6 +2,7 @@ import type {
   AboutMeAnswersDTO,
   AnswerValue,
   DealBreakersDTO,
+  MatchesResponseDTO,
   MeDTO,
   OwnProfileDTO,
   PhotosResponseDTO,
@@ -112,6 +113,7 @@ export function createApiClient(getToken: GetToken) {
     },
     deleteVoiceIntro: () =>
       request<VoiceIntroResponseDTO>("/api/v1/me/profile/voice-intro", { method: "DELETE" }),
+    getMatches: () => request<MatchesResponseDTO>("/api/v1/matches"),
   };
 }
 

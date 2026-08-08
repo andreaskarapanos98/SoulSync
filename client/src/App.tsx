@@ -3,6 +3,7 @@ import { HomePage } from "./pages/HomePage";
 import { OnboardingAboutMePage } from "./pages/OnboardingAboutMePage";
 import { OnboardingPreferencesPage } from "./pages/OnboardingPreferencesPage";
 import { ProfileEditPage } from "./pages/ProfileEditPage";
+import { MatchesPage } from "./pages/MatchesPage";
 import { RequireAuth } from "./components/RequireAuth";
 import { Layout } from "./components/Layout";
 
@@ -32,6 +33,14 @@ function App() {
           element={
             <RequireAuth>
               <ProfileEditPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/matches"
+          element={
+            <RequireAuth>
+              <MatchesPage />
             </RequireAuth>
           }
         />

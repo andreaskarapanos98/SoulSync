@@ -145,9 +145,18 @@ function Dashboard() {
       <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">Welcome back</h2>
       <p className="mt-1 text-neutral-600 dark:text-neutral-400">
         {me.onboardingStatus === "complete"
-          ? "Your profile is complete — matching is coming soon."
+          ? "Your profile is complete — take a look at your matches."
           : "Finish setting up your profile to get started."}
       </p>
+
+      {me.onboardingStatus === "complete" && (
+        <Link
+          to="/matches"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 hover:bg-brand-600"
+        >
+          💘 See your matches
+        </Link>
+      )}
 
       <div className="mt-8 flex flex-col gap-3">
         <OnboardingStep

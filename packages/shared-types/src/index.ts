@@ -124,3 +124,23 @@ export interface VoiceIntroResponseDTO {
   voiceIntro: VoiceIntroDTO | null;
   missingRequired?: string[];
 }
+
+export interface MatchCardDTO {
+  clerkId: string;
+  firstName: string;
+  age?: number;
+  city?: string;
+  country?: string;
+  photoUrl?: string;
+  hasVoiceIntro: boolean;
+  // 0-100. Hard filters (gender/age/country/language) are real; the rest of the
+  // score is a stable placeholder until the full compatibility engine ships.
+  compatibility: number;
+}
+
+export interface MatchesResponseDTO {
+  // Candidates who fit what the viewer is looking for.
+  yourSoulmates: MatchCardDTO[];
+  // Candidates the viewer fits what THEY are looking for.
+  theirSoulmate: MatchCardDTO[];
+}

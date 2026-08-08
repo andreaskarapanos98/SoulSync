@@ -170,6 +170,7 @@ export function OnboardingPreferencesPage() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-6 py-12">
+    <div className="rounded-3xl border border-brand-100 bg-white/80 p-8 shadow-sm shadow-brand-100/50 dark:border-neutral-800 dark:bg-neutral-900/60 dark:shadow-none">
       <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
         <div
           className="h-full bg-brand-500 transition-all"
@@ -243,6 +244,7 @@ export function OnboardingPreferencesPage() {
           {saving ? "Saving…" : stepIndex === steps.length - 1 ? "Finish" : "Next"}
         </button>
       </div>
+    </div>
     </div>
   );
 }
