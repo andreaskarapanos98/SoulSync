@@ -15,10 +15,7 @@ function isEmptyValue(value: AnswerValue | undefined): boolean {
 // Ranking questions treat an empty array as a deliberate "I don't care", not "unanswered" —
 // only `undefined` (never touched) counts as unanswered for them.
 function isAnswered(question: QuestionDTO, value: AnswerValue | undefined): boolean {
-  if (question.scoringMechanic === "ranking") {
-    if (value === undefined) return false;
-    return question.required ? Array.isArray(value) && value.length > 0 : true;
-  }
+  if (question.scoringMechanic === "ranking") return value !== undefined;
   return !isEmptyValue(value);
 }
 

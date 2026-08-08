@@ -24,16 +24,14 @@ export function RankingField({ question, value, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      {!question.required && (
-        <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-          <input
-            type="checkbox"
-            checked={dontCare}
-            onChange={(e) => onChange(e.target.checked ? [] : options.map((o) => o.value))}
-          />
-          I don't care
-        </label>
-      )}
+      <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+        <input
+          type="checkbox"
+          checked={dontCare}
+          onChange={(e) => onChange(e.target.checked ? [] : options.map((o) => o.value))}
+        />
+        I don't care
+      </label>
       {!dontCare && (
         <ol className="flex flex-col gap-1">
           {order.map((optValue, i) => (

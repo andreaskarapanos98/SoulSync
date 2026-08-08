@@ -31,12 +31,12 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "first_name", category: "basics", type: "text", label: "What's your first name?", required: true, order: 1 },
   { key: "date_of_birth", category: "basics", type: "date", label: "What's your date of birth?", required: true, order: 2 },
   { key: "gender", category: "basics", type: "single_select", label: "What's your gender?", required: true, order: 3,
-    options: opts(["man", "Man"], ["woman", "Woman"], ["other", "Other"]) },
+    options: opts(["man", "Man"], ["woman", "Woman"], ["non_binary", "Non-Binary"]) },
   { key: "nationality", category: "basics", type: "text", label: "What's your nationality?", required: true, order: 4 },
   { key: "country", category: "basics", type: "text", label: "What country do you live in?", required: true, order: 5 },
   { key: "city", category: "basics", type: "text", label: "What city do you live in?", required: true, order: 6 },
   { key: "languages", category: "basics", type: "multi_select", label: "Which languages do you speak?", order: 7,
-    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"], ["other", "Other"]) },
+    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"]) },
   { key: "height_cm", category: "basics", type: "number", label: "What's your height (cm)?", min: 120, max: 230, order: 8 },
   { key: "occupation", category: "basics", type: "text", label: "What's your occupation?", order: 9 },
   { key: "education", category: "basics", type: "single_select", label: "What's your highest level of education?", order: 10,
@@ -147,12 +147,12 @@ const DONT_CARE = { value: "no_preference", label: "I don't care" };
 const preferenceQuestions: SeedQuestion[] = [
   // basics
   { key: "gender", category: "basics", type: "multi_select", label: "Which genders are you interested in?", required: true, scoringMechanic: "hard_filter", order: 1,
-    options: opts(["man", "Man"], ["woman", "Woman"], ["other", "Other"]) },
+    options: opts(["man", "Man"], ["woman", "Woman"], ["non_binary", "Non-Binary"]) },
   { key: "age_range", category: "basics", type: "number_range", label: "What age range are you looking for?", required: true, scoringMechanic: "hard_filter", min: 16, max: 60, order: 2 },
   { key: "country", category: "basics", type: "single_select", label: "Would you like your soulmate to live in your country?", scoringMechanic: "relative_self", order: 3,
     options: opts(["same_country", "Same country as me"], ["anywhere", "Anywhere"]) },
   { key: "languages", category: "basics", type: "multi_select", label: "Which languages would you like your soulmate to speak?", scoringMechanic: "checklist", order: 4,
-    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"], ["other", "Other"]) },
+    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"]) },
   { key: "height_cm", category: "basics", type: "single_select", label: "How tall would you prefer your soulmate to be?", scoringMechanic: "relative_self", order: 5,
     options: opts(["taller", "Taller than me"], ["shorter", "Shorter than me"], ["near", "Around my height (±10%)"], ["no_preference", "I don't care"]) },
   { key: "education", category: "basics", type: "single_select", label: "What level of education would you like your soulmate to have?", scoringMechanic: "mini_scale", order: 6,
@@ -268,10 +268,12 @@ async function main() {
     { $set: { active: false } },
   );
 
+  // Every question is mandatory — the wizard can't advance a step until all of it is
+  // answered ("I don't care" still counts as answered where that option exists).
   for (const q of aboutMeQuestions) {
     await QuestionDefinitionModel.updateOne(
       { key: q.key, appliesTo: "about_me" },
-      { $set: { ...q, appliesTo: "about_me", active: true } },
+      { $set: { ...q, appliesTo: "about_me", active: true, required: true } },
       { upsert: true },
     );
   }
@@ -279,7 +281,7 @@ async function main() {
   for (const q of preferenceQuestions) {
     await QuestionDefinitionModel.updateOne(
       { key: q.key, appliesTo: "preference" },
-      { $set: { ...q, appliesTo: "preference", active: true } },
+      { $set: { ...q, appliesTo: "preference", active: true, required: true } },
       { upsert: true },
     );
   }

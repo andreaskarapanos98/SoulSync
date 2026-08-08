@@ -73,6 +73,8 @@ export function QuestionField({ question, value, onChange }: Props) {
           : [min, max];
       const options = Array.from({ length: max - min + 1 }, (_, i) => min + i);
       const labelFor = (n: number) => (n === max ? `${n}+` : String(n));
+      // Low end pinned to "max+" (e.g. 60+) has no meaningful upper bound — lock "to" at max.
+      const noUpperBound = lo === max;
 
       return (
         <div className="flex items-center gap-3">
@@ -81,7 +83,7 @@ export function QuestionField({ question, value, onChange }: Props) {
             value={lo}
             onChange={(e) => {
               const nextLo = Number(e.target.value);
-              onChange([nextLo, Math.max(nextLo, hi)]);
+              onChange([nextLo, nextLo === max ? max : Math.max(nextLo, hi)]);
             }}
           >
             {options.map((n) => (
@@ -92,8 +94,9 @@ export function QuestionField({ question, value, onChange }: Props) {
           </select>
           <span className="text-sm text-neutral-500">to</span>
           <select
-            className={textInputClass}
-            value={hi}
+            className={`${textInputClass} disabled:cursor-not-allowed disabled:opacity-50`}
+            value={noUpperBound ? max : hi}
+            disabled={noUpperBound}
             onChange={(e) => {
               const nextHi = Number(e.target.value);
               onChange([Math.min(lo, nextHi), nextHi]);
