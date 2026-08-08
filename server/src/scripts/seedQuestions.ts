@@ -98,15 +98,15 @@ const aboutMeQuestions: SeedQuestion[] = [
   // relationship_goals
   { key: "relationship_type", category: "relationship_goals", type: "single_select", label: "What type of relationship are you looking for?", required: true, order: 1,
     options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with potential for serious"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
-  { key: "wants_children", category: "relationship_goals", type: "single_select", label: "Do you want children?", required: true, order: 2,
-    options: opts(["yes", "Yes"], ["no", "No"], ["maybe", "Maybe"], ["already_have", "Already have children"], ["prefer_not_to_say", "Prefer not to say"]) },
+  { key: "wants_children", category: "relationship_goals", type: "single_select", label: "Do you want children someday in your life?", required: true, order: 2,
+    options: opts(["yes", "Yes"], ["no", "No"], ["already_have", "Already have children"]) },
 
   // family
   { key: "has_children", category: "family", type: "single_select", label: "Do you currently have children?", order: 1,
-    options: opts(["no", "No"], ["one", "Yes, one"], ["two", "Yes, two"], ["three_plus", "Yes, three or more"], ["prefer_not_to_say", "Prefer not to say"]) },
+    options: opts(["no", "No"], ["one", "Yes, one"], ["two", "Yes, two"], ["three_plus", "Yes, three or more"]) },
   { key: "family_importance", category: "family", type: "scale", label: "How important is family in your life?", min: 1, max: 10, order: 2 },
-  { key: "living_with_family", category: "family", type: "single_select", label: "Do you currently live with family?", order: 3,
-    options: opts(["no", "No"], ["temporarily", "Yes, temporarily"], ["long_term", "Yes, long-term"], ["other", "Other"]) },
+  { key: "living_with_family", category: "family", type: "single_select", label: "Do you currently live alone or with family?", order: 3,
+    options: opts(["yes", "Yes"], ["no", "No"]) },
 
   // communication (kept for the emotional_openness dimension carried over from the
   // original questionnaire; personality's conflict_style/communication_style cover the rest)
@@ -120,7 +120,7 @@ const aboutMeQuestions: SeedQuestion[] = [
 
   // hobbies
   { key: "hobbies", category: "hobbies", type: "multi_select", label: "What do you enjoy doing?", order: 1,
-    options: opts(["gym", "Gym"], ["hiking", "Hiking"], ["gaming", "Gaming"], ["cooking", "Cooking"], ["reading", "Reading"], ["movies", "Movies"], ["music", "Music"], ["dancing", "Dancing"], ["photography", "Photography"], ["art", "Art"], ["travelling", "Travelling"], ["sports", "Sports"], ["cars", "Cars"], ["technology", "Technology"], ["fashion", "Fashion"], ["business", "Business"], ["investing", "Investing"], ["nature", "Nature"], ["nightlife", "Nightlife"]) },
+    options: opts(["gym", "Gym"], ["hiking", "Hiking"], ["gaming", "Gaming"], ["cooking", "Cooking"], ["reading", "Reading"], ["movies", "Movies"], ["music", "Music"], ["dancing", "Dancing"], ["photography", "Photography"], ["art", "Art"], ["travelling", "Travelling"], ["sports", "Sports"], ["combat_sports", "Combat Sports"], ["cars", "Cars"], ["technology", "Technology"], ["fashion", "Fashion"], ["business", "Business"], ["investing", "Investing"], ["nature", "Nature"], ["nightlife", "Nightlife"]) },
 
   // connection
   { key: "weekend_preference", category: "connection", type: "single_select", label: "What does your ideal weekend look like?", order: 1,
@@ -222,29 +222,29 @@ const preferenceQuestions: SeedQuestion[] = [
   // family
   { key: "has_children", category: "family", type: "single_select", label: "Rank your preference on your soulmate already having children.", scoringMechanic: "ranking", canBeDealBreaker: true, order: 1,
     options: opts(["no", "No children"], ["one", "One is okay"], ["two", "Two is okay"], ["three_plus", "Three or more is okay"], ["doesnt_matter", "Doesn't matter"]) },
-  { key: "family_importance", category: "family", type: "scale", label: "How important would you like family to be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
-  { key: "living_with_family", category: "family", type: "single_select", label: "How would you feel about your soulmate living with family?", scoringMechanic: "filler", order: 3,
-    options: opts(["prefer_not", "Prefer they don't"], ["temporarily_ok", "Temporarily is okay"], ["long_term_ok", "Long-term is okay"], ["doesnt_matter", "Doesn't matter"]) },
+  { key: "family_importance", category: "family", type: "scale", label: "How important would you like family to be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
+  { key: "living_with_family", category: "family", type: "single_select", label: "Would you be comfortable with your soulmate living with family?", scoringMechanic: "filler", order: 3,
+    options: opts(["yes", "Yes"], ["no", "No"]) },
 
   // communication
-  { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open would you like your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 1 },
+  { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open would you like your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 1 },
 
   // career
-  { key: "career_importance", category: "career", type: "scale", label: "How important would you prefer your soulmate's career to be to them?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 1 },
-  { key: "ambition", category: "career", type: "scale", label: "How ambitious would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
+  { key: "career_importance", category: "career", type: "scale", label: "How important would you prefer your soulmate's career to be to them?", min: 1, max: 10, scoringMechanic: "filler", order: 1 },
+  { key: "ambition", category: "career", type: "scale", label: "How ambitious would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
   { key: "relocation", category: "career", type: "single_select", label: "How important is it that your soulmate is willing to relocate?", scoringMechanic: "mini_scale", order: 3,
     options: opts(["definitely", "Definitely willing"], ["probably", "Probably willing"], ["maybe", "Maybe willing"], ["probably_not", "Probably not willing"], ["definitely_not", "Definitely not willing"]) },
 
   // hobbies — low-signal by design; kept out of any future high-weight category.
   { key: "hobbies", category: "hobbies", type: "multi_select", label: "Which interests would you like your soulmate to share?", scoringMechanic: "checklist", order: 1,
-    options: opts(["gym", "Gym"], ["hiking", "Hiking"], ["gaming", "Gaming"], ["cooking", "Cooking"], ["reading", "Reading"], ["movies", "Movies"], ["music", "Music"], ["dancing", "Dancing"], ["photography", "Photography"], ["art", "Art"], ["travelling", "Travelling"], ["sports", "Sports"], ["cars", "Cars"], ["technology", "Technology"], ["fashion", "Fashion"], ["business", "Business"], ["investing", "Investing"], ["nature", "Nature"], ["nightlife", "Nightlife"]) },
+    options: opts(["gym", "Gym"], ["hiking", "Hiking"], ["gaming", "Gaming"], ["cooking", "Cooking"], ["reading", "Reading"], ["movies", "Movies"], ["music", "Music"], ["dancing", "Dancing"], ["photography", "Photography"], ["art", "Art"], ["travelling", "Travelling"], ["sports", "Sports"], ["combat_sports", "Combat Sports"], ["cars", "Cars"], ["technology", "Technology"], ["fashion", "Fashion"], ["business", "Business"], ["investing", "Investing"], ["nature", "Nature"], ["nightlife", "Nightlife"]) },
 
   // connection
-  { key: "weekend_preference", category: "connection", type: "single_select", label: "Rank your preferred soulmate's ideal weekend.", scoringMechanic: "ranking", order: 1,
+  { key: "weekend_preference", category: "connection", type: "single_select", label: "What would you like your soulmate's ideal weekend to look like?", scoringMechanic: "filler", order: 1,
     options: opts(["staying_home", "Staying home"], ["out_with_friends", "Going out with friends"], ["dates", "Going on dates"], ["outdoor_activities", "Outdoor activities"], ["travelling", "Travelling"], ["nightlife", "Partying/nightlife"], ["family_time", "Family time"], ["combination", "A combination"]) },
-  { key: "affection_level", category: "connection", type: "scale", label: "How physically affectionate would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
-  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important should quality time be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 3 },
-  { key: "gifts_importance", category: "connection", type: "scale", label: "How important should gifts be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 4 },
+  { key: "affection_level", category: "connection", type: "scale", label: "How physically affectionate would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
+  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important should quality time be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 3 },
+  { key: "gifts_importance", category: "connection", type: "scale", label: "How important should gifts be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 4 },
   { key: "humor_style", category: "connection", type: "single_select", label: "Rank your preferred sense of humor in a soulmate.", scoringMechanic: "ranking", order: 5,
     options: opts(["dry", "Dry"], ["sarcastic", "Sarcastic"], ["playful", "Playful"], ["dark", "Dark"], ["silly", "Silly"], ["intellectual", "Intellectual"], ["romantic", "Romantic"]) },
 ];
