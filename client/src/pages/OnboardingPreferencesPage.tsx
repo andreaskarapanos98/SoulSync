@@ -5,6 +5,7 @@ import { useApi } from "../hooks/useApi";
 import { ApiError } from "../services/api";
 import { PreferenceQuestionField } from "../components/onboarding/PreferenceQuestionField";
 import { DealBreakerStep } from "../components/onboarding/DealBreakerStep";
+import { IntroScreen } from "../components/onboarding/IntroScreen";
 import { ABOUT_ME_CATEGORY_ORDER, CATEGORY_TITLES } from "../utils/onboardingCategories";
 
 function isEmptyValue(value: AnswerValue | undefined): boolean {
@@ -39,6 +40,7 @@ export function OnboardingPreferencesPage() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [done, setDone] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -55,6 +57,21 @@ export function OnboardingPreferencesPage() {
       })
       .catch((err) => setLoadError(String(err)));
   }, []);
+
+  if (showIntro) {
+    return (
+      <IntroScreen
+        title="Let's find your ideal soulmate"
+        points={[
+          { icon: "⏱️", text: "This process will take around 10 minutes." },
+          { icon: "🕰️", text: "Please take your time and think carefully about what matters to you." },
+          { icon: "💘", text: "The more honest you are, the better your matches will be." },
+        ]}
+        ctaLabel="Let's start"
+        onContinue={() => setShowIntro(false)}
+      />
+    );
+  }
 
   if (loadError)
     return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load questionnaire: {loadError}</p>;
