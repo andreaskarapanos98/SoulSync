@@ -224,7 +224,7 @@ const preferenceQuestions: SeedQuestion[] = [
     options: opts(["no", "No children"], ["one", "One is okay"], ["two", "Two is okay"], ["three_plus", "Three or more is okay"], ["doesnt_matter", "Doesn't matter"]) },
   { key: "family_importance", category: "family", type: "scale", label: "How important would you like family to be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
   { key: "living_with_family", category: "family", type: "single_select", label: "Would you be comfortable with your soulmate living with family?", scoringMechanic: "filler", order: 3,
-    options: opts(["yes", "Yes"], ["no", "No"]) },
+    options: opts(["yes", "Yes"], ["no", "No"], [DONT_CARE.value, DONT_CARE.label]) },
 
   // communication
   { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open would you like your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 1 },
