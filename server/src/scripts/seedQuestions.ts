@@ -82,7 +82,7 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "calm_energetic", category: "personality", type: "scale", label: "Calm (1) to energetic (10)?", min: 1, max: 10, order: 2 },
   { key: "organized_spontaneous", category: "personality", type: "scale", label: "Organized (1) to spontaneous (10)?", min: 1, max: 10, order: 3 },
   { key: "romantic_practical", category: "personality", type: "scale", label: "Practical (1) to romantic (10)?", min: 1, max: 10, order: 4 },
-  { key: "communication_style", category: "personality", type: "single_select", label: "How would you describe your communication style?", order: 6,
+  { key: "communication_style", category: "personality", type: "single_select", label: "How would you best describe your communication style?", order: 6,
     options: opts(["direct", "Direct"], ["diplomatic", "Diplomatic/gentle"], ["playful", "Playful"], ["analytical", "Analytical"], ["emotional", "Emotional"], ["reserved", "Reserved"]) },
   { key: "conflict_style", category: "personality", type: "single_select", label: "What do you usually do during an argument?", order: 7,
     options: opts(["talk_it_out", "Talk it out immediately"], ["need_space_first", "Take time to calm down first"], ["seek_compromise", "Look for compromise"], ["avoid", "Avoid confrontation"], ["get_emotional", "Become emotional"]) },
@@ -91,13 +91,13 @@ const aboutMeQuestions: SeedQuestion[] = [
   // values
   { key: "value_honesty", category: "values", type: "scale", label: "How important is honesty in your relationships?", min: 1, max: 10, order: 1 },
   { key: "religion", category: "values", type: "single_select", label: "What's your religion?", order: 2,
-    options: opts(["not_religious", "Not religious"], ["agnostic", "Agnostic"], ["spiritual", "Spiritual"], ["christian", "Christian"], ["muslim", "Muslim"], ["jewish", "Jewish"], ["hindu", "Hindu"], ["buddhist", "Buddhist"], ["other", "Other"], ["prefer_not_to_say", "Prefer not to say"]) },
+    options: opts(["not_religious", "Not religious"], ["agnostic", "Agnostic"], ["spiritual", "Spiritual"], ["christian", "Christian"], ["muslim", "Muslim"], ["jewish", "Jewish"], ["hindu", "Hindu"], ["buddhist", "Buddhist"], ["other", "Other"]) },
   { key: "financial_approach", category: "values", type: "single_select", label: "How do you usually approach money?", order: 3,
     options: opts(["save_most", "Save most of it"], ["balanced", "Balanced saving/spending"], ["spend_freely", "Spend freely"], ["invest_regularly", "Invest regularly"], ["extremely_focused", "Extremely financially focused"], ["prefer_not_to_say", "Prefer not to say"]) },
 
   // relationship_goals
   { key: "relationship_type", category: "relationship_goals", type: "single_select", label: "What type of relationship are you looking for?", required: true, order: 1,
-    options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with potential for serious"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"], ["not_sure", "Not sure"]) },
+    options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with potential for serious"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
   { key: "wants_children", category: "relationship_goals", type: "single_select", label: "Do you want children?", required: true, order: 2,
     options: opts(["yes", "Yes"], ["no", "No"], ["maybe", "Maybe"], ["already_have", "Already have children"], ["prefer_not_to_say", "Prefer not to say"]) },
 
@@ -199,18 +199,18 @@ const preferenceQuestions: SeedQuestion[] = [
   { key: "calm_energetic", category: "personality", type: "scale", label: "Calm (1) to energetic (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
   { key: "organized_spontaneous", category: "personality", type: "scale", label: "Organized (1) to spontaneous (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 3 },
   { key: "romantic_practical", category: "personality", type: "scale", label: "Practical (1) to romantic (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 4 },
-  { key: "communication_style", category: "personality", type: "single_select", label: "Rank the communication styles you prefer.", scoringMechanic: "ranking", order: 6,
+  { key: "communication_style", category: "personality", type: "single_select", label: "What communication style would you prefer in your soulmate?", scoringMechanic: "filler", order: 6,
     options: opts(["direct", "Direct"], ["diplomatic", "Diplomatic/gentle"], ["playful", "Playful"], ["analytical", "Analytical"], ["emotional", "Emotional"], ["reserved", "Reserved"]) },
-  { key: "conflict_style", category: "personality", type: "single_select", label: "Rank how you'd prefer your soulmate to handle conflict.", scoringMechanic: "ranking", order: 7,
+  { key: "conflict_style", category: "personality", type: "single_select", label: "How would you prefer your soulmate to handle conflict?", scoringMechanic: "filler", order: 7,
     options: opts(["talk_it_out", "Talk it out immediately"], ["need_space_first", "Take time to calm down first"], ["seek_compromise", "Look for compromise"], ["avoid", "Avoid confrontation"], ["get_emotional", "Become emotional"]) },
-  { key: "need_for_personal_space", category: "personality", type: "scale", label: "How much personal space would you prefer your soulmate to need?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 8 },
+  { key: "need_for_personal_space", category: "personality", type: "scale", label: "How much personal space would you prefer your soulmate to need?", min: 1, max: 10, scoringMechanic: "filler", order: 8 },
 
   // values
   { key: "value_honesty", category: "values", type: "single_select", label: "How important is honesty in your soulmate?", scoringMechanic: "filler", order: 1,
     options: opts(["not_important", "Not important"], ["somewhat_important", "Somewhat important"], ["important", "Important"], ["very_important", "Very important"], ["non_negotiable", "Non-negotiable"]) },
   { key: "religion", category: "values", type: "single_select", label: "Rank your preference on your soulmate's religion.", scoringMechanic: "ranking", canBeDealBreaker: true, order: 2,
     options: opts(["not_religious", "Not religious"], ["agnostic", "Agnostic"], ["spiritual", "Spiritual"], ["christian", "Christian"], ["muslim", "Muslim"], ["jewish", "Jewish"], ["hindu", "Hindu"], ["buddhist", "Buddhist"], ["other", "Other"]) },
-  { key: "financial_approach", category: "values", type: "single_select", label: "Rank how you'd prefer your soulmate to approach money.", scoringMechanic: "ranking", order: 3,
+  { key: "financial_approach", category: "values", type: "single_select", label: "How would you prefer your soulmate to approach money?", scoringMechanic: "filler", order: 3,
     options: opts(["save_most", "Save most of it"], ["balanced", "Balanced saving/spending"], ["spend_freely", "Spend freely"], ["invest_regularly", "Invest regularly"], ["extremely_focused", "Extremely financially focused"]) },
 
   // relationship_goals

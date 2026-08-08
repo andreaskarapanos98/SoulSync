@@ -46,7 +46,15 @@ export function QuestionField({ question, value, onChange }: Props) {
     case "scale": {
       const min = question.min ?? 1;
       const max = question.max ?? 10;
-      const current = typeof value === "number" ? value : Math.round((min + max) / 2);
+      const hasValue = typeof value === "number";
+      // Unset starts the thumb at the leftmost position, greyed out — it must look
+      // untouched, not like a real (misleading) default answer, since this is mandatory.
+      const current = hasValue ? value : min;
+      // Covers a mouse click that lands exactly on the default (min) position, which
+      // wouldn't otherwise fire a change event since the value doesn't move.
+      const commitIfUnset = () => {
+        if (!hasValue) onChange(current);
+      };
       return (
         <div className="flex items-center gap-3">
           <input
@@ -54,11 +62,14 @@ export function QuestionField({ question, value, onChange }: Props) {
             min={min}
             max={max}
             value={current}
+            onPointerDown={commitIfUnset}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="flex-1 accent-brand-500"
+            className={`flex-1 ${hasValue ? "accent-brand-500" : "accent-neutral-300 dark:accent-neutral-700"}`}
           />
-          <span className="w-6 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            {current}
+          <span
+            className={`w-16 text-center text-sm font-medium ${hasValue ? "text-neutral-700 dark:text-neutral-300" : "text-neutral-400 dark:text-neutral-600"}`}
+          >
+            {hasValue ? current : "Not set"}
           </span>
         </div>
       );
