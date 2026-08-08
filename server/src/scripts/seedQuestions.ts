@@ -242,9 +242,9 @@ const preferenceQuestions: SeedQuestion[] = [
   // connection
   { key: "weekend_preference", category: "connection", type: "single_select", label: "What would you like your soulmate's ideal weekend to look like?", scoringMechanic: "filler", order: 1,
     options: opts(["staying_home", "Staying home"], ["out_with_friends", "Going out with friends"], ["dates", "Going on dates"], ["outdoor_activities", "Outdoor activities"], ["travelling", "Travelling"], ["nightlife", "Partying/nightlife"], ["family_time", "Family time"], ["combination", "A combination"]) },
-  { key: "affection_level", category: "connection", type: "scale", label: "How physically affectionate would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
-  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important should quality time be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 3 },
-  { key: "gifts_importance", category: "connection", type: "scale", label: "How important should gifts be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 4 },
+  { key: "affection_level", category: "connection", type: "scale", label: "How physically affectionate would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
+  { key: "quality_time_importance", category: "connection", type: "scale", label: "How important should quality time be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 3 },
+  { key: "gifts_importance", category: "connection", type: "scale", label: "How important should gifts be to your soulmate?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 4 },
   { key: "humor_style", category: "connection", type: "single_select", label: "Rank your preferred sense of humor in a soulmate.", scoringMechanic: "ranking", order: 5,
     options: opts(["dry", "Dry"], ["sarcastic", "Sarcastic"], ["playful", "Playful"], ["dark", "Dark"], ["silly", "Silly"], ["intellectual", "Intellectual"], ["romantic", "Romantic"]) },
 ];
