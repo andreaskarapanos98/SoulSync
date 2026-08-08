@@ -44,9 +44,9 @@ const aboutMeQuestions: SeedQuestion[] = [
 
   // appearance
   { key: "body_type", category: "appearance", type: "single_select", label: "How would you describe your body type?", order: 1,
-    options: opts(["slim", "Slim"], ["athletic", "Athletic"], ["average", "Average"], ["muscular", "Muscular"], ["curvy", "Curvy"], ["plus_size", "Plus-size"], ["prefer_not_to_say", "Prefer not to say"]) },
+    options: opts(["slim", "Slim"], ["athletic", "Athletic"], ["average", "Average"], ["muscular", "Muscular"], ["curvy", "Curvy"], ["plus_size", "Plus-size"]) },
   { key: "fitness_level", category: "appearance", type: "scale", label: "How would you describe your fitness level?", min: 1, max: 10, order: 2 },
-  { key: "hair_color", category: "appearance", type: "single_select", label: "What's your natural hair color?", order: 3,
+  { key: "hair_color", category: "appearance", type: "single_select", label: "What's your hair color?", order: 3,
     options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["grey_white", "Grey/White"], ["other", "Other"]) },
   { key: "eye_color", category: "appearance", type: "single_select", label: "What's your eye color?", order: 4,
     options: opts(["brown", "Brown"], ["blue", "Blue"], ["green", "Green"], ["hazel", "Hazel"], ["grey", "Grey"], ["other", "Other"]) },
