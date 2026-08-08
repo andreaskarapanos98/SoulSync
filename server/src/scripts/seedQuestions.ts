@@ -232,7 +232,7 @@ const preferenceQuestions: SeedQuestion[] = [
   // career
   { key: "career_importance", category: "career", type: "scale", label: "How important would you prefer your soulmate's career to be to them?", min: 1, max: 10, scoringMechanic: "filler", order: 1 },
   { key: "ambition", category: "career", type: "scale", label: "How ambitious would you prefer your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
-  { key: "relocation", category: "career", type: "single_select", label: "How important is it that your soulmate is willing to relocate?", scoringMechanic: "mini_scale", order: 3,
+  { key: "relocation", category: "career", type: "single_select", label: "Rank your preference on your soulmate's willingness to relocate.", scoringMechanic: "ranking", order: 3,
     options: opts(["definitely", "Definitely willing"], ["probably", "Probably willing"], ["maybe", "Maybe willing"], ["probably_not", "Probably not willing"], ["definitely_not", "Definitely not willing"]) },
 
   // hobbies — low-signal by design; kept out of any future high-weight category.
