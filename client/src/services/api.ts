@@ -5,7 +5,6 @@ import type {
   MeDTO,
   OwnProfileDTO,
   PhotosResponseDTO,
-  PreferenceAnswerValue,
   PreferenceAnswersDTO,
   ProfileDTO,
   QuestionDTO,
@@ -73,7 +72,7 @@ export function createApiClient(getToken: GetToken) {
         body: JSON.stringify({ answers }),
       }),
     getPreferenceAnswers: () => request<PreferenceAnswersDTO>("/api/v1/me/preferences"),
-    savePreferenceAnswers: (answers: Record<string, PreferenceAnswerValue>) =>
+    savePreferenceAnswers: (answers: Record<string, AnswerValue>) =>
       request<SaveAnswersResponseDTO>("/api/v1/me/preferences", {
         method: "PUT",
         body: JSON.stringify({ answers }),

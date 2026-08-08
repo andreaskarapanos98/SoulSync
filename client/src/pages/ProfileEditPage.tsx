@@ -4,8 +4,6 @@ import type { OwnProfileDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { PhotoUploader } from "../components/profile/PhotoUploader";
 import { VoiceRecorder } from "../components/profile/VoiceRecorder";
-import "./OnboardingAboutMePage.css";
-import "./ProfileEditPage.css";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -27,8 +25,9 @@ export function ProfileEditPage() {
       .catch((err) => setLoadError(String(err)));
   }, []);
 
-  if (loadError) return <p style={{ color: "crimson" }}>Couldn't load profile: {loadError}</p>;
-  if (!profile) return <p>Loading your profile…</p>;
+  if (loadError)
+    return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load profile: {loadError}</p>;
+  if (!profile) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading your profile…</p>;
 
   async function handleSaveBio() {
     setSavingBio(true);
@@ -89,16 +88,22 @@ export function ProfileEditPage() {
   const isComplete = profile.missingRequired.length === 0;
 
   return (
-    <div className="onboarding-page profile-edit-page">
-      <h2>Your Profile</h2>
+    <div className="mx-auto w-full max-w-lg px-6 py-12">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">Your Profile</h2>
 
       {!isComplete && (
-        <p className="profile-missing">Still needed: {profile.missingRequired.join(", ")}</p>
+        <p className="mt-2 text-sm text-brand-600 dark:text-brand-400">
+          Still needed: {profile.missingRequired.join(", ")}
+        </p>
       )}
-      {isComplete && <p className="profile-complete">Your profile is complete!</p>}
+      {isComplete && (
+        <p className="mt-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          Your profile is complete!
+        </p>
+      )}
 
-      <section>
-        <h3>Photos</h3>
+      <section className="mt-8">
+        <h3 className="mb-3 text-sm font-semibold text-neutral-900 dark:text-white">Photos</h3>
         <PhotoUploader
           photos={profile.photos}
           onUpload={handleUploadPhoto}
@@ -108,19 +113,30 @@ export function ProfileEditPage() {
         />
       </section>
 
-      <section>
-        <h3>Bio</h3>
-        <textarea value={bioDraft} maxLength={500} rows={4} onChange={(e) => setBioDraft(e.target.value)} />
-        <div className="step-nav">
-          <span>{bioDraft.length}/500</span>
-          <button type="button" onClick={handleSaveBio} disabled={savingBio}>
+      <section className="mt-8">
+        <h3 className="mb-3 text-sm font-semibold text-neutral-900 dark:text-white">Bio</h3>
+        <textarea
+          value={bioDraft}
+          maxLength={500}
+          rows={4}
+          onChange={(e) => setBioDraft(e.target.value)}
+          className="w-full rounded-lg border border-neutral-300 bg-white p-3 text-sm text-neutral-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:ring-brand-900"
+        />
+        <div className="mt-2 flex items-center justify-end gap-3">
+          <span className="text-xs text-neutral-500">{bioDraft.length}/500</span>
+          <button
+            type="button"
+            onClick={handleSaveBio}
+            disabled={savingBio}
+            className="rounded-full bg-brand-500 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-60"
+          >
             {savingBio ? "Saving…" : "Save bio"}
           </button>
         </div>
       </section>
 
-      <section>
-        <h3>Voice Introduction</h3>
+      <section className="mt-8">
+        <h3 className="mb-3 text-sm font-semibold text-neutral-900 dark:text-white">Voice Introduction</h3>
         <VoiceRecorder
           existingUrl={profile.voiceIntro ? `${API_URL}${profile.voiceIntro.url}` : null}
           onSave={handleSaveVoiceIntro}
@@ -128,7 +144,11 @@ export function ProfileEditPage() {
         />
       </section>
 
-      <button type="button" onClick={() => navigate("/")}>
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="mt-10 rounded-full border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+      >
         Back home
       </button>
     </div>

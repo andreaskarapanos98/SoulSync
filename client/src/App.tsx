@@ -4,37 +4,39 @@ import { OnboardingAboutMePage } from "./pages/OnboardingAboutMePage";
 import { OnboardingPreferencesPage } from "./pages/OnboardingPreferencesPage";
 import { ProfileEditPage } from "./pages/ProfileEditPage";
 import { RequireAuth } from "./components/RequireAuth";
-import "./App.css";
+import { Layout } from "./components/Layout";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route
-        path="/onboarding/about-me"
-        element={
-          <RequireAuth>
-            <OnboardingAboutMePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/onboarding/preferences"
-        element={
-          <RequireAuth>
-            <OnboardingPreferencesPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/profile/edit"
-        element={
-          <RequireAuth>
-            <ProfileEditPage />
-          </RequireAuth>
-        }
-      />
-    </Routes>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route
+          path="/onboarding/about-me"
+          element={
+            <RequireAuth>
+              <OnboardingAboutMePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/onboarding/preferences"
+          element={
+            <RequireAuth>
+              <OnboardingPreferencesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile/edit"
+          element={
+            <RequireAuth>
+              <ProfileEditPage />
+            </RequireAuth>
+          }
+        />
+      </Routes>
+    </Layout>
   );
 }
 

@@ -9,6 +9,9 @@ export const questionCategories = [
   "relationship_goals",
   "family",
   "communication",
+  "career",
+  "hobbies",
+  "connection",
 ] as const;
 
 export const questionAppliesTo = ["about_me", "preference"] as const;
@@ -22,12 +25,30 @@ export const questionTypes = [
   "date",
 ] as const;
 
-export const importanceLevels = [
-  "doesnt_matter",
-  "slight_preference",
-  "important",
-  "very_important",
-  "must_have",
+// How a preference question feeds the (future) compatibility algorithm. Only meaningful
+// for appliesTo: "preference" — about_me questions don't have a scoring mechanic.
+//   hard_filter    — absolute gate (e.g. gender, age range): mismatch = 0% and stop scoring
+//                     entirely, no other question is evaluated for that candidate.
+//   ranking        — options have no natural order (e.g. hair color); the viewer ranks all
+//                     of them, and a candidate earns points based on where their actual
+//                     value falls in that ranking.
+//   mini_scale      — options (or a numeric scale) DO have a natural order (e.g. smoking:
+//                     never→socially→regularly); the viewer picks one target point, score
+//                     falls off by distance from it.
+//   relative_self   — compares the candidate's value against the VIEWER's own about_me
+//                     answer for the same key (e.g. height: "taller than me"), not an
+//                     independently stated target.
+//   checklist       — multi-select; any of the viewer's accepted values matching earns
+//                     credit, no ranking involved.
+//   filler          — captured and shown, but never contributes to the score (e.g. "how
+//                     important is honesty to you" — not objectively verifiable).
+export const scoringMechanics = [
+  "hard_filter",
+  "ranking",
+  "mini_scale",
+  "relative_self",
+  "checklist",
+  "filler",
 ] as const;
 
 const optionSchema = new Schema(
@@ -54,11 +75,10 @@ const questionDefinitionSchema = new Schema(
     order: { type: Number, default: 0 },
     version: { type: Number, default: 1 },
     active: { type: Boolean, default: true },
-    // Preference-only: does the UI ask for a target value, or just an importance rating?
-    // e.g. height is importance-only — we don't ask for a target number.
-    valueCaptured: { type: Boolean, default: true },
-    // Preference-only: can the user flag this dimension as an absolute deal breaker,
-    // independent of its importance rating?
+    // Preference-only.
+    scoringMechanic: { type: String, enum: scoringMechanics },
+    // Preference-only: can the user ALSO flag this specific value as a personal deal
+    // breaker (separate from, and layered on top of, its normal scoringMechanic)?
     canBeDealBreaker: { type: Boolean, default: false },
   },
   { timestamps: true },

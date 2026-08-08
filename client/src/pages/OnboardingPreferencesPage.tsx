@@ -1,21 +1,29 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { AnswerValue, PreferenceAnswerValue, QuestionDTO } from "@soulsync/shared-types";
+import type { AnswerValue, QuestionDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { ApiError } from "../services/api";
 import { PreferenceQuestionField } from "../components/onboarding/PreferenceQuestionField";
 import { DealBreakerStep } from "../components/onboarding/DealBreakerStep";
 import { ABOUT_ME_CATEGORY_ORDER, CATEGORY_TITLES } from "../utils/onboardingCategories";
-import "./OnboardingAboutMePage.css";
 
 function isEmptyValue(value: AnswerValue | undefined): boolean {
   return value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
 }
 
-function isAnswered(question: QuestionDTO, entry: PreferenceAnswerValue | undefined): boolean {
-  if (!entry?.importance) return false;
-  if (question.valueCaptured === false) return true;
-  return !isEmptyValue(entry.value);
+// Ranking questions treat an empty array as a deliberate "I don't care", not "unanswered" —
+// only `undefined` (never touched) counts as unanswered for them.
+function isAnswered(question: QuestionDTO, value: AnswerValue | undefined): boolean {
+  if (question.scoringMechanic === "ranking") {
+    if (value === undefined) return false;
+    return question.required ? Array.isArray(value) && value.length > 0 : true;
+  }
+  return !isEmptyValue(value);
+}
+
+function includeInPayload(question: QuestionDTO, value: AnswerValue | undefined): boolean {
+  if (question.scoringMechanic === "ranking") return value !== undefined;
+  return !isEmptyValue(value);
 }
 
 export function OnboardingPreferencesPage() {
@@ -24,7 +32,7 @@ export function OnboardingPreferencesPage() {
 
   const [preferenceQuestions, setPreferenceQuestions] = useState<QuestionDTO[] | null>(null);
   const [aboutMeQuestions, setAboutMeQuestions] = useState<QuestionDTO[] | null>(null);
-  const [answers, setAnswers] = useState<Record<string, PreferenceAnswerValue>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [dealBreakers, setDealBreakers] = useState<Record<string, string[]>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -48,8 +56,10 @@ export function OnboardingPreferencesPage() {
       .catch((err) => setLoadError(String(err)));
   }, []);
 
-  if (loadError) return <p style={{ color: "crimson" }}>Couldn't load questionnaire: {loadError}</p>;
-  if (!preferenceQuestions || !aboutMeQuestions) return <p>Loading your ideal soulmate questionnaire…</p>;
+  if (loadError)
+    return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load questionnaire: {loadError}</p>;
+  if (!preferenceQuestions || !aboutMeQuestions)
+    return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading your ideal soulmate questionnaire…</p>;
 
   const categories = ABOUT_ME_CATEGORY_ORDER.filter((c) =>
     preferenceQuestions.some((q) => q.category === c),
@@ -61,10 +71,16 @@ export function OnboardingPreferencesPage() {
 
   if (done) {
     return (
-      <div className="onboarding-page">
-        <h2>Ideal Soulmate — done</h2>
-        <p>Thanks! We've saved your preferences and deal breakers.</p>
-        <button type="button" onClick={() => navigate("/")}>
+      <div className="mx-auto max-w-lg px-6 py-16">
+        <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">Ideal Soulmate — done</h2>
+        <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+          Thanks! We've saved your preferences and deal breakers.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="mt-6 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
+        >
           Back home
         </button>
       </div>
@@ -82,8 +98,9 @@ export function OnboardingPreferencesPage() {
   function buildStepPayload() {
     return Object.fromEntries(
       stepQuestions
-        .map((q) => [q.key, answers[q.key]] as const)
-        .filter(([, entry]) => entry?.importance),
+        .map((q) => [q, answers[q.key]] as const)
+        .filter(([q, value]) => includeInPayload(q, value))
+        .map(([q, value]) => [q.key, value]),
     );
   }
 
@@ -122,17 +139,22 @@ export function OnboardingPreferencesPage() {
   }
 
   return (
-    <div className="onboarding-page">
-      <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+    <div className="mx-auto w-full max-w-lg px-6 py-12">
+      <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
+        <div
+          className="h-full bg-brand-500 transition-all"
+          style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
+        />
       </div>
-      <p className="step-indicator">
+      <p className="mt-2 text-sm text-neutral-500">
         Step {stepIndex + 1} of {steps.length}
       </p>
-      <h2>{CATEGORY_TITLES[currentStep] ?? currentStep}</h2>
+      <h2 className="mt-1 text-xl font-semibold text-neutral-900 dark:text-white">
+        {CATEGORY_TITLES[currentStep] ?? currentStep}
+      </h2>
 
       {errors.length > 0 && (
-        <ul className="error-list">
+        <ul className="mt-4 list-inside list-disc rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-400">
           {errors.map((issue) => (
             <li key={issue}>{issue}</li>
           ))}
@@ -140,19 +162,21 @@ export function OnboardingPreferencesPage() {
       )}
 
       {isDealBreakerStep ? (
-        <DealBreakerStep
-          questions={dealBreakerQuestions}
-          aboutMeOptionsByKey={aboutMeOptionsByKey}
-          value={dealBreakers}
-          onChange={(key, values) => setDealBreakers((prev) => ({ ...prev, [key]: values }))}
-        />
+        <div className="mt-6">
+          <DealBreakerStep
+            questions={dealBreakerQuestions}
+            aboutMeOptionsByKey={aboutMeOptionsByKey}
+            value={dealBreakers}
+            onChange={(key, values) => setDealBreakers((prev) => ({ ...prev, [key]: values }))}
+          />
+        </div>
       ) : (
-        <div className="question-list">
+        <div className="mt-6 flex flex-col gap-6">
           {stepQuestions.map((q) => (
-            <div className="question-field" key={q.key}>
-              <label>
+            <div key={q.key} className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-neutral-900 dark:text-white">
                 {q.label}
-                {q.required && <span className="required-mark"> *</span>}
+                {q.required && <span className="text-brand-500"> *</span>}
               </label>
               <PreferenceQuestionField
                 question={q}
@@ -164,11 +188,21 @@ export function OnboardingPreferencesPage() {
         </div>
       )}
 
-      <div className="step-nav">
-        <button type="button" disabled={stepIndex === 0 || saving} onClick={() => goToStep(-1)}>
+      <div className="mt-8 flex justify-between">
+        <button
+          type="button"
+          disabled={stepIndex === 0 || saving}
+          onClick={() => goToStep(-1)}
+          className="rounded-full border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+        >
           Back
         </button>
-        <button type="button" disabled={saving} onClick={() => goToStep(1)}>
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => goToStep(1)}
+          className="rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-60"
+        >
           {saving ? "Saving…" : stepIndex === steps.length - 1 ? "Finish" : "Next"}
         </button>
       </div>

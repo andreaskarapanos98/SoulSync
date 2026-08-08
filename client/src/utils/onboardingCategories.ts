@@ -7,6 +7,9 @@ export const ABOUT_ME_CATEGORY_ORDER = [
   "relationship_goals",
   "family",
   "communication",
+  "career",
+  "hobbies",
+  "connection",
 ] as const;
 
 export const CATEGORY_TITLES: Record<string, string> = {
@@ -18,5 +21,8 @@ export const CATEGORY_TITLES: Record<string, string> = {
   relationship_goals: "Relationship Goals",
   family: "Family",
   communication: "Communication",
+  career: "Career & Ambition",
+  hobbies: "Hobbies & Interests",
+  connection: "Love & Connection",
   deal_breakers: "Deal Breakers",
 };

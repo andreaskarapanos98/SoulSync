@@ -56,7 +56,7 @@ function AvatarCropper({
   return (
     <div
       ref={frameRef}
-      className="avatar-cropper"
+      className="h-36 w-36 cursor-grab touch-none overflow-hidden rounded-full border-2 border-brand-500 active:cursor-grabbing"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -64,6 +64,7 @@ function AvatarCropper({
       <img
         src={`${API_URL}${photo.url}`}
         alt=""
+        className="h-full w-full pointer-events-none object-cover"
         style={{ objectPosition: `${position.x}% ${position.y}%` }}
         draggable={false}
       />
@@ -95,31 +96,46 @@ export function PhotoUploader({ photos, onUpload, onDelete, onSetPrimary, onSetF
   }
 
   return (
-    <div className="photo-uploader">
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+    <div className="flex flex-col gap-4">
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {primaryPhoto && (
-        <div className="avatar-cropper-wrap">
+        <div className="flex flex-col items-center gap-2">
           <AvatarCropper
             photo={primaryPhoto}
             onChange={(x, y) => onSetFocalPoint(primaryPhoto.id, x, y)}
           />
-          <p className="avatar-cropper-hint">Drag to adjust your profile picture</p>
+          <p className="text-xs text-neutral-500">Drag to adjust your profile picture</p>
         </div>
       )}
 
-      <div className="photo-grid">
+      <div className="grid grid-cols-3 gap-2.5">
         {photos.map((photo) => (
-          <div key={photo.id} className={`photo-tile${photo.isPrimary ? " primary" : ""}`}>
-            <img src={`${API_URL}${photo.url}`} alt="" />
+          <div
+            key={photo.id}
+            className={`relative flex aspect-square flex-col justify-end overflow-hidden rounded-lg border-2 ${photo.isPrimary ? "border-brand-500" : "border-transparent"}`}
+          >
+            <img src={`${API_URL}${photo.url}`} alt="" className="absolute inset-0 h-full w-full object-cover" />
             {photo.isPrimary ? (
-              <span className="photo-primary-badge">Primary</span>
+              <span className="relative z-10 m-1 self-start rounded bg-brand-500 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                Primary
+              </span>
             ) : (
-              <button type="button" onClick={() => onSetPrimary(photo.id)} disabled={busy}>
+              <button
+                type="button"
+                onClick={() => onSetPrimary(photo.id)}
+                disabled={busy}
+                className="relative z-10 m-1 self-start rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white"
+              >
                 Make primary
               </button>
             )}
-            <button type="button" onClick={() => onDelete(photo.id)} disabled={busy}>
+            <button
+              type="button"
+              onClick={() => onDelete(photo.id)}
+              disabled={busy}
+              className="relative z-10 m-1 rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white"
+            >
               Remove
             </button>
           </div>
@@ -127,9 +143,9 @@ export function PhotoUploader({ photos, onUpload, onDelete, onSetPrimary, onSetF
         {photos.length < MAX_PHOTOS && (
           <button
             type="button"
-            className="photo-add-tile"
             onClick={() => fileInputRef.current?.click()}
             disabled={busy}
+            className="aspect-square rounded-lg border-2 border-dashed border-neutral-300 text-sm text-neutral-500 hover:border-brand-400 hover:text-brand-600 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-400"
           >
             {busy ? "Uploading…" : "+ Add photo"}
           </button>
@@ -139,7 +155,7 @@ export function PhotoUploader({ photos, onUpload, onDelete, onSetPrimary, onSetF
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={handleFileChange}
       />
     </div>

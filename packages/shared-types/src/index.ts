@@ -15,6 +15,18 @@ export interface MeDTO {
 
 export type QuestionType = "single_select" | "multi_select" | "scale" | "number" | "text" | "date";
 
+// Preference-only: how this question feeds the (future) compatibility algorithm.
+// hard_filter = mismatch means 0% and stop scoring entirely (gender, age range).
+// ranking = viewer ranks all options, partial credit by rank position (e.g. hair color).
+// mini_scale = options/scale have a natural order, viewer picks one target point, scored
+//   by distance (e.g. smoking: never->socially->regularly).
+// relative_self = compares candidate's value to the VIEWER's own about_me answer, not an
+//   independent target (e.g. height: "taller than me").
+// checklist = multi-select, any accepted value matching earns credit, no ranking.
+// filler = captured and shown, never contributes to the score (e.g. "how important is
+//   honesty to you" — not objectively verifiable).
+export type ScoringMechanic = "hard_filter" | "ranking" | "mini_scale" | "relative_self" | "checklist" | "filler";
+
 export interface QuestionOptionDTO {
   value: string;
   label: string;
@@ -30,10 +42,9 @@ export interface QuestionDTO {
   max?: number;
   required: boolean;
   order: number;
-  // Preference-only: whether the UI should ask for a target value in addition to
-  // importance (e.g. height is importance-only — no target value is asked).
-  valueCaptured?: boolean;
-  // Preference-only: whether this dimension can be flagged as an absolute deal breaker.
+  // Preference-only.
+  scoringMechanic?: ScoringMechanic;
+  // Preference-only: whether this dimension can ALSO be flagged as a personal deal breaker.
   canBeDealBreaker?: boolean;
 }
 
@@ -49,20 +60,11 @@ export interface SaveAnswersResponseDTO {
   missingRequired: string[];
 }
 
-export type ImportanceLevel =
-  | "doesnt_matter"
-  | "slight_preference"
-  | "important"
-  | "very_important"
-  | "must_have";
-
-export interface PreferenceAnswerValue {
-  value?: AnswerValue;
-  importance: ImportanceLevel;
-}
-
+// Same shape as AboutMeAnswersDTO — preferences no longer carry a separate importance
+// weight. For "ranking" mechanic questions, the value is the full ordered list of option
+// values (best to worst); an empty array means "I don't care".
 export interface PreferenceAnswersDTO {
-  answers: Record<string, PreferenceAnswerValue>;
+  answers: Record<string, AnswerValue>;
   missingRequired: string[];
 }
 

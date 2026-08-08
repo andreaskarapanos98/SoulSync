@@ -1,8 +1,4 @@
-import {
-  QuestionDefinitionModel,
-  importanceLevels,
-  type QuestionDefinition,
-} from "../models/QuestionDefinition.js";
+import { QuestionDefinitionModel, type QuestionDefinition } from "../models/QuestionDefinition.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
 
@@ -97,14 +93,35 @@ export async function getMissingRequiredAboutMe(clerkId: string): Promise<string
   return required.map((q) => q.key).filter((key) => !answered.has(key));
 }
 
-type PreferenceInput = { value?: unknown; importance?: string };
+/**
+ * "ranking" mechanic questions store the full preferred order as an array of option
+ * values — either every option exactly once, or an empty array meaning "I don't care."
+ */
+function validateRankingValue(question: QuestionDefinition, value: unknown): string | null {
+  if (!Array.isArray(value)) return `${question.key}: ranking must be an array`;
+  if (value.length === 0) return null; // "I don't care" — skips ranking entirely
+  const allowed = question.options?.map((o) => o.value) ?? [];
+  const isPermutation =
+    value.length === allowed.length &&
+    new Set(value).size === value.length &&
+    value.every((v) => allowed.includes(v as string));
+  if (!isPermutation) {
+    return `${question.key}: ranking must include every option exactly once (${allowed.join(", ")}), or be empty`;
+  }
+  return null;
+}
+
+function validatePreferenceValue(question: QuestionDefinition, value: unknown): string | null {
+  if (question.scoringMechanic === "ranking") return validateRankingValue(question, value);
+  return validateValue(question, value);
+}
 
 /**
- * Same all-or-nothing validation approach as saveAboutMeAnswers, plus: every preference
- * requires an importance level, and a target value is only required (and only stored)
- * when the question's valueCaptured flag is true (e.g. height is importance-only).
+ * Same all-or-nothing validation approach as saveAboutMeAnswers. Preference answers store
+ * a plain AnswerValue per key — no separate importance weight (removed: it was confusing
+ * and is superseded by the per-question scoringMechanic + ranking system).
  */
-export async function savePreferenceAnswers(clerkId: string, incoming: Record<string, PreferenceInput>) {
+export async function savePreferenceAnswers(clerkId: string, incoming: Record<string, unknown>) {
   const keys = Object.keys(incoming);
   const questions = await QuestionDefinitionModel.find({
     key: { $in: keys },
@@ -114,39 +131,22 @@ export async function savePreferenceAnswers(clerkId: string, incoming: Record<st
 
   const byKey = new Map(questions.map((q) => [q.key, q]));
   const issues: string[] = [];
-  const toStore: Record<string, { value?: unknown; importance: string }> = {};
 
   for (const key of keys) {
     const question = byKey.get(key);
-    const entry = incoming[key];
-
     if (!question) {
       issues.push(`${key}: not a recognized preference question`);
       continue;
     }
-    const importance = entry?.importance;
-    if (!importance || !importanceLevels.includes(importance as (typeof importanceLevels)[number])) {
-      issues.push(`${key}: importance must be one of ${importanceLevels.join(", ")}`);
-      continue;
-    }
-
-    const stored: { value?: unknown; importance: string } = { importance };
-    if (question.valueCaptured) {
-      const issue = validateValue(question, entry.value);
-      if (issue) {
-        issues.push(issue);
-        continue;
-      }
-      stored.value = entry.value;
-    }
-    toStore[key] = stored;
+    const issue = validatePreferenceValue(question, incoming[key]);
+    if (issue) issues.push(issue);
   }
 
   if (issues.length > 0) throw new ValidationError(issues);
 
   const doc = await PreferenceAnswerModel.findOneAndUpdate(
     { clerkId },
-    { $set: Object.fromEntries(Object.entries(toStore).map(([k, v]) => [`answers.${k}`, v])) },
+    { $set: Object.fromEntries(Object.entries(incoming).map(([k, v]) => [`answers.${k}`, v])) },
     { upsert: true, returnDocument: "after" },
   );
 

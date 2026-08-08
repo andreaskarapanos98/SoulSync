@@ -101,16 +101,21 @@ export function VoiceRecorder({ existingUrl, onSave, onDelete }: Props) {
     }
   }
 
+  const actionButtonClass =
+    "rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900";
+  const primaryButtonClass =
+    "rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-60";
+
   if (existingUrl && !recordedUrl) {
     return (
-      <div className="voice-recorder">
-        <audio controls src={existingUrl} />
-        <div className="voice-recorder-actions">
-          <button type="button" onClick={startRecording}>
+      <div className="flex flex-col gap-3">
+        <audio controls src={existingUrl} className="w-full" />
+        <div className="flex gap-2">
+          <button type="button" onClick={startRecording} className={actionButtonClass}>
             Re-record
           </button>
           {onDelete && (
-            <button type="button" onClick={onDelete}>
+            <button type="button" onClick={onDelete} className={actionButtonClass}>
               Delete
             </button>
           )}
@@ -120,23 +125,23 @@ export function VoiceRecorder({ existingUrl, onSave, onDelete }: Props) {
   }
 
   return (
-    <div className="voice-recorder">
-      <ul className="voice-prompts">
+    <div className="flex flex-col gap-3">
+      <ul className="list-inside list-disc text-sm text-neutral-600 dark:text-neutral-400">
         {PROMPTS.map((p) => (
           <li key={p}>{p}</li>
         ))}
       </ul>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!recordedUrl && (
-        <div className="voice-recorder-actions">
+        <div className="flex gap-2">
           {!recording ? (
-            <button type="button" onClick={startRecording}>
+            <button type="button" onClick={startRecording} className={primaryButtonClass}>
               Start recording
             </button>
           ) : (
-            <button type="button" onClick={stopRecording}>
+            <button type="button" onClick={stopRecording} className={primaryButtonClass}>
               Stop ({MAX_DURATION_SEC - elapsedSec}s left)
             </button>
           )}
@@ -145,12 +150,12 @@ export function VoiceRecorder({ existingUrl, onSave, onDelete }: Props) {
 
       {recordedUrl && (
         <>
-          <audio controls src={recordedUrl} />
-          <div className="voice-recorder-actions">
-            <button type="button" onClick={discardRecording} disabled={saving}>
+          <audio controls src={recordedUrl} className="w-full" />
+          <div className="flex gap-2">
+            <button type="button" onClick={discardRecording} disabled={saving} className={actionButtonClass}>
               Discard
             </button>
-            <button type="button" onClick={handleSave} disabled={saving}>
+            <button type="button" onClick={handleSave} disabled={saving} className={primaryButtonClass}>
               {saving ? "Saving…" : "Save"}
             </button>
           </div>

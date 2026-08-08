@@ -35,9 +35,7 @@ preferencesRouter.put("/", async (req, res) => {
     return;
   }
 
-  const { answers } = req.body as {
-    answers?: Record<string, { value?: unknown; importance?: string }>;
-  };
+  const { answers } = req.body as { answers?: Record<string, unknown> };
   if (!answers || typeof answers !== "object") {
     res.status(400).json({ error: "Request body must include an 'answers' object" });
     return;
