@@ -4,6 +4,7 @@ import type { AnswerValue, QuestionDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { ApiError } from "../services/api";
 import { QuestionField } from "../components/onboarding/QuestionField";
+import { IntroScreen } from "../components/onboarding/IntroScreen";
 import { ABOUT_ME_CATEGORY_ORDER, CATEGORY_TITLES } from "../utils/onboardingCategories";
 
 function isEmpty(value: AnswerValue | undefined): boolean {
@@ -21,6 +22,7 @@ export function OnboardingAboutMePage() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [done, setDone] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     Promise.all([api.getQuestions("about_me"), api.getAboutMeAnswers()])
@@ -32,6 +34,21 @@ export function OnboardingAboutMePage() {
     // api is a fresh object every render (memoized on getToken identity); safe to
     // omit here since we only want this to run once on mount.
   }, []);
+
+  if (showIntro) {
+    return (
+      <IntroScreen
+        title="Let's get to know you"
+        points={[
+          { icon: "⏱️", text: "This process will take around 10 minutes." },
+          { icon: "🕰️", text: "Please take your time and fill in all the information." },
+          { icon: "💞", text: "Your soulmate is out there waiting for you to match." },
+        ]}
+        ctaLabel="Let's start"
+        onContinue={() => setShowIntro(false)}
+      />
+    );
+  }
 
   if (loadError)
     return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load questionnaire: {loadError}</p>;
