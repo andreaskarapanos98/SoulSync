@@ -106,7 +106,7 @@ const aboutMeQuestions: SeedQuestion[] = [
     options: opts(["no", "No"], ["one", "Yes, one"], ["two", "Yes, two"], ["three_plus", "Yes, three or more"]) },
   { key: "family_importance", category: "family", type: "scale", label: "How important is family in your life?", min: 1, max: 10, order: 2 },
   { key: "living_with_family", category: "family", type: "single_select", label: "Do you currently live alone or with family?", order: 3,
-    options: opts(["yes", "Yes"], ["no", "No"]) },
+    options: opts(["with_family", "I live with my family"], ["alone", "I live alone"]) },
 
   // communication (kept for the emotional_openness dimension carried over from the
   // original questionnaire; personality's conflict_style/communication_style cover the rest)
@@ -223,8 +223,8 @@ const preferenceQuestions: SeedQuestion[] = [
   { key: "has_children", category: "family", type: "single_select", label: "Rank your preference on your soulmate already having children.", scoringMechanic: "ranking", canBeDealBreaker: true, order: 1,
     options: opts(["no", "No children"], ["one", "One is okay"], ["two", "Two is okay"], ["three_plus", "Three or more is okay"], ["doesnt_matter", "Doesn't matter"]) },
   { key: "family_importance", category: "family", type: "scale", label: "How important would you like family to be to your soulmate?", min: 1, max: 10, scoringMechanic: "filler", order: 2 },
-  { key: "living_with_family", category: "family", type: "single_select", label: "Would you be comfortable with your soulmate living with family?", scoringMechanic: "filler", order: 3,
-    options: opts(["yes", "Yes"], ["no", "No"], [DONT_CARE.value, DONT_CARE.label]) },
+  { key: "living_with_family", category: "family", type: "single_select", label: "Rank your preference on your soulmate living with family.", scoringMechanic: "ranking", order: 3,
+    options: opts(["with_family", "Living with family"], ["alone", "Living alone"]) },
 
   // communication
   { key: "emotional_openness", category: "communication", type: "scale", label: "How emotionally open would you like your soulmate to be?", min: 1, max: 10, scoringMechanic: "filler", order: 1 },
