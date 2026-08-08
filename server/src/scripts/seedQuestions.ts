@@ -75,7 +75,7 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "social_lifestyle", category: "lifestyle", type: "single_select", label: "How would you describe your social life?", order: 8,
     options: opts(["almost_always_home", "Almost always at home"], ["mostly_home", "Mostly at home"], ["balanced", "Balanced"], ["very_social", "Very social"], ["extremely_social", "Extremely social"]) },
   { key: "morning_or_night", category: "lifestyle", type: "single_select", label: "When do you feel most energetic?", order: 9,
-    options: opts(["morning", "Morning"], ["afternoon", "Afternoon"], ["evening_night", "Evening/night"], ["no_preference", "No preference"]) },
+    options: opts(["morning", "Morning"], ["night", "Night"], ["both", "Both"]) },
 
   // personality
   { key: "introvert_extrovert", category: "personality", type: "scale", label: "Introvert (1) to extrovert (10)?", min: 1, max: 10, order: 1 },
@@ -192,7 +192,7 @@ const preferenceQuestions: SeedQuestion[] = [
   { key: "social_lifestyle", category: "lifestyle", type: "single_select", label: "What kind of social lifestyle do you prefer in your soulmate?", scoringMechanic: "mini_scale", order: 8,
     options: opts(["almost_always_home", "Almost always at home"], ["mostly_home", "Mostly at home"], ["balanced", "Balanced"], ["very_social", "Very social"], ["extremely_social", "Extremely social"], [DONT_CARE.value, DONT_CARE.label]) },
   { key: "morning_or_night", category: "lifestyle", type: "single_select", label: "What would you prefer your soulmate to be?", scoringMechanic: "mini_scale", order: 9,
-    options: opts(["morning", "Morning person"], ["night", "Night person"], ["either", "Either"]) },
+    options: opts(["morning", "Morning Person"], ["night", "Night Person"], [DONT_CARE.value, DONT_CARE.label]) },
 
   // personality
   { key: "introvert_extrovert", category: "personality", type: "scale", label: "Introvert (1) to extrovert (10) — what's your preference?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 1 },
