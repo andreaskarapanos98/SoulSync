@@ -208,7 +208,7 @@ const preferenceQuestions: SeedQuestion[] = [
   // values
   { key: "value_honesty", category: "values", type: "single_select", label: "How important is honesty in your soulmate?", scoringMechanic: "filler", order: 1,
     options: opts(["not_important", "Not important"], ["somewhat_important", "Somewhat important"], ["important", "Important"], ["very_important", "Very important"], ["non_negotiable", "Non-negotiable"]) },
-  { key: "religion", category: "values", type: "single_select", label: "Rank your preference on your soulmate's religion.", scoringMechanic: "ranking", canBeDealBreaker: true, order: 2,
+  { key: "religion", category: "values", type: "single_select", label: "Rank your preference on your soulmate's religion.", scoringMechanic: "ranking", canBeDealBreaker: false, order: 2,
     options: opts(["not_religious", "Not religious"], ["agnostic", "Agnostic"], ["spiritual", "Spiritual"], ["christian", "Christian"], ["muslim", "Muslim"], ["jewish", "Jewish"], ["hindu", "Hindu"], ["buddhist", "Buddhist"], ["other", "Other"]) },
   { key: "financial_approach", category: "values", type: "single_select", label: "How would you prefer your soulmate to approach money?", scoringMechanic: "filler", order: 3,
     options: opts(["save_most", "Save most of it"], ["balanced", "Balanced saving/spending"], ["spend_freely", "Spend freely"], ["invest_regularly", "Invest regularly"], ["extremely_focused", "Extremely financially focused"]) },
@@ -216,7 +216,7 @@ const preferenceQuestions: SeedQuestion[] = [
   // relationship_goals
   { key: "relationship_type", category: "relationship_goals", type: "single_select", label: "Rank the relationship types you're looking for.", required: true, scoringMechanic: "ranking", canBeDealBreaker: true, order: 1,
     options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with potential for serious"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
-  { key: "wants_children", category: "relationship_goals", type: "single_select", label: "What would you prefer regarding children?", required: true, scoringMechanic: "mini_scale", canBeDealBreaker: true, order: 2,
+  { key: "wants_children", category: "relationship_goals", type: "single_select", label: "What would you prefer regarding children?", required: true, scoringMechanic: "mini_scale", canBeDealBreaker: false, order: 2,
     options: opts(["must_not_want", "Must not want children"], ["prefer_not_want", "Prefer doesn't want children"], ["doesnt_matter", "Doesn't matter"], ["prefer_want", "Prefer wants children"], ["must_want", "Must want children"]) },
 
   // family

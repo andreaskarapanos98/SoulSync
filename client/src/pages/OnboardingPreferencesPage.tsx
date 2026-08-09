@@ -29,7 +29,6 @@ export function OnboardingPreferencesPage() {
   const navigate = useNavigate();
 
   const [preferenceQuestions, setPreferenceQuestions] = useState<QuestionDTO[] | null>(null);
-  const [aboutMeQuestions, setAboutMeQuestions] = useState<QuestionDTO[] | null>(null);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [dealBreakers, setDealBreakers] = useState<Record<string, string[]>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -42,15 +41,9 @@ export function OnboardingPreferencesPage() {
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.getQuestions("preference"),
-      api.getQuestions("about_me"),
-      api.getPreferenceAnswers(),
-      api.getDealBreakers(),
-    ])
-      .then(([prefRes, aboutMeRes, answersRes, dealBreakersRes]) => {
+    Promise.all([api.getQuestions("preference"), api.getPreferenceAnswers(), api.getDealBreakers()])
+      .then(([prefRes, answersRes, dealBreakersRes]) => {
         setPreferenceQuestions(prefRes.questions);
-        setAboutMeQuestions(aboutMeRes.questions);
         setAnswers(answersRes.answers);
         setDealBreakers(dealBreakersRes.dealBreakers);
       })
@@ -74,7 +67,7 @@ export function OnboardingPreferencesPage() {
 
   if (loadError)
     return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load questionnaire: {loadError}</p>;
-  if (!preferenceQuestions || !aboutMeQuestions)
+  if (!preferenceQuestions)
     return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading your ideal soulmate questionnaire…</p>;
 
   const categories = ABOUT_ME_CATEGORY_ORDER.filter((c) =>
@@ -107,10 +100,6 @@ export function OnboardingPreferencesPage() {
     .filter((q) => q.category === currentStep)
     .sort((a, b) => a.order - b.order);
 
-  const aboutMeOptionsByKey = Object.fromEntries(
-    aboutMeQuestions.filter((q) => q.options).map((q) => [q.key, q.options!]),
-  );
-
   function buildStepPayload() {
     return Object.fromEntries(
       stepQuestions
@@ -131,12 +120,25 @@ export function OnboardingPreferencesPage() {
     }
   }
 
+  function handleDealBreakerChange(key: string, values: string[]) {
+    setDealBreakers((prev) => ({ ...prev, [key]: values }));
+    if (missingKeys.has(key)) {
+      setMissingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }
+
   async function goToStep(delta: number) {
     setShowMandatoryNotice(false);
     setApiErrors([]);
 
-    if (delta > 0 && !isDealBreakerStep) {
-      const missing = stepQuestions.filter((q) => q.required && !isAnswered(q, answers[q.key]));
+    if (delta > 0) {
+      const missing = isDealBreakerStep
+        ? dealBreakerQuestions.filter((q) => dealBreakers[q.key] === undefined)
+        : stepQuestions.filter((q) => q.required && !isAnswered(q, answers[q.key]));
       if (missing.length > 0) {
         setMissingKeys(new Set(missing.map((q) => q.key)));
         setShowMandatoryNotice(true);
@@ -201,9 +203,9 @@ export function OnboardingPreferencesPage() {
         <div className="mt-6">
           <DealBreakerStep
             questions={dealBreakerQuestions}
-            aboutMeOptionsByKey={aboutMeOptionsByKey}
             value={dealBreakers}
-            onChange={(key, values) => setDealBreakers((prev) => ({ ...prev, [key]: values }))}
+            onChange={handleDealBreakerChange}
+            missingKeys={missingKeys}
           />
         </div>
       ) : (
