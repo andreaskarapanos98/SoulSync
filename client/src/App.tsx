@@ -4,6 +4,9 @@ import { OnboardingAboutMePage } from "./pages/OnboardingAboutMePage";
 import { OnboardingPreferencesPage } from "./pages/OnboardingPreferencesPage";
 import { ProfileEditPage } from "./pages/ProfileEditPage";
 import { MatchesPage } from "./pages/MatchesPage";
+import { ChatPage } from "./pages/ChatPage";
+import { ChatThreadPage } from "./pages/ChatThreadPage";
+import { ViewProfilePage } from "./pages/ViewProfilePage";
 import { RequireAuth } from "./components/RequireAuth";
 import { Layout } from "./components/Layout";
 
@@ -41,6 +44,30 @@ function App() {
           element={
             <RequireAuth>
               <MatchesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <RequireAuth>
+              <ChatPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/chat/:clerkId"
+          element={
+            <RequireAuth>
+              <ChatThreadPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profiles/:clerkId"
+          element={
+            <RequireAuth>
+              <ViewProfilePage />
             </RequireAuth>
           }
         />

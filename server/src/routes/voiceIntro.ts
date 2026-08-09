@@ -2,27 +2,13 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "@clerk/express";
 import { ProfileModel } from "../models/Profile.js";
-import { deleteFile, saveFile } from "../services/storageService.js";
+import { ALLOWED_AUDIO_TYPES, baseMimeType, deleteFile, saveFile } from "../services/storageService.js";
 import { advanceOnboardingIfProfileComplete } from "../services/profileService.js";
 
 export const voiceIntroRouter = Router();
 
-const ALLOWED_AUDIO_TYPES: Record<string, string> = {
-  "audio/webm": "webm",
-  "audio/mp4": "m4a",
-  "audio/mpeg": "mp3",
-  "audio/wav": "wav",
-  "audio/ogg": "ogg",
-};
-
 // Small buffer over the 30s cap in the brief, for client-side timing imprecision.
 const MAX_DURATION_SEC = 31;
-
-// Browsers report MediaRecorder's mimeType with codec params, e.g.
-// "audio/webm;codecs=opus" — strip everything after ';' before matching.
-function baseMimeType(mimetype: string): string {
-  return mimetype.split(";")[0].trim();
-}
 
 const upload = multer({
   storage: multer.memoryStorage(),

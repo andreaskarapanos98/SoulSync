@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { Logo } from "./Logo";
 import { ProfileAvatarButton } from "./ProfileAvatarButton";
+import { ChatNavLink } from "./ChatNavLink";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -21,6 +22,7 @@ export function Layout({ children }: { children: ReactNode }) {
               >
                 Matches
               </Link>
+              <ChatNavLink />
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">

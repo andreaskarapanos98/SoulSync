@@ -135,8 +135,11 @@ export interface MatchCardDTO {
   country?: string;
   photoUrl?: string;
   hasVoiceIntro: boolean;
+  voiceIntroUrl?: string;
   // 0-100, real weighted compatibility score (see compatibilityScoring.ts).
   compatibility: number;
+  // Whether the viewer has unlocked this candidate (no payment gate yet — free for now).
+  unlocked: boolean;
 }
 
 export interface MatchesResponseDTO {
@@ -144,4 +147,45 @@ export interface MatchesResponseDTO {
   yourSoulmates: MatchCardDTO[];
   // Candidates the viewer fits what THEY are looking for.
   theirSoulmate: MatchCardDTO[];
+}
+
+export interface ConversationSummaryDTO {
+  clerkId: string;
+  firstName: string;
+  photoUrl?: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  lastMessageFromMe: boolean;
+  compatibility: number;
+  unread: boolean;
+}
+
+export interface ConversationsResponseDTO {
+  conversations: ConversationSummaryDTO[];
+}
+
+export interface UnreadCountDTO {
+  count: number;
+}
+
+export interface MessageDTO {
+  id: string;
+  fromClerkId: string;
+  toClerkId: string;
+  body: string;
+  audioUrl?: string;
+  durationSec?: number;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface MessagesResponseDTO {
+  messages: MessageDTO[];
+  otherFirstName: string;
+  otherPhotoUrl?: string;
+  otherIsTyping: boolean;
+}
+
+export interface SendMessageResponseDTO {
+  message: MessageDTO;
 }

@@ -11,9 +11,23 @@ import path from "node:path";
 // R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_URL.
 const UPLOADS_ROOT = path.resolve(process.cwd(), "uploads");
 
+export const ALLOWED_AUDIO_TYPES: Record<string, string> = {
+  "audio/webm": "webm",
+  "audio/mp4": "m4a",
+  "audio/mpeg": "mp3",
+  "audio/wav": "wav",
+  "audio/ogg": "ogg",
+};
+
+// Browsers report MediaRecorder's mimeType with codec params, e.g.
+// "audio/webm;codecs=opus" — strip everything after ';' before matching.
+export function baseMimeType(mimetype: string): string {
+  return mimetype.split(";")[0].trim();
+}
+
 export async function saveFile(
   buffer: Buffer,
-  subfolder: "photos" | "voice-intros",
+  subfolder: "photos" | "voice-intros" | "voice-messages",
   extension: string,
 ): Promise<{ url: string }> {
   const dir = path.join(UPLOADS_ROOT, subfolder);

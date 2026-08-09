@@ -7,6 +7,7 @@ import { ProfileModel, type Profile } from "../models/Profile.js";
 import { calculateAge } from "../utils/age.js";
 import { getPointGivingQuestions, roundScore, type PointGivingQuestion } from "./scoringEngine.js";
 import { computeScore, heightEliminates, miniScaleThresholdEliminates } from "./compatibilityScoring.js";
+import { getUnlockedClerkIds } from "./unlockService.js";
 
 interface Traits {
   clerkId: string;
@@ -152,7 +153,7 @@ async function loadCandidatePool(excludeClerkId: string) {
   return { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId };
 }
 
-function toCard(traits: Traits, profile: Profile | undefined, score: number): MatchCardDTO {
+function toCard(traits: Traits, profile: Profile | undefined, score: number, unlocked: boolean): MatchCardDTO {
   const photo = profile?.photos.find((p) => p.isPrimary) ?? profile?.photos[0];
   return {
     clerkId: traits.clerkId,
@@ -162,7 +163,9 @@ function toCard(traits: Traits, profile: Profile | undefined, score: number): Ma
     country: traits.country,
     photoUrl: photo?.url,
     hasVoiceIntro: Boolean(profile?.voiceIntro),
+    voiceIntroUrl: profile?.voiceIntro?.url,
     compatibility: score,
+    unlocked,
   };
 }
 
@@ -184,6 +187,7 @@ export async function getMatches(viewerClerkId: string) {
 
   const { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId } =
     await loadCandidatePool(viewerClerkId);
+  const unlockedClerkIds = await getUnlockedClerkIds(viewerClerkId);
 
   const yourSoulmates: MatchCardDTO[] = [];
   const theirSoulmate: MatchCardDTO[] = [];
@@ -212,7 +216,7 @@ export async function getMatches(viewerClerkId: string) {
       const score = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences: viewerPreferenceAnswers, candidateAboutMe: candidateAboutMeAnswers }),
       );
-      yourSoulmates.push(toCard(candidate, profile, score));
+      yourSoulmates.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
     }
     if (
       !isEliminated(
@@ -230,7 +234,7 @@ export async function getMatches(viewerClerkId: string) {
       const score = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences: candidatePreferenceAnswers, candidateAboutMe: viewerAboutMeAnswers }),
       );
-      theirSoulmate.push(toCard(candidate, profile, score));
+      theirSoulmate.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
     }
   }
 

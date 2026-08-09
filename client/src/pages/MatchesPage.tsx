@@ -26,6 +26,15 @@ export function MatchesPage() {
   const list = matches[tab];
   const activeTab = TABS.find((t) => t.key === tab)!;
 
+  function handleUnlocked(clerkId: string) {
+    setMatches((prev) => {
+      if (!prev) return prev;
+      const markUnlocked = (list: typeof prev.yourSoulmates) =>
+        list.map((m) => (m.clerkId === clerkId ? { ...m, unlocked: true } : m));
+      return { yourSoulmates: markUnlocked(prev.yourSoulmates), theirSoulmate: markUnlocked(prev.theirSoulmate) };
+    });
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
       <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Matches</h1>
@@ -59,7 +68,7 @@ export function MatchesPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((m) => (
-            <MatchCard key={m.clerkId} match={m} />
+            <MatchCard key={m.clerkId} match={m} onUnlocked={handleUnlocked} />
           ))}
         </div>
       )}

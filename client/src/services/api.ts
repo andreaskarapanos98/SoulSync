@@ -1,15 +1,19 @@
 import type {
   AboutMeAnswersDTO,
   AnswerValue,
+  ConversationsResponseDTO,
   DealBreakersDTO,
   MatchesResponseDTO,
   MeDTO,
+  MessagesResponseDTO,
   OwnProfileDTO,
   PhotosResponseDTO,
   PreferenceAnswersDTO,
   ProfileDTO,
   QuestionDTO,
   SaveAnswersResponseDTO,
+  SendMessageResponseDTO,
+  UnreadCountDTO,
   VoiceIntroResponseDTO,
 } from "@soulsync/shared-types";
 
@@ -114,6 +118,23 @@ export function createApiClient(getToken: GetToken) {
     deleteVoiceIntro: () =>
       request<VoiceIntroResponseDTO>("/api/v1/me/profile/voice-intro", { method: "DELETE" }),
     getMatches: () => request<MatchesResponseDTO>("/api/v1/matches"),
+    getConversations: () => request<ConversationsResponseDTO>("/api/v1/conversations"),
+    getMessages: (otherClerkId: string) => request<MessagesResponseDTO>(`/api/v1/conversations/${otherClerkId}/messages`),
+    sendMessage: (otherClerkId: string, body: string) =>
+      request<SendMessageResponseDTO>(`/api/v1/conversations/${otherClerkId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      }),
+    unlockUser: (clerkId: string) => request<{ unlocked: true }>(`/api/v1/unlocks/${clerkId}`, { method: "POST" }),
+    sendTyping: (otherClerkId: string) =>
+      request<{ ok: true }>(`/api/v1/conversations/${otherClerkId}/typing`, { method: "POST" }),
+    getUnreadCount: () => request<UnreadCountDTO>("/api/v1/conversations/unread-count"),
+    sendVoiceMessage: (otherClerkId: string, blob: Blob, durationSec: number) => {
+      const formData = new FormData();
+      formData.append("audio", blob, "voice-message.webm");
+      formData.append("durationSec", String(durationSec));
+      return requestMultipart<SendMessageResponseDTO>(`/api/v1/conversations/${otherClerkId}/voice-messages`, "POST", formData);
+    },
   };
 }
 
