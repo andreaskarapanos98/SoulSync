@@ -12,8 +12,11 @@ const DONT_CARE = "no_preference";
  *  - stepped_distance: no elimination — points fall off with ordinal distance from the
  *    viewer's target. The exact tiered percentage table was never pinned down (an
  *    earlier gap — the distance=1 tier specifically — was flagged and never resolved),
- *    so this uses the same linear-decay rate as ranking (10% per step) as a documented
- *    placeholder. Replace `decay()` below with the real table once it's confirmed.
+ *    so this uses a linear-decay placeholder at 20% per step (steeper than ranking's
+ *    confirmed 10%/step) — at fullPoints ~2.7, a 10%/step penalty (~0.27) is smaller
+ *    than the 0.5 needed to move the final rounded percentage at all, making a single
+ *    one-step mismatch invisible in the displayed score. Replace `steppedDistanceDecay`
+ *    below with the real table once it's confirmed.
  * Two keys (morning_or_night, wants_children) don't fit either shape and get their own
  * dedicated scorers.
  */
@@ -58,9 +61,19 @@ function optionIndex(options: { value: string }[] | undefined, val: unknown): nu
   return options.findIndex((o) => o.value === val);
 }
 
-/** Linear decay shared by ranking and the stepped_distance placeholder: -10% per step. */
-function decay(fullPoints: number, distance: number): number {
+/** ranking's confirmed linear decay: -10% per rank step. */
+function rankingDecay(fullPoints: number, distance: number): number {
   return fullPoints * Math.max(0, 1 - 0.1 * distance);
+}
+
+/**
+ * stepped_distance placeholder decay: -20% per step, not ranking's 10%. At fullPoints
+ * ~2.7, a 10%/step penalty is only ~0.27 — smaller than the 0.5 needed to move the
+ * final rounded percentage, so a single one-step mismatch would round away to
+ * invisible. 20%/step (~0.54 at distance 1) actually registers.
+ */
+function steppedDistanceDecay(fullPoints: number, distance: number): number {
+  return fullPoints * Math.max(0, 1 - 0.2 * distance);
 }
 
 /** True if this mini_scale question's viewer threshold eliminates the candidate. */
@@ -112,7 +125,7 @@ function scoreRanking(viewerOrder: unknown, candidateValue: unknown, fullPoints:
   if (!Array.isArray(viewerOrder) || viewerOrder.length === 0) return fullPoints;
   const idx = viewerOrder.indexOf(candidateValue as string);
   if (idx === -1) return 0;
-  return decay(fullPoints, idx);
+  return rankingDecay(fullPoints, idx);
 }
 
 function scoreSteppedDistance(
@@ -127,7 +140,7 @@ function scoreSteppedDistance(
   if (viewerTarget === undefined || candidateValue === undefined || viewerNum === -1 || candidateNum === -1) {
     return fullPoints; // can't evaluate — don't punish
   }
-  return decay(fullPoints, Math.abs(candidateNum - viewerNum));
+  return steppedDistanceDecay(fullPoints, Math.abs(candidateNum - viewerNum));
 }
 
 // "both" satisfies either preference — confirmed explicitly by the user.
