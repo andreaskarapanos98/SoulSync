@@ -1,23 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useApi } from "../hooks/useApi";
-
-const POLL_INTERVAL_MS = 10000;
+import { Link } from "react-router-dom";
+import { useUnreadCount } from "../hooks/useUnreadCount";
 
 export function ChatNavLink() {
-  const api = useApi();
-  const location = useLocation();
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    function poll() {
-      api.getUnreadCount().then((res) => setCount(res.count)).catch(() => {});
-    }
-    poll();
-    const interval = setInterval(poll, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-    // Re-poll immediately on navigation (e.g. right after leaving a thread you just read).
-  }, [api, location.pathname]);
+  const { count } = useUnreadCount();
 
   return (
     <Link

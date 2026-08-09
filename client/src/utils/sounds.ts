@@ -31,7 +31,11 @@ export function playTypingSound() {
   beep(900, 30, 0.015);
 }
 
+let incomingAudio: HTMLAudioElement | null = null;
+
 export function playIncomingSound() {
-  beep(600, 90, 0.05);
-  beep(880, 120, 0.05, 90);
+  if (!incomingAudio) incomingAudio = new Audio("/sounds/incoming-message.mp3");
+  // Restart from the top if a previous notification is still finishing up.
+  incomingAudio.currentTime = 0;
+  incomingAudio.play().catch(() => {});
 }

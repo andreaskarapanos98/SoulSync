@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import type { MessageDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
+import { useUnreadCount } from "../hooks/useUnreadCount";
 import { LogoMark } from "../components/Logo";
 import { EmojiPicker } from "../components/chat/EmojiPicker";
 import { VoiceMessageButton } from "../components/chat/VoiceMessageButton";
@@ -17,6 +18,7 @@ export function ChatThreadPage() {
   const { clerkId } = useParams<{ clerkId: string }>();
   const api = useApi();
   const { userId } = useAuth();
+  const { refresh: refreshUnreadCount } = useUnreadCount();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
   const [otherName, setOtherName] = useState("");
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
@@ -48,6 +50,10 @@ export function ChatThreadPage() {
         setOtherName(res.otherFirstName);
         setOtherPhoto(res.otherPhotoUrl);
         setOtherIsTyping(res.otherIsTyping);
+
+        // Fetching messages marks this conversation read server-side — refresh the
+        // nav badge immediately instead of waiting on its own independent poll timer.
+        refreshUnreadCount();
       })
       .catch((err) => setError(String(err)));
   }
