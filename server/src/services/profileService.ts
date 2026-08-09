@@ -64,7 +64,6 @@ export async function getProfileCompletionGaps(clerkId: string): Promise<string[
   const missing: string[] = [];
   if (!profile?.photos.some((p) => p.isPrimary)) missing.push("a primary photo");
   if (!profile?.bio?.trim()) missing.push("a bio");
-  if (!profile?.voiceIntro) missing.push("a voice introduction");
   return missing;
 }
 

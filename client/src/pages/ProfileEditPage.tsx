@@ -14,6 +14,7 @@ export function ProfileEditPage() {
   const [bioDraft, setBioDraft] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [savingBio, setSavingBio] = useState(false);
+  const [bioSaved, setBioSaved] = useState(false);
 
   useEffect(() => {
     api
@@ -36,6 +37,8 @@ export function ProfileEditPage() {
       setProfile((prev) =>
         prev ? { ...prev, bio: bioDraft, missingRequired: result.missingRequired } : prev,
       );
+      setBioSaved(true);
+      setTimeout(() => setBioSaved(false), 2500);
     } finally {
       setSavingBio(false);
     }
@@ -123,6 +126,9 @@ export function ProfileEditPage() {
           className="w-full rounded-lg border border-neutral-300 bg-white p-3 text-sm text-neutral-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:ring-brand-900"
         />
         <div className="mt-2 flex items-center justify-end gap-3">
+          {bioSaved && (
+            <span className="text-sm font-medium text-green-600 dark:text-green-400">Saved ✓</span>
+          )}
           <span className="text-xs text-neutral-500">{bioDraft.length}/500</span>
           <button
             type="button"

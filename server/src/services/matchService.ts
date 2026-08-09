@@ -5,6 +5,8 @@ import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
 import { DealBreakerModel } from "../models/DealBreaker.js";
 import { ProfileModel, type Profile } from "../models/Profile.js";
 import { calculateAge } from "../utils/age.js";
+import { getPointGivingQuestions, roundScore, type PointGivingQuestion } from "./scoringEngine.js";
+import { computeScore, heightEliminates, miniScaleThresholdEliminates } from "./compatibilityScoring.js";
 
 interface Traits {
   clerkId: string;
@@ -45,16 +47,7 @@ function prefsOf(answers: Record<string, unknown>): Prefs {
   };
 }
 
-/**
- * The only mechanics that are fully specified AND require no data we don't
- * already have: gender/age_range (hard_filter), country (relative_self, but
- * behaves as elimination when "same_country" is selected), languages
- * (checklist, eliminates on zero overlap). Deal breakers (see
- * dealBreakersEliminate below) are a separate, also-real elimination gate.
- * Everything else (mini_scale, ranking, remaining checklists) isn't
- * implemented yet, so a candidate that survives these gates gets a stable
- * placeholder score rather than a fake precise one.
- */
+/** gender/age_range (hard_filter), and country "same_country" (relative_self). */
 function passesHardFilters(prefs: Prefs, candidate: Traits, viewer: Traits): boolean {
   if (prefs.genders.length > 0 && candidate.gender && !prefs.genders.includes(candidate.gender)) {
     return false;
@@ -88,12 +81,40 @@ function dealBreakersEliminate(dealBreakers: Record<string, string[]>, targetAbo
   });
 }
 
-// Deterministic per-pair placeholder in the 55-97 range, stable across reloads,
-// distinct per direction. Swap this out once the real weighted score exists.
-function placeholderScore(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  return 55 + (Math.abs(hash) % 43);
+/** The remaining elimination gates: mini_scale thresholds and relative_self height_cm. */
+function eliminatedByGradedGates(
+  questions: PointGivingQuestion[],
+  viewerPreferences: Record<string, unknown>,
+  viewerAboutMe: Record<string, unknown>,
+  candidateAboutMe: Record<string, unknown>,
+): boolean {
+  for (const q of questions) {
+    if (q.scoringMechanic === "mini_scale" && miniScaleThresholdEliminates(q, viewerPreferences[q.key], candidateAboutMe[q.key])) {
+      return true;
+    }
+  }
+  return heightEliminates(
+    viewerPreferences.height_cm,
+    viewerAboutMe.height_cm as number | undefined,
+    candidateAboutMe.height_cm as number | undefined,
+  );
+}
+
+function isEliminated(
+  questions: PointGivingQuestion[],
+  prefs: Prefs,
+  dealBreakers: Record<string, string[]>,
+  viewerPreferences: Record<string, unknown>,
+  viewer: Traits,
+  viewerAboutMe: Record<string, unknown>,
+  candidate: Traits,
+  candidateAboutMe: Record<string, unknown>,
+): boolean {
+  return (
+    !passesHardFilters(prefs, candidate, viewer) ||
+    dealBreakersEliminate(dealBreakers, candidateAboutMe) ||
+    eliminatedByGradedGates(questions, viewerPreferences, viewerAboutMe, candidateAboutMe)
+  );
 }
 
 async function loadCandidatePool(excludeClerkId: string) {
@@ -136,6 +157,9 @@ function toCard(traits: Traits, profile: Profile | undefined, score: number): Ma
 }
 
 export async function getMatches(viewerClerkId: string) {
+  const questions = await getPointGivingQuestions();
+  const fullPoints = questions.length === 0 ? 0 : 100 / questions.length;
+
   const [viewerAboutMeDoc, viewerPreferenceDoc, viewerDealBreakerDoc] = await Promise.all([
     AboutMeAnswerModel.findOne({ clerkId: viewerClerkId }),
     PreferenceAnswerModel.findOne({ clerkId: viewerClerkId }),
@@ -162,16 +186,38 @@ export async function getMatches(viewerClerkId: string) {
     const profile = profileByClerkId.get(candidateId);
 
     if (
-      passesHardFilters(viewerPrefs, candidate, viewer) &&
-      !dealBreakersEliminate(viewerDealBreakers, candidateAboutMeAnswers)
+      !isEliminated(
+        questions,
+        viewerPrefs,
+        viewerDealBreakers,
+        viewerPreferenceAnswers,
+        viewer,
+        viewerAboutMeAnswers,
+        candidate,
+        candidateAboutMeAnswers,
+      )
     ) {
-      yourSoulmates.push(toCard(candidate, profile, placeholderScore(`${viewerClerkId}>${candidateId}`)));
+      const score = roundScore(
+        computeScore({ questions, fullPoints, viewerPreferences: viewerPreferenceAnswers, candidateAboutMe: candidateAboutMeAnswers }),
+      );
+      yourSoulmates.push(toCard(candidate, profile, score));
     }
     if (
-      passesHardFilters(candidatePrefs, viewer, candidate) &&
-      !dealBreakersEliminate(candidateDealBreakers, viewerAboutMeAnswers)
+      !isEliminated(
+        questions,
+        candidatePrefs,
+        candidateDealBreakers,
+        candidatePreferenceAnswers,
+        candidate,
+        candidateAboutMeAnswers,
+        viewer,
+        viewerAboutMeAnswers,
+      )
     ) {
-      theirSoulmate.push(toCard(candidate, profile, placeholderScore(`${candidateId}>${viewerClerkId}`)));
+      const score = roundScore(
+        computeScore({ questions, fullPoints, viewerPreferences: candidatePreferenceAnswers, candidateAboutMe: viewerAboutMeAnswers }),
+      );
+      theirSoulmate.push(toCard(candidate, profile, score));
     }
   }
 

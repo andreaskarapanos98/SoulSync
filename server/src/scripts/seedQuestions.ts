@@ -12,6 +12,9 @@ type SeedQuestion = {
   max?: number;
   required?: boolean;
   order: number;
+  // single_select only: render as a searchable combobox instead of a plain dropdown —
+  // for option lists too long to scan (e.g. countries).
+  searchable?: boolean;
   // Preference-only fields (ignored for about_me questions).
   scoringMechanic?: string;
   canBeDealBreaker?: boolean;
@@ -20,6 +23,45 @@ type SeedQuestion = {
 function opts(...pairs: ([string, string] | [string, string, true])[]) {
   return pairs.map(([value, label, exclusive]) => ({ value, label, exclusive }));
 }
+
+function slugify(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+const COUNTRY_NAMES = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
+  "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
+  "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina",
+  "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+  "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+  "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia",
+  "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini",
+  "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
+  "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras",
+  "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait",
+  "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+  "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
+  "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco",
+  "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+  "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
+  "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay",
+  "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda",
+  "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa",
+  "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles",
+  "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia",
+  "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname",
+  "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand",
+  "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+  "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States",
+  "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia",
+  "Zimbabwe",
+];
+
+// Canonical value slugs so every user's answer comes from the exact same list — needed
+// for the compatibility engine to compare countries by simple string equality.
+const COUNTRIES = COUNTRY_NAMES.map((name) => ({ value: slugify(name), label: name }));
 
 // ============================================================================
 // ABOUT ME — the vocabulary. Every preference question below (except age_range,
@@ -31,12 +73,13 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "first_name", category: "basics", type: "text", label: "What's your first name?", required: true, order: 1 },
   { key: "date_of_birth", category: "basics", type: "date", label: "What's your date of birth?", required: true, order: 2 },
   { key: "gender", category: "basics", type: "single_select", label: "What's your gender?", required: true, order: 3,
-    options: opts(["man", "Man"], ["woman", "Woman"], ["non_binary", "Non-Binary"]) },
+    options: opts(["man", "Male"], ["woman", "Female"], ["non_binary", "Non-Binary"]) },
   { key: "nationality", category: "basics", type: "text", label: "What's your nationality?", required: true, order: 4 },
-  { key: "country", category: "basics", type: "text", label: "What country do you live in?", required: true, order: 5 },
+  { key: "country", category: "basics", type: "single_select", label: "What country do you live in?", required: true, searchable: true, order: 5,
+    options: COUNTRIES },
   { key: "city", category: "basics", type: "text", label: "What city do you live in?", required: true, order: 6 },
   { key: "languages", category: "basics", type: "multi_select", label: "Which languages do you speak?", order: 7,
-    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"]) },
+    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"], ["tr", "Turkish"], ["ar", "Arabic"]) },
   { key: "height_cm", category: "basics", type: "number", label: "What's your height (cm)?", min: 120, max: 230, order: 8 },
   { key: "occupation", category: "basics", type: "text", label: "What's your occupation?", order: 9 },
   { key: "education", category: "basics", type: "single_select", label: "What's your highest level of education?", order: 10,
@@ -47,10 +90,10 @@ const aboutMeQuestions: SeedQuestion[] = [
     options: opts(["slim", "Slim"], ["athletic", "Athletic"], ["average", "Average"], ["muscular", "Muscular"], ["curvy", "Curvy"], ["plus_size", "Plus-size"]) },
   { key: "fitness_level", category: "appearance", type: "scale", label: "How would you describe your fitness level?", min: 1, max: 10, order: 2 },
   { key: "hair_color", category: "appearance", type: "single_select", label: "What's your hair color?", order: 3,
-    options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["grey_white", "Grey/White"], ["other", "Other"]) },
+    options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["ginger", "Ginger"], ["grey_white", "Grey/White"], ["other", "Other"]) },
   { key: "eye_color", category: "appearance", type: "single_select", label: "What's your eye color?", order: 4,
     options: opts(["brown", "Brown"], ["blue", "Blue"], ["green", "Green"], ["hazel", "Hazel"], ["grey", "Grey"], ["other", "Other"]) },
-  { key: "facial_hair", category: "appearance", type: "single_select", label: "What's your facial hair style?", order: 5,
+  { key: "facial_hair", category: "appearance", type: "single_select", label: "What's your facial hair shave?", order: 5,
     options: opts(["clean_shaven", "Clean-shaven"], ["stubble", "Stubble"], ["short_beard", "Short beard"], ["long_beard", "Long beard"], ["mustache", "Mustache"], ["other", "Other"], ["not_applicable", "Not applicable"]) },
   { key: "has_tattoos", category: "appearance", type: "single_select", label: "Do you have tattoos?", order: 6,
     options: opts(["none", "None"], ["minimal", "Small/minimal"], ["several", "Several"], ["heavily", "Heavily tattooed"]) },
@@ -97,7 +140,7 @@ const aboutMeQuestions: SeedQuestion[] = [
 
   // relationship_goals
   { key: "relationship_type", category: "relationship_goals", type: "single_select", label: "What type of relationship are you looking for?", required: true, order: 1,
-    options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with potential for serious"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
+    options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with the potential for a serious relationship"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
   { key: "wants_children", category: "relationship_goals", type: "single_select", label: "Do you want children someday in your life?", required: true, order: 2,
     options: opts(["yes", "Yes"], ["no", "No"], ["already_have", "Already have children"]) },
 
@@ -119,7 +162,7 @@ const aboutMeQuestions: SeedQuestion[] = [
     options: opts(["definitely", "Definitely"], ["probably", "Probably"], ["maybe", "Maybe"], ["probably_not", "Probably not"], ["definitely_not", "Definitely not"]) },
 
   // hobbies
-  { key: "hobbies", category: "hobbies", type: "multi_select", label: "What do you enjoy doing?", order: 1,
+  { key: "hobbies", category: "hobbies", type: "multi_select", label: "What do you enjoy doing in your free time?", order: 1,
     options: opts(["gym", "Gym"], ["hiking", "Hiking"], ["gaming", "Gaming"], ["cooking", "Cooking"], ["reading", "Reading"], ["movies", "Movies"], ["music", "Music"], ["dancing", "Dancing"], ["photography", "Photography"], ["art", "Art"], ["travelling", "Travelling"], ["sports", "Sports"], ["combat_sports", "Combat Sports"], ["cars", "Cars"], ["technology", "Technology"], ["fashion", "Fashion"], ["business", "Business"], ["investing", "Investing"], ["nature", "Nature"], ["nightlife", "Nightlife"]) },
 
   // connection
@@ -148,12 +191,12 @@ const DONT_CARE = { value: "no_preference", label: "I don't care" };
 const preferenceQuestions: SeedQuestion[] = [
   // basics
   { key: "gender", category: "basics", type: "multi_select", label: "Which genders are you interested in?", required: true, scoringMechanic: "hard_filter", order: 1,
-    options: opts(["man", "Man"], ["woman", "Woman"], ["non_binary", "Non-Binary"]) },
+    options: opts(["man", "Male"], ["woman", "Female"], ["non_binary", "Non-Binary"]) },
   { key: "age_range", category: "basics", type: "number_range", label: "What age range are you looking for?", required: true, scoringMechanic: "hard_filter", min: 16, max: 60, order: 2 },
   { key: "country", category: "basics", type: "single_select", label: "Would you like your soulmate to live in your country?", scoringMechanic: "relative_self", order: 3,
     options: opts(["same_country", "Same country as me"], ["anywhere", "Anywhere"]) },
   { key: "languages", category: "basics", type: "multi_select", label: "Which languages would you like your soulmate to speak?", scoringMechanic: "checklist", order: 4,
-    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"]) },
+    options: opts(["en", "English"], ["el", "Greek"], ["ru", "Russian"], ["fr", "French"], ["de", "German"], ["es", "Spanish"], ["it", "Italian"], ["tr", "Turkish"], ["ar", "Arabic"]) },
   { key: "height_cm", category: "basics", type: "single_select", label: "How tall would you prefer your soulmate to be?", scoringMechanic: "relative_self", order: 5,
     options: opts(["taller", "Taller than me"], ["shorter", "Shorter than me"], ["near", "Around my height (±10%)"], ["no_preference", "I don't care"]) },
   { key: "education", category: "basics", type: "single_select", label: "What level of education would you like your soulmate to have?", scoringMechanic: "mini_scale", order: 6,
@@ -164,10 +207,10 @@ const preferenceQuestions: SeedQuestion[] = [
     options: opts(["slim", "Slim"], ["athletic", "Athletic"], ["average", "Average"], ["muscular", "Muscular"], ["curvy", "Curvy"], ["plus_size", "Plus-size"]) },
   { key: "fitness_level", category: "appearance", type: "scale", label: "What fitness level would you like your soulmate to have?", min: 1, max: 10, scoringMechanic: "mini_scale", order: 2 },
   { key: "hair_color", category: "appearance", type: "single_select", label: "Rank your preferred hair colors.", scoringMechanic: "ranking", order: 3,
-    options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["grey_white", "Grey/White"], ["other", "Other"]) },
+    options: opts(["black", "Black"], ["brown", "Brown"], ["blonde", "Blonde"], ["red", "Red"], ["ginger", "Ginger"], ["grey_white", "Grey/White"], ["other", "Other"]) },
   { key: "eye_color", category: "appearance", type: "single_select", label: "Rank your preferred eye colors.", scoringMechanic: "ranking", order: 4,
     options: opts(["brown", "Brown"], ["blue", "Blue"], ["green", "Green"], ["hazel", "Hazel"], ["grey", "Grey"], ["other", "Other"]) },
-  { key: "facial_hair", category: "appearance", type: "single_select", label: "Rank your preferred facial hair styles.", scoringMechanic: "ranking", order: 5,
+  { key: "facial_hair", category: "appearance", type: "single_select", label: "Rank your preferred facial hair shave.", scoringMechanic: "ranking", order: 5,
     options: opts(["clean_shaven", "Clean-shaven"], ["stubble", "Stubble"], ["short_beard", "Short beard"], ["long_beard", "Long beard"], ["mustache", "Mustache"], ["other", "Other"]) },
   { key: "has_tattoos", category: "appearance", type: "single_select", label: "How do you feel about your soulmate having tattoos?", scoringMechanic: "mini_scale", order: 6,
     options: opts(["none", "Prefer none"], ["minimal", "Small/minimal is okay"], ["several", "Several are okay"], ["heavily", "Heavily tattooed is okay"], [DONT_CARE.value, DONT_CARE.label]) },
@@ -179,9 +222,9 @@ const preferenceQuestions: SeedQuestion[] = [
     options: opts(["never", "Never"], ["occasionally", "Occasionally"], ["regularly", "Regularly"], ["daily", "Daily"], [DONT_CARE.value, DONT_CARE.label]) },
   { key: "vaping", category: "lifestyle", type: "single_select", label: "What electronic cigarette habits are acceptable in your soulmate?", scoringMechanic: "mini_scale", canBeDealBreaker: true, order: 2,
     options: opts(["never", "Never"], ["occasionally", "Occasionally"], ["regularly", "Regularly"], ["daily", "Daily"], [DONT_CARE.value, DONT_CARE.label]) },
-  { key: "alcohol", category: "lifestyle", type: "single_select", label: "How often would you be comfortable with your soulmate drinking?", scoringMechanic: "mini_scale", order: 3,
+  { key: "alcohol", category: "lifestyle", type: "single_select", label: "How often would you be comfortable with your soulmate drinking alcohol?", scoringMechanic: "mini_scale", order: 3,
     options: opts(["never", "Never"], ["rarely", "Rarely"], ["occasionally", "Occasionally"], ["regularly", "Regularly"], ["frequently", "Frequently"], [DONT_CARE.value, DONT_CARE.label]) },
-  { key: "exercise", category: "lifestyle", type: "single_select", label: "What exercise frequency do you prefer in your soulmate?", scoringMechanic: "mini_scale", order: 4,
+  { key: "exercise", category: "lifestyle", type: "single_select", label: "How often would you prefer your soulmate to exercise?", scoringMechanic: "mini_scale", order: 4,
     options: opts(["never", "Never"], ["rarely", "Rarely"], ["1_2_week", "1-2 times/week"], ["3_4_week", "3-4 times/week"], ["5plus_week", "5+ times/week"], [DONT_CARE.value, DONT_CARE.label]) },
   { key: "diet", category: "lifestyle", type: "single_select", label: "What diet would you prefer your soulmate to follow?", scoringMechanic: "ranking", order: 5,
     options: opts(["no_restrictions", "No restrictions"], ["healthy", "Healthy Diet"], ["vegetarian", "Vegetarian"], ["vegan", "Vegan"], ["pescatarian", "Pescatarian"], ["keto", "Keto"], ["halal", "Halal"]) },
@@ -215,7 +258,7 @@ const preferenceQuestions: SeedQuestion[] = [
 
   // relationship_goals
   { key: "relationship_type", category: "relationship_goals", type: "single_select", label: "Rank the relationship types you're looking for.", required: true, scoringMechanic: "ranking", canBeDealBreaker: true, order: 1,
-    options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with potential for serious"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
+    options: opts(["casual", "Casual dating"], ["dating_with_potential", "Dating with the potential for a serious relationship"], ["serious", "Serious relationship"], ["marriage", "Marriage"], ["open", "Open relationship"]) },
   { key: "wants_children", category: "relationship_goals", type: "single_select", label: "What would you prefer regarding children?", required: true, scoringMechanic: "mini_scale", canBeDealBreaker: false, order: 2,
     options: opts(["must_not_want", "Must not want children"], ["prefer_not_want", "Prefer doesn't want children"], ["doesnt_matter", "Doesn't matter"], ["prefer_want", "Prefer wants children"], ["must_want", "Must want children"]) },
 
@@ -236,7 +279,7 @@ const preferenceQuestions: SeedQuestion[] = [
     options: opts(["definitely", "Definitely willing"], ["probably", "Probably willing"], ["maybe", "Maybe willing"], ["probably_not", "Probably not willing"], ["definitely_not", "Definitely not willing"]) },
 
   // hobbies — low-signal by design; kept out of any future high-weight category.
-  { key: "hobbies", category: "hobbies", type: "multi_select", label: "Which interests would you like your soulmate to share?", scoringMechanic: "checklist", order: 1,
+  { key: "hobbies", category: "hobbies", type: "multi_select", label: "Which interests would you like your soulmate to share in their free time?", scoringMechanic: "checklist", order: 1,
     options: opts(["gym", "Gym"], ["hiking", "Hiking"], ["gaming", "Gaming"], ["cooking", "Cooking"], ["reading", "Reading"], ["movies", "Movies"], ["music", "Music"], ["dancing", "Dancing"], ["photography", "Photography"], ["art", "Art"], ["travelling", "Travelling"], ["sports", "Sports"], ["combat_sports", "Combat Sports"], ["cars", "Cars"], ["technology", "Technology"], ["fashion", "Fashion"], ["business", "Business"], ["investing", "Investing"], ["nature", "Nature"], ["nightlife", "Nightlife"]) },
 
   // connection

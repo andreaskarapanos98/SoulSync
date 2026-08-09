@@ -44,7 +44,17 @@ export function OnboardingPreferencesPage() {
     Promise.all([api.getQuestions("preference"), api.getPreferenceAnswers(), api.getDealBreakers()])
       .then(([prefRes, answersRes, dealBreakersRes]) => {
         setPreferenceQuestions(prefRes.questions);
-        setAnswers(answersRes.answers);
+        // Ranking questions are mandatory but the viewer isn't required to actually
+        // reorder anything — leaving the natural (seed) order untouched is a complete
+        // answer. Backfilling it here means it's already "answered" and gets saved as
+        // a real value, instead of relying on the user to touch the up/down arrows.
+        const defaultedAnswers = { ...answersRes.answers };
+        for (const q of prefRes.questions) {
+          if (q.scoringMechanic === "ranking" && defaultedAnswers[q.key] === undefined && q.options) {
+            defaultedAnswers[q.key] = q.options.map((o) => o.value);
+          }
+        }
+        setAnswers(defaultedAnswers);
         setDealBreakers(dealBreakersRes.dealBreakers);
       })
       .catch((err) => setLoadError(String(err)));

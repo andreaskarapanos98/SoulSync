@@ -1,17 +1,34 @@
 import { QuestionDefinitionModel } from "../models/QuestionDefinition.js";
 
+const POINT_GIVING_FILTER = {
+  appliesTo: "preference",
+  active: true,
+  scoringMechanic: { $exists: true, $ne: "filler" },
+} as const;
+
+export interface PointGivingQuestion {
+  key: string;
+  scoringMechanic: string;
+  options?: { value: string; label: string }[];
+}
+
 /**
  * Every active preference question that isn't "filler" gives points — hard filters,
  * relative_self, checklist, mini_scale, and ranking questions all score full points on
- * survival, same as deal breakers. Counted dynamically (not hardcoded) because the
+ * survival, same as deal breakers. Fetched dynamically (not hardcoded) because the
  * questionnaire will keep changing as questions are added or removed.
  */
+export async function getPointGivingQuestions(): Promise<PointGivingQuestion[]> {
+  const docs = await QuestionDefinitionModel.find(POINT_GIVING_FILTER).lean();
+  return docs.map((d) => ({
+    key: d.key,
+    scoringMechanic: d.scoringMechanic!,
+    options: d.options?.map((o) => ({ value: o.value, label: o.label })),
+  }));
+}
+
 export async function countPointGivingQuestions(): Promise<number> {
-  return QuestionDefinitionModel.countDocuments({
-    appliesTo: "preference",
-    active: true,
-    scoringMechanic: { $exists: true, $ne: "filler" },
-  });
+  return QuestionDefinitionModel.countDocuments(POINT_GIVING_FILTER);
 }
 
 /** 100 spread evenly across every point-giving question. */

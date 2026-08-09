@@ -1,4 +1,5 @@
 import type { AnswerValue, QuestionDTO } from "@soulsync/shared-types";
+import { SearchableSelectField } from "./SearchableSelectField";
 
 interface Props {
   question: QuestionDTO;
@@ -124,6 +125,15 @@ export function QuestionField({ question, value, onChange }: Props) {
     }
 
     case "single_select":
+      if (question.searchable) {
+        return (
+          <SearchableSelectField
+            options={question.options ?? []}
+            value={value as string | undefined}
+            onChange={(v) => onChange(v)}
+          />
+        );
+      }
       return (
         <select
           className={textInputClass}

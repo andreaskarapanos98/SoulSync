@@ -81,6 +81,8 @@ const questionDefinitionSchema = new Schema(
     min: { type: Number },
     max: { type: Number },
     required: { type: Boolean, default: false },
+    // single_select only: render as a searchable combobox instead of a plain dropdown.
+    searchable: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
     version: { type: Number, default: 1 },
     active: { type: Boolean, default: true },

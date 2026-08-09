@@ -46,6 +46,8 @@ export interface QuestionDTO {
   max?: number;
   required: boolean;
   order: number;
+  // single_select only: render as a searchable combobox instead of a plain dropdown.
+  searchable?: boolean;
   // Preference-only.
   scoringMechanic?: ScoringMechanic;
   // Preference-only: whether this dimension can ALSO be flagged as a personal deal breaker.
@@ -133,8 +135,7 @@ export interface MatchCardDTO {
   country?: string;
   photoUrl?: string;
   hasVoiceIntro: boolean;
-  // 0-100. Hard filters (gender/age/country/language) are real; the rest of the
-  // score is a stable placeholder until the full compatibility engine ships.
+  // 0-100, real weighted compatibility score (see compatibilityScoring.ts).
   compatibility: number;
 }
 

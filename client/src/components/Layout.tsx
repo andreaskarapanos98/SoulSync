@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { Logo } from "./Logo";
+import { ProfileAvatarButton } from "./ProfileAvatarButton";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -34,7 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </SignUpButton>
             </SignedOut>
             <SignedIn>
-              <UserButton />
+              <ProfileAvatarButton />
             </SignedIn>
           </div>
         </div>

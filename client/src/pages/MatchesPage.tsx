@@ -30,7 +30,7 @@ export function MatchesPage() {
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
       <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Matches</h1>
       <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-        Compatibility percentages are a preview — the full scoring engine is still being tuned.
+        Compatibility is calculated from your questionnaire, deal breakers, and theirs — both ways.
       </p>
 
       <div className="mt-6 flex gap-2 rounded-full bg-brand-50 p-1 dark:bg-neutral-900">
