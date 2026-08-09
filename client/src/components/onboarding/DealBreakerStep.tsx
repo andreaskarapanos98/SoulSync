@@ -19,11 +19,11 @@ const DEAL_BREAKER_CONFIG: Record<string, { question: string; yesValues: string[
   },
   smoking: {
     question: "Would it be a deal breaker if your soulmate smokes cigarettes?",
-    yesValues: ["occasionally", "regularly", "daily"],
+    yesValues: ["regularly", "daily"],
   },
   vaping: {
     question: "Would it be a deal breaker if your soulmate uses electronic cigarettes?",
-    yesValues: ["occasionally", "regularly", "daily"],
+    yesValues: ["regularly", "daily"],
   },
   relationship_type: {
     question: "Would it be a deal breaker if your soulmate is looking for an open relationship?",

@@ -2,6 +2,7 @@ import type { MatchCardDTO } from "@soulsync/shared-types";
 import { UserAccountModel } from "../models/UserAccount.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
+import { DealBreakerModel } from "../models/DealBreaker.js";
 import { ProfileModel, type Profile } from "../models/Profile.js";
 import { calculateAge } from "../utils/age.js";
 
@@ -48,10 +49,11 @@ function prefsOf(answers: Record<string, unknown>): Prefs {
  * The only mechanics that are fully specified AND require no data we don't
  * already have: gender/age_range (hard_filter), country (relative_self, but
  * behaves as elimination when "same_country" is selected), languages
- * (checklist, eliminates on zero overlap). Everything else (mini_scale,
- * ranking, remaining checklists) isn't implemented yet, so a candidate that
- * survives these gates gets a stable placeholder score rather than a fake
- * precise one.
+ * (checklist, eliminates on zero overlap). Deal breakers (see
+ * dealBreakersEliminate below) are a separate, also-real elimination gate.
+ * Everything else (mini_scale, ranking, remaining checklists) isn't
+ * implemented yet, so a candidate that survives these gates gets a stable
+ * placeholder score rather than a fake precise one.
  */
 function passesHardFilters(prefs: Prefs, candidate: Traits, viewer: Traits): boolean {
   if (prefs.genders.length > 0 && candidate.gender && !prefs.genders.includes(candidate.gender)) {
@@ -72,6 +74,20 @@ function passesHardFilters(prefs: Prefs, candidate: Traits, viewer: Traits): boo
   return true;
 }
 
+/**
+ * Deal breakers (has_children, smoking, vaping, relationship_type) are fully specified:
+ * "yes" stores the about_me values that make the trait true for that key, and any
+ * candidate whose own about_me answer is in that set is eliminated entirely — same as a
+ * hard filter. "no" (or never answered) means this key eliminates nobody.
+ */
+function dealBreakersEliminate(dealBreakers: Record<string, string[]>, targetAboutMeAnswers: Record<string, unknown>): boolean {
+  return Object.entries(dealBreakers).some(([key, unacceptable]) => {
+    if (unacceptable.length === 0) return false;
+    const value = targetAboutMeAnswers[key];
+    return typeof value === "string" && unacceptable.includes(value);
+  });
+}
+
 // Deterministic per-pair placeholder in the 55-97 range, stable across reloads,
 // distinct per direction. Swap this out once the real weighted score exists.
 function placeholderScore(seed: string): number {
@@ -88,19 +104,21 @@ async function loadCandidatePool(excludeClerkId: string) {
   }).lean();
   const ids = accounts.map((a) => a.clerkId);
 
-  // Not .lean() here: `answers` is a Mongoose Map, and Object.fromEntries needs the
-  // real Map (lean() strips it down to a plain object with no entries() iterator).
-  const [aboutMeDocs, preferenceDocs, profileDocs] = await Promise.all([
+  // Not .lean() here: `answers`/`dealBreakers` are Mongoose Maps, and Object.fromEntries
+  // needs the real Map (lean() strips it down to a plain object with no entries() iterator).
+  const [aboutMeDocs, preferenceDocs, dealBreakerDocs, profileDocs] = await Promise.all([
     AboutMeAnswerModel.find({ clerkId: { $in: ids } }),
     PreferenceAnswerModel.find({ clerkId: { $in: ids } }),
+    DealBreakerModel.find({ clerkId: { $in: ids } }),
     ProfileModel.find({ clerkId: { $in: ids } }).lean(),
   ]);
 
   const aboutMeByClerkId = new Map(aboutMeDocs.map((d) => [d.clerkId, Object.fromEntries(d.answers)]));
   const preferenceByClerkId = new Map(preferenceDocs.map((d) => [d.clerkId, Object.fromEntries(d.answers)]));
+  const dealBreakersByClerkId = new Map(dealBreakerDocs.map((d) => [d.clerkId, Object.fromEntries(d.dealBreakers)]));
   const profileByClerkId = new Map(profileDocs.map((d) => [d.clerkId, d]));
 
-  return { ids, aboutMeByClerkId, preferenceByClerkId, profileByClerkId };
+  return { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId };
 }
 
 function toCard(traits: Traits, profile: Profile | undefined, score: number): MatchCardDTO {
@@ -118,16 +136,18 @@ function toCard(traits: Traits, profile: Profile | undefined, score: number): Ma
 }
 
 export async function getMatches(viewerClerkId: string) {
-  const [viewerAboutMeDoc, viewerPreferenceDoc] = await Promise.all([
+  const [viewerAboutMeDoc, viewerPreferenceDoc, viewerDealBreakerDoc] = await Promise.all([
     AboutMeAnswerModel.findOne({ clerkId: viewerClerkId }),
     PreferenceAnswerModel.findOne({ clerkId: viewerClerkId }),
+    DealBreakerModel.findOne({ clerkId: viewerClerkId }),
   ]);
   const viewerAboutMeAnswers = viewerAboutMeDoc ? Object.fromEntries(viewerAboutMeDoc.answers) : {};
   const viewerPreferenceAnswers = viewerPreferenceDoc ? Object.fromEntries(viewerPreferenceDoc.answers) : {};
+  const viewerDealBreakers = viewerDealBreakerDoc ? Object.fromEntries(viewerDealBreakerDoc.dealBreakers) : {};
   const viewer = traitsOf(viewerClerkId, viewerAboutMeAnswers);
   const viewerPrefs = prefsOf(viewerPreferenceAnswers);
 
-  const { ids, aboutMeByClerkId, preferenceByClerkId, profileByClerkId } =
+  const { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId } =
     await loadCandidatePool(viewerClerkId);
 
   const yourSoulmates: MatchCardDTO[] = [];
@@ -136,14 +156,21 @@ export async function getMatches(viewerClerkId: string) {
   for (const candidateId of ids) {
     const candidateAboutMeAnswers = aboutMeByClerkId.get(candidateId) ?? {};
     const candidatePreferenceAnswers = preferenceByClerkId.get(candidateId) ?? {};
+    const candidateDealBreakers = dealBreakersByClerkId.get(candidateId) ?? {};
     const candidate = traitsOf(candidateId, candidateAboutMeAnswers);
     const candidatePrefs = prefsOf(candidatePreferenceAnswers);
     const profile = profileByClerkId.get(candidateId);
 
-    if (passesHardFilters(viewerPrefs, candidate, viewer)) {
+    if (
+      passesHardFilters(viewerPrefs, candidate, viewer) &&
+      !dealBreakersEliminate(viewerDealBreakers, candidateAboutMeAnswers)
+    ) {
       yourSoulmates.push(toCard(candidate, profile, placeholderScore(`${viewerClerkId}>${candidateId}`)));
     }
-    if (passesHardFilters(candidatePrefs, viewer, candidate)) {
+    if (
+      passesHardFilters(candidatePrefs, viewer, candidate) &&
+      !dealBreakersEliminate(candidateDealBreakers, viewerAboutMeAnswers)
+    ) {
       theirSoulmate.push(toCard(candidate, profile, placeholderScore(`${candidateId}>${viewerClerkId}`)));
     }
   }
