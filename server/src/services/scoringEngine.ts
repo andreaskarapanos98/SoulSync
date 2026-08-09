@@ -10,6 +10,7 @@ export interface PointGivingQuestion {
   key: string;
   scoringMechanic: string;
   options?: { value: string; label: string }[];
+  canBeDealBreaker?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ export async function getPointGivingQuestions(): Promise<PointGivingQuestion[]> 
     key: d.key,
     scoringMechanic: d.scoringMechanic!,
     options: d.options?.map((o) => ({ value: o.value, label: o.label })),
+    canBeDealBreaker: d.canBeDealBreaker,
   }));
 }
 

@@ -72,10 +72,19 @@ function passesHardFilters(prefs: Prefs, candidate: Traits, viewer: Traits): boo
  * "yes" stores the about_me values that make the trait true for that key, and any
  * candidate whose own about_me answer is in that set is eliminated entirely — same as a
  * hard filter. "no" (or never answered) means this key eliminates nobody.
+ *
+ * `validKeys` filters out stale entries from questions that used to be deal breakers
+ * and no longer are (e.g. wants_children, religion) — those still sit in old
+ * DealBreaker docs since removing a key server-side never touches previously-saved
+ * data, but they must not affect matching once the question stops being one.
  */
-function dealBreakersEliminate(dealBreakers: Record<string, string[]>, targetAboutMeAnswers: Record<string, unknown>): boolean {
+function dealBreakersEliminate(
+  dealBreakers: Record<string, string[]>,
+  targetAboutMeAnswers: Record<string, unknown>,
+  validKeys: Set<string>,
+): boolean {
   return Object.entries(dealBreakers).some(([key, unacceptable]) => {
-    if (unacceptable.length === 0) return false;
+    if (!validKeys.has(key) || unacceptable.length === 0) return false;
     const value = targetAboutMeAnswers[key];
     return typeof value === "string" && unacceptable.includes(value);
   });
@@ -102,6 +111,7 @@ function eliminatedByGradedGates(
 
 function isEliminated(
   questions: PointGivingQuestion[],
+  validDealBreakerKeys: Set<string>,
   prefs: Prefs,
   dealBreakers: Record<string, string[]>,
   viewerPreferences: Record<string, unknown>,
@@ -112,7 +122,7 @@ function isEliminated(
 ): boolean {
   return (
     !passesHardFilters(prefs, candidate, viewer) ||
-    dealBreakersEliminate(dealBreakers, candidateAboutMe) ||
+    dealBreakersEliminate(dealBreakers, candidateAboutMe, validDealBreakerKeys) ||
     eliminatedByGradedGates(questions, viewerPreferences, viewerAboutMe, candidateAboutMe)
   );
 }
@@ -159,6 +169,7 @@ function toCard(traits: Traits, profile: Profile | undefined, score: number): Ma
 export async function getMatches(viewerClerkId: string) {
   const questions = await getPointGivingQuestions();
   const fullPoints = questions.length === 0 ? 0 : 100 / questions.length;
+  const validDealBreakerKeys = new Set(questions.filter((q) => q.canBeDealBreaker).map((q) => q.key));
 
   const [viewerAboutMeDoc, viewerPreferenceDoc, viewerDealBreakerDoc] = await Promise.all([
     AboutMeAnswerModel.findOne({ clerkId: viewerClerkId }),
@@ -188,6 +199,7 @@ export async function getMatches(viewerClerkId: string) {
     if (
       !isEliminated(
         questions,
+        validDealBreakerKeys,
         viewerPrefs,
         viewerDealBreakers,
         viewerPreferenceAnswers,
@@ -205,6 +217,7 @@ export async function getMatches(viewerClerkId: string) {
     if (
       !isEliminated(
         questions,
+        validDealBreakerKeys,
         candidatePrefs,
         candidateDealBreakers,
         candidatePreferenceAnswers,

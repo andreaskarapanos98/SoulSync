@@ -160,7 +160,13 @@ export function OnboardingPreferencesPage() {
     setSaving(true);
     try {
       if (isDealBreakerStep) {
-        await api.saveDealBreakers(dealBreakers);
+        // `dealBreakers` is seeded from whatever's already saved, which can include
+        // keys from questions that used to be deal breakers and no longer are (e.g.
+        // wants_children, religion) — only resend the currently valid ones.
+        const dealBreakerPayload = Object.fromEntries(
+          dealBreakerQuestions.map((q) => [q.key, dealBreakers[q.key] ?? []]),
+        );
+        await api.saveDealBreakers(dealBreakerPayload);
       } else {
         const payload = buildStepPayload();
         if (Object.keys(payload).length > 0) {
