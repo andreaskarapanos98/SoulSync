@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { OwnProfileDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
+import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { PhotoUploader } from "../components/profile/PhotoUploader";
 import { VoiceRecorder } from "../components/profile/VoiceRecorder";
 
@@ -10,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 export function ProfileEditPage() {
   const api = useApi();
   const navigate = useNavigate();
+  const { refresh: refreshAvatarPhoto } = useProfilePhoto();
   const [profile, setProfile] = useState<OwnProfileDTO | null>(null);
   const [bioDraft, setBioDraft] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -49,6 +51,8 @@ export function ProfileEditPage() {
     setProfile((prev) =>
       prev ? { ...prev, photos: result.photos, missingRequired: result.missingRequired } : prev,
     );
+    // The first photo uploaded becomes primary automatically — keep the header avatar in sync.
+    refreshAvatarPhoto();
   }
 
   async function handleDeletePhoto(photoId: string) {
@@ -56,6 +60,8 @@ export function ProfileEditPage() {
     setProfile((prev) =>
       prev ? { ...prev, photos: result.photos, missingRequired: result.missingRequired } : prev,
     );
+    // Deleting the primary photo promotes a different one — keep the header avatar in sync.
+    refreshAvatarPhoto();
   }
 
   async function handleSetPrimaryPhoto(photoId: string) {
@@ -63,6 +69,7 @@ export function ProfileEditPage() {
     setProfile((prev) =>
       prev ? { ...prev, photos: result.photos, missingRequired: result.missingRequired } : prev,
     );
+    refreshAvatarPhoto();
   }
 
   async function handleSetFocalPoint(photoId: string, x: number, y: number) {

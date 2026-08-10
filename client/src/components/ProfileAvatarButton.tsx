@@ -1,31 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth, useClerk } from "@clerk/clerk-react";
-import { useApi } from "../hooks/useApi";
+import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { LogoMark } from "./Logo";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 // Shows the user's own profile photo (falling back to the app mark) instead of Clerk's
 // generic avatar. Clicking it opens a small menu (View Profile / Edit Profile / Sign
-// Out) instead of opening Clerk's own account UI.
+// Out) instead of opening Clerk's own account UI. Photo comes from the shared
+// ProfilePhotoProvider so it updates the moment ProfileEditPage changes the primary
+// photo, instead of only on next mount/refresh.
 export function ProfileAvatarButton() {
-  const api = useApi();
   const { userId } = useAuth();
   const { signOut } = useClerk();
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const { photoUrl } = useProfilePhoto();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    api
-      .getProfile()
-      .then((p) => {
-        const photo = p.photos.find((ph) => ph.isPrimary) ?? p.photos[0];
-        setPhotoUrl(photo ? `${API_URL}${photo.url}` : null);
-      })
-      .catch(() => {});
-  }, [api]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

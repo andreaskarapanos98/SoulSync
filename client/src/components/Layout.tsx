@@ -9,11 +9,13 @@ import { CoinBalanceBadge } from "./CoinBalanceBadge";
 import { AdminNavLink } from "./AdminNavLink";
 import { UnreadCountProvider } from "../hooks/useUnreadCount";
 import { CoinBalanceProvider } from "../hooks/useCoinBalance";
+import { ProfilePhotoProvider } from "../hooks/useProfilePhoto";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <UnreadCountProvider>
     <CoinBalanceProvider>
+    <ProfilePhotoProvider>
     <div className="min-h-svh flex flex-col bg-gradient-to-b from-brand-50/60 via-white to-white dark:from-brand-950/10 dark:via-neutral-950 dark:to-neutral-950">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
@@ -78,6 +80,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </footer>
     </div>
+    </ProfilePhotoProvider>
     </CoinBalanceProvider>
     </UnreadCountProvider>
   );
