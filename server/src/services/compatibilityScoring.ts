@@ -158,56 +158,88 @@ export interface ScoreContext {
 }
 
 /**
- * Sums points across every point-giving question for a candidate that has already
- * survived every elimination gate (hard filters, relative_self, deal breakers,
- * languages, mini_scale thresholds). Binary-gate mechanics contribute fullPoints
- * automatically here since surviving IS passing; only the genuinely graded mechanics
- * (checklist pets/hobbies, ranking, stepped-distance mini_scale, morning_or_night,
- * wants_children) are actually computed.
+ * Points earned for one question, for a candidate that has already survived every
+ * elimination gate (hard filters, relative_self, deal breakers, languages, mini_scale
+ * thresholds). Binary-gate mechanics contribute fullPoints automatically here since
+ * surviving IS passing; only the genuinely graded mechanics (checklist pets/hobbies,
+ * ranking, stepped-distance mini_scale, morning_or_night, wants_children) are actually
+ * computed.
  */
+function scoreOneQuestion(
+  q: PointGivingQuestion,
+  fullPoints: number,
+  viewerPreferences: Record<string, unknown>,
+  candidateAboutMe: Record<string, unknown>,
+): number {
+  switch (q.scoringMechanic) {
+    case "hard_filter":
+      return fullPoints;
+
+    case "relative_self":
+      return fullPoints;
+
+    case "checklist":
+      if (q.key === "pets") {
+        return scoreChecklist((candidateAboutMe.pets as string[]) ?? [], (viewerPreferences.pets as string[]) ?? [], fullPoints, 0);
+      }
+      if (q.key === "hobbies") {
+        return scoreChecklist((candidateAboutMe.hobbies as string[]) ?? [], (viewerPreferences.hobbies as string[]) ?? [], fullPoints, 0.5);
+      }
+      // languages: zero-overlap already eliminated, so surviving = full points.
+      return fullPoints;
+
+    case "mini_scale": {
+      const behavior = MINI_SCALE_BEHAVIOR[q.key];
+      if (behavior === "at_least" || behavior === "at_most") {
+        return fullPoints; // threshold gate already eliminated non-survivors
+      }
+      if (behavior === "stepped_distance") {
+        return scoreSteppedDistance(q, viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
+      }
+      if (behavior === "morning_or_night") {
+        return scoreMorningNight(viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
+      }
+      if (behavior === "wants_children") {
+        return scoreWantsChildren(viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
+      }
+      return fullPoints;
+    }
+
+    case "ranking":
+      return scoreRanking(viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
+
+    default:
+      return fullPoints;
+  }
+}
+
 export function computeScore({ questions, fullPoints, viewerPreferences, candidateAboutMe }: ScoreContext): number {
   let total = 0;
-
-  for (const q of questions) {
-    switch (q.scoringMechanic) {
-      case "hard_filter":
-        total += fullPoints;
-        break;
-
-      case "relative_self":
-        total += fullPoints;
-        break;
-
-      case "checklist":
-        if (q.key === "pets") {
-          total += scoreChecklist((candidateAboutMe.pets as string[]) ?? [], (viewerPreferences.pets as string[]) ?? [], fullPoints, 0);
-        } else if (q.key === "hobbies") {
-          total += scoreChecklist((candidateAboutMe.hobbies as string[]) ?? [], (viewerPreferences.hobbies as string[]) ?? [], fullPoints, 0.5);
-        } else {
-          // languages: zero-overlap already eliminated, so surviving = full points.
-          total += fullPoints;
-        }
-        break;
-
-      case "mini_scale": {
-        const behavior = MINI_SCALE_BEHAVIOR[q.key];
-        if (behavior === "at_least" || behavior === "at_most") {
-          total += fullPoints; // threshold gate already eliminated non-survivors
-        } else if (behavior === "stepped_distance") {
-          total += scoreSteppedDistance(q, viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
-        } else if (behavior === "morning_or_night") {
-          total += scoreMorningNight(viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
-        } else if (behavior === "wants_children") {
-          total += scoreWantsChildren(viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
-        }
-        break;
-      }
-
-      case "ranking":
-        total += scoreRanking(viewerPreferences[q.key], candidateAboutMe[q.key], fullPoints);
-        break;
-    }
-  }
-
+  for (const q of questions) total += scoreOneQuestion(q, fullPoints, viewerPreferences, candidateAboutMe);
   return total;
+}
+
+export interface CategoryCompatibility {
+  category: string;
+  percent: number;
+}
+
+/**
+ * Same math as computeScore, grouped by question category — each category's percent is
+ * (earned / possible) within just that category, i.e. "how compatible you are in this
+ * specific life area", not that category's share of the overall 100-point pool.
+ * Categories with zero point-giving questions (all-filler) simply don't appear.
+ */
+export function computeScoreByCategory({ questions, fullPoints, viewerPreferences, candidateAboutMe }: ScoreContext): CategoryCompatibility[] {
+  const byCategory = new Map<string, { earned: number; possible: number }>();
+  for (const q of questions) {
+    const entry = byCategory.get(q.category) ?? { earned: 0, possible: 0 };
+    entry.possible += fullPoints;
+    entry.earned += scoreOneQuestion(q, fullPoints, viewerPreferences, candidateAboutMe);
+    byCategory.set(q.category, entry);
+  }
+  return [...byCategory.entries()].map(([category, { earned, possible }]) => ({
+    category,
+    percent: possible === 0 ? 0 : Math.round((earned / possible) * 100),
+  }));
 }

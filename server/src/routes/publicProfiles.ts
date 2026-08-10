@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
 import { assembleProfile } from "../services/profileService.js";
+import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
+import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
+import { getPointGivingQuestions } from "../services/scoringEngine.js";
+import { computeScoreByCategory } from "../services/compatibilityScoring.js";
 
 export const publicProfilesRouter = Router();
 
@@ -15,5 +19,23 @@ publicProfilesRouter.get("/:clerkId", async (req, res) => {
   }
 
   const profile = await assembleProfile(req.params.clerkId);
-  res.json(profile);
+
+  // Comparing someone against themselves isn't a compatibility score — only compute
+  // this when viewing someone else's profile.
+  let compatibilityByCategory: ReturnType<typeof computeScoreByCategory> | undefined;
+  if (userId !== req.params.clerkId) {
+    const [questions, viewerPreferenceDoc, candidateAboutMeDoc] = await Promise.all([
+      getPointGivingQuestions(),
+      PreferenceAnswerModel.findOne({ clerkId: userId }),
+      AboutMeAnswerModel.findOne({ clerkId: req.params.clerkId }),
+    ]);
+    const fullPoints = questions.length === 0 ? 0 : 100 / questions.length;
+    const viewerPreferences = viewerPreferenceDoc ? Object.fromEntries(viewerPreferenceDoc.answers) : {};
+    const candidateAboutMe = candidateAboutMeDoc ? Object.fromEntries(candidateAboutMeDoc.answers) : {};
+    compatibilityByCategory = computeScoreByCategory({ questions, fullPoints, viewerPreferences, candidateAboutMe }).sort(
+      (a, b) => b.percent - a.percent,
+    );
+  }
+
+  res.json({ ...profile, compatibilityByCategory });
 });

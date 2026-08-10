@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { ProfileDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
-import { LogoMark } from "../components/Logo";
+import { PhotoCarousel } from "../components/profile/PhotoCarousel";
+import { CompatibilityBreakdown } from "../components/profile/CompatibilityBreakdown";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -20,7 +21,6 @@ export function ViewProfilePage() {
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load profile: {error}</p>;
   if (!profile) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading profile…</p>;
 
-  const primaryPhoto = profile.photos.find((p) => p.isPrimary) ?? profile.photos[0];
   const location = [profile.city, profile.country].filter(Boolean).join(", ");
 
   return (
@@ -30,28 +30,7 @@ export function ViewProfilePage() {
       </Link>
 
       <div className="mt-4 overflow-hidden rounded-3xl border border-brand-100 bg-white shadow-sm shadow-brand-100/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
-        <div className="relative aspect-[4/3] bg-brand-50 dark:bg-brand-950/20">
-          {primaryPhoto ? (
-            <img src={`${API_URL}${primaryPhoto.url}`} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <LogoMark size={48} className="opacity-40" />
-            </div>
-          )}
-        </div>
-
-        {profile.photos.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto p-3">
-            {profile.photos.map((p) => (
-              <img
-                key={p.id}
-                src={`${API_URL}${p.url}`}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-lg object-cover"
-              />
-            ))}
-          </div>
-        )}
+        <PhotoCarousel photos={profile.photos} />
 
         <div className="p-6">
           <h1 className="text-xl font-semibold text-neutral-900 dark:text-white">
@@ -71,6 +50,12 @@ export function ViewProfilePage() {
             <div className="mt-4">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">Voice intro</p>
               <audio controls src={`${API_URL}${profile.voiceIntro.url}`} className="w-full" />
+            </div>
+          )}
+
+          {profile.compatibilityByCategory && profile.compatibilityByCategory.length > 0 && (
+            <div className="mt-6">
+              <CompatibilityBreakdown items={profile.compatibilityByCategory} />
             </div>
           )}
 

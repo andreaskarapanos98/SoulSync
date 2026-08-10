@@ -12,6 +12,8 @@ const messageSchema = new Schema(
     audioUrl: { type: String },
     durationSec: { type: Number },
     readAt: { type: Date },
+    editedAt: { type: Date },
+    deletedAt: { type: Date },
   },
   { timestamps: true },
 );

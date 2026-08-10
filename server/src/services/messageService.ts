@@ -6,6 +6,7 @@ import { ProfileModel } from "../models/Profile.js";
 import { ValidationError } from "./questionnaireService.js";
 import { getPointGivingQuestions, roundScore } from "./scoringEngine.js";
 import { computeScore } from "./compatibilityScoring.js";
+import { deleteFile } from "./storageService.js";
 
 // A typing status is considered live for this long after the last ping — the client
 // re-pings every ~2s while the user keeps typing.
@@ -40,6 +41,44 @@ export async function sendVoiceMessage(fromClerkId: string, toClerkId: string, a
     audioUrl,
     durationSec,
   });
+}
+
+/** Only the sender can edit, only while it isn't deleted, and only text (not voice). */
+export async function editMessage(clerkId: string, messageId: string, newBody: string) {
+  const trimmed = newBody.trim();
+  if (!trimmed) throw new ValidationError(["Message cannot be empty"]);
+  if (trimmed.length > 2000) throw new ValidationError(["Message is too long (max 2000 characters)"]);
+
+  const message = await MessageModel.findById(messageId);
+  if (!message) throw new ValidationError(["Message not found"]);
+  if (message.fromClerkId !== clerkId) throw new ValidationError(["You can only edit your own messages"]);
+  if (message.deletedAt) throw new ValidationError(["Can't edit a deleted message"]);
+  if (message.audioUrl) throw new ValidationError(["Can't edit a voice message"]);
+
+  message.body = trimmed;
+  message.editedAt = new Date();
+  await message.save();
+  return message;
+}
+
+/**
+ * Soft delete — keeps the row (so both sides' polling picks up the same "deleted"
+ * state and read/ordering stays consistent) but clears the actual content. Only the
+ * sender can delete.
+ */
+export async function deleteMessage(clerkId: string, messageId: string) {
+  const message = await MessageModel.findById(messageId);
+  if (!message) throw new ValidationError(["Message not found"]);
+  if (message.fromClerkId !== clerkId) throw new ValidationError(["You can only delete your own messages"]);
+  if (message.deletedAt) return message;
+
+  if (message.audioUrl) await deleteFile(message.audioUrl);
+  message.body = "";
+  message.audioUrl = undefined;
+  message.durationSec = undefined;
+  message.deletedAt = new Date();
+  await message.save();
+  return message;
 }
 
 export async function getMessages(clerkId: string, otherClerkId: string) {
@@ -133,7 +172,7 @@ export async function getConversations(clerkId: string) {
         clerkId: otherClerkId,
         firstName,
         photoUrl,
-        lastMessage: lastMessage.audioUrl ? "🎙️ Voice message" : lastMessage.body,
+        lastMessage: lastMessage.deletedAt ? "Message deleted" : lastMessage.audioUrl ? "🎙️ Voice message" : lastMessage.body,
         lastMessageAt: lastMessage.createdAt.toISOString(),
         lastMessageFromMe: lastMessage.fromClerkId === clerkId,
         compatibility,

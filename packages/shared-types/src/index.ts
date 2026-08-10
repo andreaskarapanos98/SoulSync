@@ -98,6 +98,11 @@ export interface ProfileTraitDTO {
   value: AnswerValue;
 }
 
+export interface CategoryCompatibilityDTO {
+  category: string;
+  percent: number;
+}
+
 export interface ProfileDTO {
   firstName: string;
   age?: number;
@@ -111,6 +116,8 @@ export interface ProfileDTO {
   photos: PhotoDTO[];
   voiceIntro: VoiceIntroDTO | null;
   traits: ProfileTraitDTO[];
+  // Absent when viewing your own profile (comparing yourself to yourself isn't a score).
+  compatibilityByCategory?: CategoryCompatibilityDTO[];
 }
 
 export interface OwnProfileDTO extends ProfileDTO {
@@ -177,6 +184,8 @@ export interface MessageDTO {
   durationSec?: number;
   createdAt: string;
   readAt?: string;
+  editedAt?: string;
+  deleted?: boolean;
 }
 
 export interface MessagesResponseDTO {

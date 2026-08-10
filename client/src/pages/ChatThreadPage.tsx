@@ -7,6 +7,7 @@ import { useUnreadCount } from "../hooks/useUnreadCount";
 import { LogoMark } from "../components/Logo";
 import { EmojiPicker } from "../components/chat/EmojiPicker";
 import { VoiceMessageButton } from "../components/chat/VoiceMessageButton";
+import { MessageBubble } from "../components/chat/MessageBubble";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -107,6 +108,16 @@ export function ChatThreadPage() {
     load();
   }
 
+  async function handleEditMessage(messageId: string, body: string) {
+    await api.editMessage(messageId, body);
+    load();
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    await api.deleteMessage(messageId);
+    load();
+  }
+
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load chat: {error}</p>;
   if (!messages) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading chat…</p>;
 
@@ -141,30 +152,14 @@ export function ChatThreadPage() {
           messages.map((m, i) => {
             const mine = m.fromClerkId === userId;
             return (
-              <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                {m.audioUrl ? (
-                  <div
-                    className={`max-w-[75%] rounded-2xl px-3 py-2 ${
-                      mine ? "bg-brand-500" : "bg-neutral-100 dark:bg-neutral-800"
-                    }`}
-                  >
-                    <audio controls src={`${API_URL}${m.audioUrl}`} className="h-9 w-56 max-w-full" />
-                  </div>
-                ) : (
-                  <p
-                    className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-                      mine
-                        ? "bg-brand-500 text-white"
-                        : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
-                    }`}
-                  >
-                    {m.body}
-                  </p>
-                )}
-                {mine && i === lastMineIndex && lastMineSeen && (
-                  <span className="mt-0.5 text-xs text-neutral-400">Seen</span>
-                )}
-              </div>
+              <MessageBubble
+                key={m.id}
+                message={m}
+                mine={mine}
+                showSeen={mine && i === lastMineIndex && lastMineSeen}
+                onEdit={handleEditMessage}
+                onDelete={handleDeleteMessage}
+              />
             );
           })
         )}

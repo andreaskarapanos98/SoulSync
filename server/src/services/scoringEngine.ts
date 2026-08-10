@@ -8,6 +8,7 @@ const POINT_GIVING_FILTER = {
 
 export interface PointGivingQuestion {
   key: string;
+  category: string;
   scoringMechanic: string;
   options?: { value: string; label: string }[];
   canBeDealBreaker?: boolean;
@@ -23,6 +24,7 @@ export async function getPointGivingQuestions(): Promise<PointGivingQuestion[]> 
   const docs = await QuestionDefinitionModel.find(POINT_GIVING_FILTER).lean();
   return docs.map((d) => ({
     key: d.key,
+    category: d.category,
     scoringMechanic: d.scoringMechanic!,
     options: d.options?.map((o) => ({ value: o.value, label: o.label })),
     canBeDealBreaker: d.canBeDealBreaker,

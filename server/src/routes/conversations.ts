@@ -5,6 +5,8 @@ import type { Message } from "../models/Message.js";
 import { ValidationError } from "../services/questionnaireService.js";
 import { ALLOWED_AUDIO_TYPES, baseMimeType, saveFile } from "../services/storageService.js";
 import {
+  deleteMessage,
+  editMessage,
   firstNameAndPhoto,
   getConversations,
   getMessages,
@@ -33,7 +35,7 @@ const upload = multer({
 });
 
 function toMessageDTO(m: Message & { _id: unknown }) {
-  const withTimestamps = m as unknown as { createdAt: Date; readAt?: Date };
+  const withTimestamps = m as unknown as { createdAt: Date; readAt?: Date; editedAt?: Date; deletedAt?: Date };
   return {
     id: String(m._id),
     fromClerkId: m.fromClerkId,
@@ -43,6 +45,8 @@ function toMessageDTO(m: Message & { _id: unknown }) {
     durationSec: m.durationSec,
     createdAt: withTimestamps.createdAt.toISOString(),
     readAt: withTimestamps.readAt ? withTimestamps.readAt.toISOString() : undefined,
+    editedAt: withTimestamps.editedAt ? withTimestamps.editedAt.toISOString() : undefined,
+    deleted: Boolean(withTimestamps.deletedAt),
   };
 }
 
@@ -137,6 +141,50 @@ conversationsRouter.post("/:otherClerkId/voice-messages", upload.single("audio")
   const { url } = await saveFile(req.file.buffer, "voice-messages", extension);
   const message = await sendVoiceMessage(userId, req.params.otherClerkId, url, durationSec);
   res.json({ message: toMessageDTO(message) });
+});
+
+conversationsRouter.patch("/messages/:messageId", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const { body } = req.body as { body?: string };
+  if (typeof body !== "string") {
+    res.status(400).json({ error: "Request body must include a 'body' string" });
+    return;
+  }
+
+  try {
+    const message = await editMessage(userId, req.params.messageId, body);
+    res.json({ message: toMessageDTO(message) });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      res.status(400).json({ error: "Validation failed", issues: err.issues });
+      return;
+    }
+    throw err;
+  }
+});
+
+conversationsRouter.delete("/messages/:messageId", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  try {
+    const message = await deleteMessage(userId, req.params.messageId);
+    res.json({ message: toMessageDTO(message) });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      res.status(400).json({ error: "Validation failed", issues: err.issues });
+      return;
+    }
+    throw err;
+  }
 });
 
 conversationsRouter.post("/:otherClerkId/typing", async (req, res) => {

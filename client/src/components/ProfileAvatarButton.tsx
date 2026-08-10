@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useClerk } from "@clerk/clerk-react";
+import { useAuth, useClerk } from "@clerk/clerk-react";
 import { useApi } from "../hooks/useApi";
 import { LogoMark } from "./Logo";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 // Shows the user's own profile photo (falling back to the app mark) instead of Clerk's
-// generic avatar. Clicking it opens a small menu (Edit Profile / Sign Out) instead of
-// opening Clerk's own account UI.
+// generic avatar. Clicking it opens a small menu (View Profile / Edit Profile / Sign
+// Out) instead of opening Clerk's own account UI.
 export function ProfileAvatarButton() {
   const api = useApi();
+  const { userId } = useAuth();
   const { signOut } = useClerk();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -53,6 +54,15 @@ export function ProfileAvatarButton() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+          {userId && (
+            <Link
+              to={`/profiles/${userId}`}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            >
+              View Profile
+            </Link>
+          )}
           <Link
             to="/profile/edit"
             onClick={() => setOpen(false)}

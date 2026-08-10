@@ -135,6 +135,13 @@ export function createApiClient(getToken: GetToken) {
       formData.append("durationSec", String(durationSec));
       return requestMultipart<SendMessageResponseDTO>(`/api/v1/conversations/${otherClerkId}/voice-messages`, "POST", formData);
     },
+    editMessage: (messageId: string, body: string) =>
+      request<SendMessageResponseDTO>(`/api/v1/conversations/messages/${messageId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ body }),
+      }),
+    deleteMessage: (messageId: string) =>
+      request<SendMessageResponseDTO>(`/api/v1/conversations/messages/${messageId}`, { method: "DELETE" }),
   };
 }
 
