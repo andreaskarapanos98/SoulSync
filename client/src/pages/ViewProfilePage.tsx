@@ -58,22 +58,6 @@ export function ViewProfilePage() {
               <CompatibilityBreakdown items={profile.compatibilityByCategory} />
             </div>
           )}
-
-          {profile.traits.length > 0 && (
-            <div className="mt-6 flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">About</p>
-              <div className="flex flex-wrap gap-2">
-                {profile.traits.map((t) => (
-                  <span
-                    key={t.key}
-                    className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
-                  >
-                    {t.label}: {Array.isArray(t.value) ? t.value.join(", ") : String(t.value)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="flex gap-3 border-t border-neutral-100 p-4 dark:border-neutral-800">
