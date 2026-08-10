@@ -2,6 +2,9 @@
   "name": "soulsync",
   "private": true,
   "version": "0.1.0",
+  "engines": {
+    "node": "20.x"
+  },
   "workspaces": [
     "client",
     "server",
