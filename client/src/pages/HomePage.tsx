@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
-import type { HealthCheckResponse, MeDTO } from "@soulsync/shared-types";
+import type { MeDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { LogoMark } from "../components/Logo";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 const FEATURES = [
   {
@@ -26,7 +24,7 @@ const FEATURES = [
   {
     icon: "🎙️",
     title: "Hear them before you unlock",
-    body: "Every profile includes a short voice introduction you can listen to for free, before spending a single coin.",
+    body: "Possibility to listen a short voice introduction, before spending a single coin.",
   },
 ];
 
@@ -34,7 +32,7 @@ const STEPS = [
   {
     n: "01",
     title: "About Me",
-    body: "Tell us who you really are — your personality, lifestyle, values, and goals. Every answer is a real input, not filler.",
+    body: "Tell us who you really are — your personality, lifestyle, values, and goals. Every answer is a real input.",
   },
   {
     n: "02",
@@ -316,23 +314,6 @@ function Dashboard() {
   );
 }
 
-function HealthFooter() {
-  const [health, setHealth] = useState<HealthCheckResponse | null>(null);
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/health`)
-      .then((res) => res.json())
-      .then(setHealth)
-      .catch(() => setHealth(null));
-  }, []);
-
-  return (
-    <footer className="mt-auto py-6 text-center text-xs text-neutral-300 dark:text-neutral-700">
-      {health ? `API connected` : "API unreachable"}
-    </footer>
-  );
-}
-
 export function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
@@ -346,7 +327,6 @@ export function HomePage() {
       <SignedIn>
         <Dashboard />
       </SignedIn>
-      <HealthFooter />
     </div>
   );
 }

@@ -222,7 +222,8 @@ export async function getMatches(viewerClerkId: string) {
       const score = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences: viewerPreferenceAnswers, candidateAboutMe: candidateAboutMeAnswers }),
       );
-      yourSoulmates.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
+      // A 0% score isn't a match by any definition — don't show it in either direction.
+      if (score > 0) yourSoulmates.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
     }
     if (
       !isEliminated(
@@ -240,7 +241,7 @@ export async function getMatches(viewerClerkId: string) {
       const score = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences: candidatePreferenceAnswers, candidateAboutMe: viewerAboutMeAnswers }),
       );
-      theirSoulmate.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
+      if (score > 0) theirSoulmate.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
     }
   }
 
