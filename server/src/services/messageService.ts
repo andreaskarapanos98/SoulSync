@@ -190,3 +190,18 @@ export async function getUnreadConversationCount(clerkId: string): Promise<numbe
   });
   return unreadOthers.length;
 }
+
+/**
+ * Timestamp of the single most recent unread incoming message, across every
+ * conversation. The client tracks this as a monotonic high-water mark and plays a
+ * notification sound only when it moves forward — a plain "did the id change" check
+ * would false-positive when reading one conversation exposes an older, already-unread
+ * message from a different conversation as the new "latest". Lets the app-wide poller
+ * detect a genuinely new message without a websocket.
+ */
+export async function getLatestUnreadMessageAt(clerkId: string): Promise<string | undefined> {
+  const latest = await MessageModel.findOne({ toClerkId: clerkId, readAt: { $exists: false } })
+    .sort({ createdAt: -1 })
+    .lean();
+  return latest?.createdAt.toISOString();
+}

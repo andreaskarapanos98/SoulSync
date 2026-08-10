@@ -46,7 +46,11 @@ export function ChatPage() {
             <Link
               key={c.clerkId}
               to={`/chat/${c.clerkId}`}
-              className="flex items-center gap-3 rounded-2xl border border-brand-100 bg-white p-3 transition hover:bg-brand-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+              className={`flex items-center gap-3 rounded-2xl border p-3 transition ${
+                c.unread
+                  ? "border-brand-300 bg-brand-50 hover:bg-brand-100 dark:border-brand-800 dark:bg-brand-950/30 dark:hover:bg-brand-950/50"
+                  : "border-brand-100 bg-white hover:bg-brand-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+              }`}
             >
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
                 {c.photoUrl ? (
@@ -61,7 +65,11 @@ export function ChatPage() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 font-medium text-neutral-900 dark:text-white">
+                <p
+                  className={`flex items-center gap-2 ${
+                    c.unread ? "font-bold text-neutral-900 dark:text-white" : "font-medium text-neutral-900 dark:text-white"
+                  }`}
+                >
                   {c.firstName || "Someone"}
                   <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
                     {c.compatibility}%
@@ -72,7 +80,9 @@ export function ChatPage() {
                   {c.lastMessage}
                 </p>
               </div>
-              <span className="shrink-0 text-xs text-neutral-400">{timeAgo(c.lastMessageAt)}</span>
+              <span className={`shrink-0 text-xs ${c.unread ? "font-semibold text-brand-600 dark:text-brand-400" : "text-neutral-400"}`}>
+                {timeAgo(c.lastMessageAt)}
+              </span>
             </Link>
           ))}
         </div>

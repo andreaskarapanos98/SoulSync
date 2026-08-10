@@ -9,6 +9,7 @@ import {
   editMessage,
   firstNameAndPhoto,
   getConversations,
+  getLatestUnreadMessageAt,
   getMessages,
   getUnreadConversationCount,
   isOtherTyping,
@@ -57,8 +58,11 @@ conversationsRouter.get("/unread-count", async (req, res) => {
     return;
   }
 
-  const count = await getUnreadConversationCount(userId);
-  res.json({ count });
+  const [count, latestUnreadMessageAt] = await Promise.all([
+    getUnreadConversationCount(userId),
+    getLatestUnreadMessageAt(userId),
+  ]);
+  res.json({ count, latestUnreadMessageAt });
 });
 
 conversationsRouter.get("/", async (req, res) => {

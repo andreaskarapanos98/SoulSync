@@ -173,6 +173,7 @@ export interface ConversationsResponseDTO {
 
 export interface UnreadCountDTO {
   count: number;
+  latestUnreadMessageAt?: string;
 }
 
 export interface MessageDTO {
