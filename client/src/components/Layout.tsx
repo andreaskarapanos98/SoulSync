@@ -54,6 +54,29 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>
+
+      <footer className="border-t border-neutral-200 px-6 py-6 text-xs text-neutral-400 dark:border-neutral-800">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
+          <span>🔞 SoulSync is for adults 18+ only.</span>
+          <nav className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link to="/legal/privacy" className="hover:text-neutral-700 dark:hover:text-neutral-200">
+              Privacy
+            </Link>
+            <Link to="/legal/terms" className="hover:text-neutral-700 dark:hover:text-neutral-200">
+              Terms
+            </Link>
+            <Link to="/legal/community-guidelines" className="hover:text-neutral-700 dark:hover:text-neutral-200">
+              Community Guidelines
+            </Link>
+            <Link to="/legal/cookies" className="hover:text-neutral-700 dark:hover:text-neutral-200">
+              Cookies
+            </Link>
+            <Link to="/legal/refunds" className="hover:text-neutral-700 dark:hover:text-neutral-200">
+              Refunds
+            </Link>
+          </nav>
+        </div>
+      </footer>
     </div>
     </CoinBalanceProvider>
     </UnreadCountProvider>

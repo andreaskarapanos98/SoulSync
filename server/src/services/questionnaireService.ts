@@ -1,6 +1,9 @@
 import { QuestionDefinitionModel, type QuestionDefinition } from "../models/QuestionDefinition.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
+import { calculateAge } from "../utils/age.js";
+
+const MINIMUM_AGE = 18;
 
 export class ValidationError extends Error {
   constructor(public readonly issues: string[]) {
@@ -50,6 +53,11 @@ function validateValue(question: QuestionDefinition, value: unknown): string | n
     }
     case "date": {
       if (typeof value !== "string" || Number.isNaN(Date.parse(value))) return `${question.key}: must be a valid date string`;
+      // SoulSync is 18+ only — enforced here rather than just client-side since this is
+      // the one server-side choke point every about-me save passes through.
+      if (question.key === "date_of_birth" && calculateAge(value) < MINIMUM_AGE) {
+        return "date_of_birth: you must be at least 18 years old to use SoulSync";
+      }
       return null;
     }
     default:

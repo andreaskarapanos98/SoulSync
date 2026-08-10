@@ -70,6 +70,13 @@ export function ProfileAvatarButton() {
           >
             Edit Profile
           </Link>
+          <Link
+            to="/account"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          >
+            Account Settings
+          </Link>
           <button
             type="button"
             onClick={() => signOut()}

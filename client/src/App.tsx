@@ -18,6 +18,12 @@ import { AdminPaymentsPage } from "./pages/admin/AdminPaymentsPage";
 import { AdminErrorsPage } from "./pages/admin/AdminErrorsPage";
 import { AdminQuestionsPage } from "./pages/admin/AdminQuestionsPage";
 import { AdminFunnelPage } from "./pages/admin/AdminFunnelPage";
+import { PrivacyPolicyPage } from "./pages/legal/PrivacyPolicyPage";
+import { TermsOfServicePage } from "./pages/legal/TermsOfServicePage";
+import { CommunityGuidelinesPage } from "./pages/legal/CommunityGuidelinesPage";
+import { CookiePolicyPage } from "./pages/legal/CookiePolicyPage";
+import { RefundPolicyPage } from "./pages/legal/RefundPolicyPage";
+import { AccountSettingsPage } from "./pages/AccountSettingsPage";
 import { RequireAuth } from "./components/RequireAuth";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { Layout } from "./components/Layout";
@@ -184,6 +190,19 @@ function App() {
               <RequireAdmin>
                 <AdminFunnelPage />
               </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route path="/legal/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/legal/terms" element={<TermsOfServicePage />} />
+        <Route path="/legal/community-guidelines" element={<CommunityGuidelinesPage />} />
+        <Route path="/legal/cookies" element={<CookiePolicyPage />} />
+        <Route path="/legal/refunds" element={<RefundPolicyPage />} />
+        <Route
+          path="/account"
+          element={
+            <RequireAuth>
+              <AccountSettingsPage />
             </RequireAuth>
           }
         />

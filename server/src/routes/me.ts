@@ -3,6 +3,7 @@ import { clerkClient, getAuth } from "@clerk/express";
 import { UserAccountModel } from "../models/UserAccount.js";
 import { track } from "../services/analyticsService.js";
 import { isAdmin } from "../middleware/requireAdmin.js";
+import { deleteUserAccount, exportUserData } from "../services/accountDataService.js";
 
 export const meRouter = Router();
 
@@ -39,4 +40,28 @@ meRouter.get("/", async (req, res) => {
     coinBalance: account.coinBalance,
     isAdmin: await isAdmin(userId),
   });
+});
+
+// Data portability ("right to access") — the full data export as a downloadable file.
+meRouter.get("/export", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const data = await exportUserData(userId);
+  res.setHeader("Content-Disposition", `attachment; filename="soulsync-data-${userId}.json"`);
+  res.json(data);
+});
+
+// "Right to erasure" — anonymizes personal data and deletes the Clerk identity so the
+// account can never be signed back into. Irreversible.
+meRouter.delete("/", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  await deleteUserAccount(userId);
+  res.json({ deleted: true });
 });

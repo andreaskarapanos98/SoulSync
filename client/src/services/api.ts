@@ -171,6 +171,15 @@ export function createApiClient(getToken: GetToken) {
       request<{ ok: true }>("/api/v1/analytics/track", { method: "POST", body: JSON.stringify({ event, properties }) }).catch(
         () => {},
       ),
+    exportMyData: async (): Promise<Blob> => {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/v1/me/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) throw new ApiError(res.status);
+      return res.blob();
+    },
+    deleteMyAccount: () => request<{ deleted: true }>("/api/v1/me", { method: "DELETE" }),
   };
 }
 

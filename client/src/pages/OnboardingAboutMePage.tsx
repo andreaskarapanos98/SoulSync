@@ -49,6 +49,7 @@ export function OnboardingAboutMePage() {
         ]}
         ctaLabel="Let's start"
         onContinue={() => setShowIntro(false)}
+        requireConsent
       />
     );
   }
