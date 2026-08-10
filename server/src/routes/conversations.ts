@@ -11,6 +11,7 @@ import {
   saveFile,
 } from "../services/storageService.js";
 import {
+  NotUnlockedError,
   deleteMessage,
   editMessage,
   firstNameAndPhoto,
@@ -25,6 +26,7 @@ import {
   sendVoiceMessage,
   setTyping,
 } from "../services/messageService.js";
+import { isUnlockedEitherDirection } from "../services/unlockService.js";
 
 export const conversationsRouter = Router();
 
@@ -143,6 +145,10 @@ conversationsRouter.post("/:otherClerkId/messages", async (req, res) => {
       res.status(400).json({ error: "Validation failed", issues: err.issues });
       return;
     }
+    if (err instanceof NotUnlockedError) {
+      res.status(403).json({ error: err.message });
+      return;
+    }
     throw err;
   }
 });
@@ -155,6 +161,10 @@ conversationsRouter.post("/:otherClerkId/voice-messages", upload.single("audio")
   }
   if (!req.file) {
     res.status(400).json({ error: "No audio uploaded" });
+    return;
+  }
+  if (!(await isUnlockedEitherDirection(userId, req.params.otherClerkId))) {
+    res.status(403).json({ error: "You need to unlock this profile before you can message them" });
     return;
   }
 
@@ -178,6 +188,10 @@ conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), asy
   }
   if (!req.file) {
     res.status(400).json({ error: "No file uploaded" });
+    return;
+  }
+  if (!(await isUnlockedEitherDirection(userId, req.params.otherClerkId))) {
+    res.status(403).json({ error: "You need to unlock this profile before you can message them" });
     return;
   }
 

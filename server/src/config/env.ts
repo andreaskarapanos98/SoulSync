@@ -21,4 +21,11 @@ export const env = {
   // for these explicitly and return a clear error instead of crashing the whole server.
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  // Bootstrap admin allowlist (comma-separated Clerk user IDs) — grants admin access
+  // with no DB write needed before any account has role: "admin" set. Once at least one
+  // admin exists, further admins can be granted via the dashboard's role field instead.
+  adminClerkIds: (process.env.ADMIN_CLERK_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean),
 };

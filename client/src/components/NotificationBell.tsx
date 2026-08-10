@@ -72,28 +72,42 @@ export function NotificationBell() {
             {notifications.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-neutral-400">No notifications yet.</p>
             ) : (
-              notifications.map((n) => (
-                <Link
-                  key={n.id}
-                  to={`/profiles/${n.otherClerkId}`}
-                  onClick={() => setOpen(false)}
-                  className="flex items-start gap-3 border-b border-neutral-50 px-4 py-3 text-sm hover:bg-brand-50 dark:border-neutral-800 dark:hover:bg-neutral-800"
-                >
-                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
-                    {n.otherPhotoUrl ? (
-                      <img src={`${API_URL}${n.otherPhotoUrl}`} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center bg-brand-50 text-xs dark:bg-brand-950/40">
-                        💘
-                      </span>
-                    )}
+              notifications.map((n) => {
+                const rowClassName =
+                  "flex items-start gap-3 border-b border-neutral-50 px-4 py-3 text-sm dark:border-neutral-800";
+                const content = (
+                  <>
+                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
+                      {n.otherPhotoUrl ? (
+                        <img src={`${API_URL}${n.otherPhotoUrl}`} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center bg-brand-50 text-xs dark:bg-brand-950/40">
+                          {n.type === "account" ? "🔔" : "💘"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="flex flex-col">
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-100">{n.title}</span>
+                      <span className="text-neutral-600 dark:text-neutral-400">{n.message}</span>
+                    </span>
+                  </>
+                );
+
+                return n.otherClerkId ? (
+                  <Link
+                    key={n.id}
+                    to={`/profiles/${n.otherClerkId}`}
+                    onClick={() => setOpen(false)}
+                    className={`${rowClassName} hover:bg-brand-50 dark:hover:bg-neutral-800`}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={n.id} className={rowClassName}>
+                    {content}
                   </div>
-                  <span className="flex flex-col">
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-100">{n.title}</span>
-                    <span className="text-neutral-600 dark:text-neutral-400">{n.message}</span>
-                  </span>
-                </Link>
-              ))
+                );
+              })
             )}
           </div>
         </div>

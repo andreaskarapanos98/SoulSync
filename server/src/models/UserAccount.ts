@@ -8,7 +8,8 @@ const onboardingStatuses = [
   "complete",
 ] as const;
 
-const accountStatuses = ["active", "suspended", "deleted"] as const;
+const accountStatuses = ["active", "suspended", "banned", "deleted"] as const;
+const accountRoles = ["user", "admin"] as const;
 
 const userAccountSchema = new Schema(
   {
@@ -26,6 +27,14 @@ const userAccountSchema = new Schema(
       type: String,
       enum: accountStatuses,
       default: "active",
+    },
+    // Bootstrap admin is granted via the ADMIN_CLERK_IDS env allowlist (see
+    // requireAdmin.ts); this field is how the dashboard can grant/revoke admin to
+    // other accounts afterwards without an env/redeploy round-trip.
+    role: {
+      type: String,
+      enum: accountRoles,
+      default: "user",
     },
   },
   { timestamps: true },

@@ -7,6 +7,16 @@ import { ValidationError } from "./questionnaireService.js";
 import { getPointGivingQuestions, roundScore } from "./scoringEngine.js";
 import { computeScore } from "./compatibilityScoring.js";
 import { deleteFile } from "./storageService.js";
+import { isUnlockedEitherDirection } from "./unlockService.js";
+import { firstNameAndPhoto, nameAndPhotoFrom } from "./userDisplayService.js";
+
+export { firstNameAndPhoto };
+
+export class NotUnlockedError extends Error {
+  constructor() {
+    super("You need to unlock this profile before you can message them");
+  }
+}
 
 // A typing status is considered live for this long after the last ping — the client
 // re-pings every ~2s while the user keeps typing.
@@ -16,14 +26,16 @@ export function conversationIdFor(a: string, b: string): string {
   return [a, b].sort().join("::");
 }
 
-/**
- * No unlock/payment gate yet (that's a later phase) — any two authenticated users can
- * message each other for now, for testing.
- */
+/** Either side must have unlocked the other — lets the unlocked party reply for free. */
+async function requireUnlocked(fromClerkId: string, toClerkId: string): Promise<void> {
+  if (!(await isUnlockedEitherDirection(fromClerkId, toClerkId))) throw new NotUnlockedError();
+}
+
 export async function sendMessage(fromClerkId: string, toClerkId: string, body: string) {
   const trimmed = body.trim();
   if (!trimmed) throw new ValidationError(["Message cannot be empty"]);
   if (trimmed.length > 2000) throw new ValidationError(["Message is too long (max 2000 characters)"]);
+  await requireUnlocked(fromClerkId, toClerkId);
 
   return MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
@@ -34,6 +46,8 @@ export async function sendMessage(fromClerkId: string, toClerkId: string, body: 
 }
 
 export async function sendVoiceMessage(fromClerkId: string, toClerkId: string, audioUrl: string, durationSec: number) {
+  await requireUnlocked(fromClerkId, toClerkId);
+
   return MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
     fromClerkId,
@@ -49,6 +63,8 @@ export async function sendMediaMessage(
   kind: "image" | "video",
   url: string,
 ) {
+  await requireUnlocked(fromClerkId, toClerkId);
+
   return MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
     fromClerkId,
@@ -133,28 +149,6 @@ export async function isOtherTyping(clerkId: string, otherClerkId: string): Prom
   }).lean();
   if (!status) return false;
   return Date.now() - status.updatedAt.getTime() < TYPING_TTL_MS;
-}
-
-function nameAndPhotoFrom(
-  answers: Record<string, unknown>,
-  profile: { photos: { url: string; isPrimary: boolean }[] } | null,
-) {
-  const photo = profile?.photos.find((p) => p.isPrimary) ?? profile?.photos[0];
-  return {
-    firstName: (answers.first_name as string) ?? "",
-    photoUrl: photo?.url as string | undefined,
-  };
-}
-
-export async function firstNameAndPhoto(clerkId: string) {
-  // Not .lean() on the about_me doc — `answers` is a Mongoose Map, and Object.fromEntries
-  // needs the real Map (lean() strips it down to a plain object with no entries() iterator).
-  const [aboutMe, profile] = await Promise.all([
-    AboutMeAnswerModel.findOne({ clerkId }),
-    ProfileModel.findOne({ clerkId }).lean(),
-  ]);
-  const answers = aboutMe ? Object.fromEntries(aboutMe.answers) : {};
-  return nameAndPhotoFrom(answers, profile);
 }
 
 /** One row per conversation partner, most recently active first. */

@@ -118,6 +118,9 @@ export interface ProfileDTO {
   traits: ProfileTraitDTO[];
   // Absent when viewing your own profile (comparing yourself to yourself isn't a score).
   compatibilityByCategory?: CategoryCompatibilityDTO[];
+  // true when the viewer hasn't unlocked this profile — response is stripped to a
+  // preview (primary photo only, no bio/traits) regardless of what's requested.
+  locked?: boolean;
 }
 
 export interface OwnProfileDTO extends ProfileDTO {
@@ -202,15 +205,17 @@ export interface SendMessageResponseDTO {
   message: MessageDTO;
 }
 
-export type NotificationTier = "great" | "excellent" | "near_perfect" | "perfect";
+export type NotificationType = "match" | "profile_unlocked" | "account";
+export type NotificationTier = "new_match" | "great" | "excellent" | "near_perfect" | "perfect";
 
 export interface NotificationDTO {
   id: string;
-  otherClerkId: string;
-  otherFirstName: string;
+  type: NotificationType;
+  otherClerkId?: string;
+  otherFirstName?: string;
   otherPhotoUrl?: string;
-  tier: NotificationTier;
-  compatibility: number;
+  tier?: NotificationTier;
+  compatibility?: number;
   title: string;
   message: string;
   createdAt: string;

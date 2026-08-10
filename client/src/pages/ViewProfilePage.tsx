@@ -58,15 +58,30 @@ export function ViewProfilePage() {
               <CompatibilityBreakdown items={profile.compatibilityByCategory} />
             </div>
           )}
+
+          {profile.locked && (
+            <p className="mt-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700 dark:bg-brand-950/30 dark:text-brand-300">
+              🔒 Unlock this profile from the matches page to see their full bio, photos, and start chatting.
+            </p>
+          )}
         </div>
 
         <div className="flex gap-3 border-t border-neutral-100 p-4 dark:border-neutral-800">
-          <Link
-            to={`/chat/${clerkId}`}
-            className="flex-1 rounded-full bg-brand-500 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-600"
-          >
-            💬 Message
-          </Link>
+          {profile.locked ? (
+            <Link
+              to="/matches"
+              className="flex-1 rounded-full bg-brand-500 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-600"
+            >
+              🔒 Go unlock
+            </Link>
+          ) : (
+            <Link
+              to={`/chat/${clerkId}`}
+              className="flex-1 rounded-full bg-brand-500 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-600"
+            >
+              💬 Message
+            </Link>
+          )}
         </div>
       </div>
     </div>
