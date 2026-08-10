@@ -19,10 +19,15 @@ import { matchesRouter } from "./routes/matches.js";
 import { conversationsRouter } from "./routes/conversations.js";
 import { unlocksRouter } from "./routes/unlocks.js";
 import { notificationsRouter } from "./routes/notifications.js";
+import { coinsRouter } from "./routes/coins.js";
+import { stripeWebhookRouter } from "./routes/stripeWebhook.js";
 
 const app = express();
 
 app.use(cors());
+// Stripe signature verification needs the exact raw body, so this is mounted with
+// express.raw() BEFORE the global express.json() below parses/consumes the body.
+app.use("/api/v1/coins/webhook", express.raw({ type: "application/json" }), stripeWebhookRouter);
 app.use(express.json());
 // Reads CLERK_SECRET_KEY from process.env; attaches auth info to every request
 // (unauthenticated requests just get an empty auth, they aren't rejected here).
@@ -45,6 +50,7 @@ app.use("/api/v1/matches", matchesRouter);
 app.use("/api/v1/conversations", conversationsRouter);
 app.use("/api/v1/unlocks", unlocksRouter);
 app.use("/api/v1/notifications", notificationsRouter);
+app.use("/api/v1/coins", coinsRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(

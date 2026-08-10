@@ -1,7 +1,9 @@
 import type {
   AboutMeAnswersDTO,
   AnswerValue,
+  CoinPackagesResponseDTO,
   ConversationsResponseDTO,
+  CreateCheckoutSessionResponseDTO,
   DealBreakersDTO,
   MatchesResponseDTO,
   MeDTO,
@@ -14,6 +16,7 @@ import type {
   QuestionDTO,
   SaveAnswersResponseDTO,
   SendMessageResponseDTO,
+  UnlockResponseDTO,
   UnreadCountDTO,
   VoiceIntroResponseDTO,
 } from "@soulsync/shared-types";
@@ -126,7 +129,7 @@ export function createApiClient(getToken: GetToken) {
         method: "POST",
         body: JSON.stringify({ body }),
       }),
-    unlockUser: (clerkId: string) => request<{ unlocked: true }>(`/api/v1/unlocks/${clerkId}`, { method: "POST" }),
+    unlockUser: (clerkId: string) => request<UnlockResponseDTO>(`/api/v1/unlocks/${clerkId}`, { method: "POST" }),
     sendTyping: (otherClerkId: string) =>
       request<{ ok: true }>(`/api/v1/conversations/${otherClerkId}/typing`, { method: "POST" }),
     getUnreadCount: () => request<UnreadCountDTO>("/api/v1/conversations/unread-count"),
@@ -150,6 +153,12 @@ export function createApiClient(getToken: GetToken) {
     },
     getNotifications: () => request<NotificationsResponseDTO>("/api/v1/notifications"),
     markAllNotificationsRead: () => request<{ ok: true }>("/api/v1/notifications/mark-all-read", { method: "POST" }),
+    getCoinPackages: () => request<CoinPackagesResponseDTO>("/api/v1/coins/packages"),
+    createCoinCheckout: (packageId: string) =>
+      request<CreateCheckoutSessionResponseDTO>("/api/v1/coins/checkout", {
+        method: "POST",
+        body: JSON.stringify({ packageId }),
+      }),
   };
 }
 

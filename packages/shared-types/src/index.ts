@@ -221,3 +221,25 @@ export interface NotificationsResponseDTO {
   notifications: NotificationDTO[];
   unreadCount: number;
 }
+
+export interface CoinPackageDTO {
+  id: string;
+  coins: number;
+  priceCents: number;
+  currency: "eur";
+  label: string;
+}
+
+export interface CoinPackagesResponseDTO {
+  packages: CoinPackageDTO[];
+  unlockCostCoins: number;
+}
+
+export interface CreateCheckoutSessionResponseDTO {
+  url: string;
+}
+
+export interface UnlockResponseDTO {
+  unlocked: true;
+  coinBalance?: number;
+}

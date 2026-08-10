@@ -14,4 +14,11 @@ export const env = {
   clerkSecretKey: required("CLERK_SECRET_KEY"),
   clerkPublishableKey: required("CLERK_PUBLISHABLE_KEY"),
   mongoUri: required("MONGO_URI"),
+  // Where Stripe Checkout redirects back to after payment. No web coin purchase flow
+  // works without a browser to redirect, so this always has a usable default.
+  clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
+  // Optional: unset in dev until Stripe keys are provided. Routes that need Stripe check
+  // for these explicitly and return a clear error instead of crashing the whole server.
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
 };

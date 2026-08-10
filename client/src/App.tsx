@@ -7,6 +7,9 @@ import { MatchesPage } from "./pages/MatchesPage";
 import { ChatPage } from "./pages/ChatPage";
 import { ChatThreadPage } from "./pages/ChatThreadPage";
 import { ViewProfilePage } from "./pages/ViewProfilePage";
+import { BuyCoinsPage } from "./pages/BuyCoinsPage";
+import { CoinsSuccessPage } from "./pages/CoinsSuccessPage";
+import { CoinsCancelPage } from "./pages/CoinsCancelPage";
 import { RequireAuth } from "./components/RequireAuth";
 import { Layout } from "./components/Layout";
 
@@ -68,6 +71,30 @@ function App() {
           element={
             <RequireAuth>
               <ViewProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/coins"
+          element={
+            <RequireAuth>
+              <BuyCoinsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/coins/success"
+          element={
+            <RequireAuth>
+              <CoinsSuccessPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/coins/cancel"
+          element={
+            <RequireAuth>
+              <CoinsCancelPage />
             </RequireAuth>
           }
         />

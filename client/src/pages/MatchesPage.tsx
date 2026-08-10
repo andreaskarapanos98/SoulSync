@@ -3,6 +3,8 @@ import type { MatchesResponseDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { MatchCard } from "../components/matches/MatchCard";
 
+const DEFAULT_UNLOCK_COST = 20;
+
 type Tab = "yourSoulmates" | "theirSoulmate";
 
 const TABS: { key: Tab; label: string; blurb: string }[] = [
@@ -15,9 +17,11 @@ export function MatchesPage() {
   const [matches, setMatches] = useState<MatchesResponseDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("yourSoulmates");
+  const [unlockCostCoins, setUnlockCostCoins] = useState(DEFAULT_UNLOCK_COST);
 
   useEffect(() => {
     api.getMatches().then(setMatches).catch((err) => setError(String(err)));
+    api.getCoinPackages().then((res) => setUnlockCostCoins(res.unlockCostCoins)).catch(() => {});
   }, [api]);
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load matches: {error}</p>;
@@ -68,7 +72,7 @@ export function MatchesPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((m) => (
-            <MatchCard key={m.clerkId} match={m} onUnlocked={handleUnlocked} />
+            <MatchCard key={m.clerkId} match={m} unlockCostCoins={unlockCostCoins} onUnlocked={handleUnlocked} />
           ))}
         </div>
       )}

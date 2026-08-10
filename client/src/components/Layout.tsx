@@ -5,11 +5,14 @@ import { Logo } from "./Logo";
 import { ProfileAvatarButton } from "./ProfileAvatarButton";
 import { ChatNavLink } from "./ChatNavLink";
 import { NotificationBell } from "./NotificationBell";
+import { CoinBalanceBadge } from "./CoinBalanceBadge";
 import { UnreadCountProvider } from "../hooks/useUnreadCount";
+import { CoinBalanceProvider } from "../hooks/useCoinBalance";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <UnreadCountProvider>
+    <CoinBalanceProvider>
     <div className="min-h-svh flex flex-col bg-gradient-to-b from-brand-50/60 via-white to-white dark:from-brand-950/10 dark:via-neutral-950 dark:to-neutral-950">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
@@ -26,6 +29,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 Matches
               </Link>
               <ChatNavLink />
+              <CoinBalanceBadge />
               <NotificationBell />
             </SignedIn>
             <SignedOut>
@@ -49,6 +53,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <main className="flex flex-1 flex-col">{children}</main>
     </div>
+    </CoinBalanceProvider>
     </UnreadCountProvider>
   );
 }

@@ -2,18 +2,30 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { MatchCardDTO } from "@soulsync/shared-types";
 import { useApi } from "../../hooks/useApi";
+import { useCoinBalance } from "../../hooks/useCoinBalance";
+import { ApiError } from "../../services/api";
 import { LogoMark } from "../Logo";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
-export function MatchCard({ match, onUnlocked }: { match: MatchCardDTO; onUnlocked: (clerkId: string) => void }) {
+export function MatchCard({
+  match,
+  unlockCostCoins,
+  onUnlocked,
+}: {
+  match: MatchCardDTO;
+  unlockCostCoins: number;
+  onUnlocked: (clerkId: string) => void;
+}) {
   const api = useApi();
+  const { setBalance } = useCoinBalance();
   const location = [match.city, match.country].filter(Boolean).join(", ");
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [unlockAnimating, setUnlockAnimating] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
 
   function toggleVoiceIntro(e: React.MouseEvent) {
     e.preventDefault();
@@ -25,8 +37,10 @@ export function MatchCard({ match, onUnlocked }: { match: MatchCardDTO; onUnlock
 
   async function confirmUnlock() {
     setUnlocking(true);
+    setUnlockError(null);
     try {
-      await api.unlockUser(match.clerkId);
+      const res = await api.unlockUser(match.clerkId);
+      if (res.coinBalance !== undefined) setBalance(res.coinBalance);
       setConfirming(false);
       setUnlockAnimating(true);
       // Let the crack/pop-open animation play before swapping in the unlocked state.
@@ -34,6 +48,12 @@ export function MatchCard({ match, onUnlocked }: { match: MatchCardDTO; onUnlock
         setUnlockAnimating(false);
         onUnlocked(match.clerkId);
       }, 700);
+    } catch (err) {
+      setUnlockError(
+        err instanceof ApiError && err.status === 402
+          ? `You don't have enough coins for this. Unlocking costs ${unlockCostCoins} coins.`
+          : String(err),
+      );
     } finally {
       setUnlocking(false);
     }
@@ -126,8 +146,17 @@ export function MatchCard({ match, onUnlocked }: { match: MatchCardDTO; onUnlock
               Unlock {match.firstName || "this profile"}?
             </p>
             <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-              Unlocking lets you view their full profile and start a chat.
+              Unlocking lets you view their full profile and start a chat. Costs{" "}
+              <span className="font-semibold text-neutral-700 dark:text-neutral-300">🪙 {unlockCostCoins}</span>.
             </p>
+            {unlockError && (
+              <p className="mt-3 text-sm text-red-600">
+                {unlockError}{" "}
+                <Link to="/coins" className="font-semibold underline">
+                  Buy coins
+                </Link>
+              </p>
+            )}
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
