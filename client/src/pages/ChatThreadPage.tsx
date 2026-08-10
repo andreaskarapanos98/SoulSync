@@ -32,14 +32,12 @@ export function ChatThreadPage() {
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
   const [reportingUser, setReportingUser] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const avatarMenuRef = useRef<HTMLDivElement>(null);
   const seenMessageIdsRef = useRef<Set<string> | null>(null);
   const lastTypingPingRef = useRef(0);
   const lastTypingSoundRef = useRef(0);
@@ -85,7 +83,6 @@ export function ChatThreadPage() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target as Node)) setAvatarMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -186,33 +183,19 @@ export function ChatThreadPage() {
           ←
         </Link>
         {clerkId && (
-          <div ref={avatarMenuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setAvatarMenuOpen((o) => !o)}
-              title={otherName || "Someone"}
-              className="block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700"
-            >
-              {otherPhoto ? (
-                <img src={`${API_URL}${otherPhoto}`} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center bg-brand-50 dark:bg-brand-950/40">
-                  <LogoMark size={16} />
-                </span>
-              )}
-            </button>
-            {avatarMenuOpen && (
-              <div className="absolute left-0 z-10 mt-1 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
-                <Link
-                  to={`/profiles/${clerkId}`}
-                  onClick={() => setAvatarMenuOpen(false)}
-                  className="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                >
-                  👤 View Profile
-                </Link>
-              </div>
+          <Link
+            to={`/profiles/${clerkId}`}
+            title={`View ${otherName || "profile"}`}
+            className="block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700"
+          >
+            {otherPhoto ? (
+              <img src={`${API_URL}${otherPhoto}`} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center bg-brand-50 dark:bg-brand-950/40">
+                <LogoMark size={16} />
+              </span>
             )}
-          </div>
+          </Link>
         )}
         <div className="flex-1">
           <p className="font-semibold text-neutral-900 dark:text-white">{otherName || "Someone"}</p>
