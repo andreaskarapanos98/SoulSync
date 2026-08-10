@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd .. && npm install && npm run build -w packages/shared-types && npm run build -w client",
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
