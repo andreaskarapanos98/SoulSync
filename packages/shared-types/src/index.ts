@@ -201,3 +201,22 @@ export interface MessagesResponseDTO {
 export interface SendMessageResponseDTO {
   message: MessageDTO;
 }
+
+export type NotificationTier = "great" | "excellent" | "near_perfect" | "perfect";
+
+export interface NotificationDTO {
+  id: string;
+  otherClerkId: string;
+  otherFirstName: string;
+  otherPhotoUrl?: string;
+  tier: NotificationTier;
+  compatibility: number;
+  message: string;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface NotificationsResponseDTO {
+  notifications: NotificationDTO[];
+  unreadCount: number;
+}

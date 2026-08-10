@@ -6,6 +6,7 @@ import type {
   MatchesResponseDTO,
   MeDTO,
   MessagesResponseDTO,
+  NotificationsResponseDTO,
   OwnProfileDTO,
   PhotosResponseDTO,
   PreferenceAnswersDTO,
@@ -147,6 +148,8 @@ export function createApiClient(getToken: GetToken) {
       formData.append("file", file);
       return requestMultipart<SendMessageResponseDTO>(`/api/v1/conversations/${otherClerkId}/media`, "POST", formData);
     },
+    getNotifications: () => request<NotificationsResponseDTO>("/api/v1/notifications"),
+    markAllNotificationsRead: () => request<{ ok: true }>("/api/v1/notifications/mark-all-read", { method: "POST" }),
   };
 }
 

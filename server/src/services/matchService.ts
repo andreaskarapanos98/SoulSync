@@ -8,6 +8,7 @@ import { calculateAge } from "../utils/age.js";
 import { getPointGivingQuestions, roundScore, type PointGivingQuestion } from "./scoringEngine.js";
 import { computeScore, heightEliminates, miniScaleThresholdEliminates } from "./compatibilityScoring.js";
 import { getUnlockedClerkIds } from "./unlockService.js";
+import { recordMatchNotificationsIfNeeded } from "./notificationService.js";
 
 interface Traits {
   clerkId: string;
@@ -240,6 +241,11 @@ export async function getMatches(viewerClerkId: string) {
 
   yourSoulmates.sort((a, b) => b.compatibility - a.compatibility);
   theirSoulmate.sort((a, b) => b.compatibility - a.compatibility);
+
+  // Fire-and-forget-ish, but awaited so a failure surfaces in logs rather than
+  // silently vanishing — detection only happens when the viewer visits /matches,
+  // there's no background job yet.
+  await recordMatchNotificationsIfNeeded(viewerClerkId, yourSoulmates);
 
   return { yourSoulmates, theirSoulmate };
 }

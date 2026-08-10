@@ -18,6 +18,7 @@ import { publicProfilesRouter } from "./routes/publicProfiles.js";
 import { matchesRouter } from "./routes/matches.js";
 import { conversationsRouter } from "./routes/conversations.js";
 import { unlocksRouter } from "./routes/unlocks.js";
+import { notificationsRouter } from "./routes/notifications.js";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/v1/profiles", publicProfilesRouter);
 app.use("/api/v1/matches", matchesRouter);
 app.use("/api/v1/conversations", conversationsRouter);
 app.use("/api/v1/unlocks", unlocksRouter);
+app.use("/api/v1/notifications", notificationsRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(

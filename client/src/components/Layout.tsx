@@ -4,6 +4,7 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-re
 import { Logo } from "./Logo";
 import { ProfileAvatarButton } from "./ProfileAvatarButton";
 import { ChatNavLink } from "./ChatNavLink";
+import { NotificationBell } from "./NotificationBell";
 import { UnreadCountProvider } from "../hooks/useUnreadCount";
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -25,6 +26,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 Matches
               </Link>
               <ChatNavLink />
+              <NotificationBell />
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">
