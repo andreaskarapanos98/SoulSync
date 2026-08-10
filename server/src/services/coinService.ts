@@ -19,8 +19,27 @@ export const COIN_PACKAGES: CoinPackage[] = [
   { id: "coins_1500", coins: 1500, priceCents: 3999, currency: "eur", label: "1,500 SoulSync Coins" },
 ];
 
-// Placeholder — the user hasn't specified what unlocking should cost yet; adjust here.
-export const UNLOCK_COST_COINS = 20;
+export interface UnlockCostTier {
+  minCompatibility: number;
+  coins: number;
+}
+
+// Ordered highest-to-lowest so the first match in unlockCostForCompatibility() wins.
+export const UNLOCK_COST_TIERS: UnlockCostTier[] = [
+  { minCompatibility: 100, coins: 300 },
+  { minCompatibility: 98, coins: 200 },
+  { minCompatibility: 95, coins: 160 },
+  { minCompatibility: 90, coins: 130 },
+  { minCompatibility: 80, coins: 100 },
+  { minCompatibility: 70, coins: 70 },
+  { minCompatibility: 60, coins: 50 },
+  { minCompatibility: 0, coins: 25 },
+];
+
+export function unlockCostForCompatibility(compatibility: number): number {
+  const tier = UNLOCK_COST_TIERS.find((t) => compatibility >= t.minCompatibility);
+  return tier?.coins ?? UNLOCK_COST_TIERS[UNLOCK_COST_TIERS.length - 1].coins;
+}
 
 export class InsufficientCoinsError extends Error {
   constructor(public required: number, public balance: number) {

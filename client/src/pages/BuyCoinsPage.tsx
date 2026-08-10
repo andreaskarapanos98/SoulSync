@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
-import type { CoinPackagesResponseDTO } from "@soulsync/shared-types";
+import type { CoinPackagesResponseDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { ApiError } from "../services/api";
 
 function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(cents / 100);
+}
+
+// Tiers arrive highest-to-lowest minCompatibility; the range's upper bound is one below
+// the next-higher tier's floor (e.g. a 98 floor next to a 100 floor reads as "98-99%").
+function tierRangeLabel(tiers: UnlockCostTierDTO[], index: number): string {
+  const tier = tiers[index];
+  if (tier.minCompatibility >= 100) return "100%";
+  const upper = index > 0 ? tiers[index - 1].minCompatibility - 1 : 100;
+  return `${tier.minCompatibility}–${upper}%`;
 }
 
 export function BuyCoinsPage() {
@@ -71,9 +80,31 @@ export function BuyCoinsPage() {
       )}
 
       {data && (
-        <p className="mt-6 text-xs text-neutral-400 dark:text-neutral-500">
-          Unlocking a profile costs {data.unlockCostCoins} coins.
-        </p>
+        <div className="mt-10">
+          <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Unlock cost by compatibility</h2>
+          <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+            The higher your match, the more it costs to unlock — and the more it's worth it.
+          </p>
+          <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+            <table className="w-full text-sm">
+              <tbody>
+                {data.unlockCostTiers.map((tier, i) => (
+                  <tr
+                    key={tier.minCompatibility}
+                    className="border-t border-neutral-100 first:border-t-0 dark:border-neutral-800"
+                  >
+                    <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">
+                      {tierRangeLabel(data.unlockCostTiers, i)}
+                    </td>
+                    <td className="px-4 py-2 text-right font-medium text-neutral-800 dark:text-neutral-200">
+                      {tier.minCompatibility >= 100 ? "❤️" : "🪙"} {tier.coins} Coins
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

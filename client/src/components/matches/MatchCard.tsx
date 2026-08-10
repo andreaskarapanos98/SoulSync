@@ -1,24 +1,26 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import type { MatchCardDTO } from "@soulsync/shared-types";
+import type { MatchCardDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
 import { useApi } from "../../hooks/useApi";
 import { useCoinBalance } from "../../hooks/useCoinBalance";
 import { ApiError } from "../../services/api";
+import { unlockCostForCompatibility } from "../../utils/unlockCost";
 import { LogoMark } from "../Logo";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export function MatchCard({
   match,
-  unlockCostCoins,
+  unlockCostTiers,
   onUnlocked,
 }: {
   match: MatchCardDTO;
-  unlockCostCoins: number;
+  unlockCostTiers: UnlockCostTierDTO[];
   onUnlocked: (clerkId: string) => void;
 }) {
   const api = useApi();
   const { setBalance } = useCoinBalance();
+  const unlockCost = unlockCostForCompatibility(match.compatibility, unlockCostTiers);
   const location = [match.city, match.country].filter(Boolean).join(", ");
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -51,7 +53,7 @@ export function MatchCard({
     } catch (err) {
       setUnlockError(
         err instanceof ApiError && err.status === 402
-          ? `You don't have enough coins for this. Unlocking costs ${unlockCostCoins} coins.`
+          ? `You don't have enough coins for this. Unlocking costs ${unlockCost} coins.`
           : String(err),
       );
     } finally {
@@ -147,7 +149,7 @@ export function MatchCard({
             </p>
             <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
               Unlocking lets you view their full profile and start a chat. Costs{" "}
-              <span className="font-semibold text-neutral-700 dark:text-neutral-300">🪙 {unlockCostCoins}</span>.
+              <span className="font-semibold text-neutral-700 dark:text-neutral-300">🪙 {unlockCost}</span>.
             </p>
             {unlockError && (
               <p className="mt-3 text-sm text-red-600">

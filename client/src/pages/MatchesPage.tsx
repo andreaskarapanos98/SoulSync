@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
-import type { MatchesResponseDTO } from "@soulsync/shared-types";
+import type { MatchesResponseDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { MatchCard } from "../components/matches/MatchCard";
 
-const DEFAULT_UNLOCK_COST = 20;
+const DEFAULT_UNLOCK_COST_TIERS: UnlockCostTierDTO[] = [
+  { minCompatibility: 100, coins: 300 },
+  { minCompatibility: 98, coins: 200 },
+  { minCompatibility: 95, coins: 160 },
+  { minCompatibility: 90, coins: 130 },
+  { minCompatibility: 80, coins: 100 },
+  { minCompatibility: 70, coins: 70 },
+  { minCompatibility: 60, coins: 50 },
+  { minCompatibility: 0, coins: 25 },
+];
 
 type Tab = "yourSoulmates" | "theirSoulmate";
 
@@ -17,11 +26,11 @@ export function MatchesPage() {
   const [matches, setMatches] = useState<MatchesResponseDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("yourSoulmates");
-  const [unlockCostCoins, setUnlockCostCoins] = useState(DEFAULT_UNLOCK_COST);
+  const [unlockCostTiers, setUnlockCostTiers] = useState<UnlockCostTierDTO[]>(DEFAULT_UNLOCK_COST_TIERS);
 
   useEffect(() => {
     api.getMatches().then(setMatches).catch((err) => setError(String(err)));
-    api.getCoinPackages().then((res) => setUnlockCostCoins(res.unlockCostCoins)).catch(() => {});
+    api.getCoinPackages().then((res) => setUnlockCostTiers(res.unlockCostTiers)).catch(() => {});
   }, [api]);
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load matches: {error}</p>;
@@ -72,7 +81,7 @@ export function MatchesPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((m) => (
-            <MatchCard key={m.clerkId} match={m} unlockCostCoins={unlockCostCoins} onUnlocked={handleUnlocked} />
+            <MatchCard key={m.clerkId} match={m} unlockCostTiers={unlockCostTiers} onUnlocked={handleUnlocked} />
           ))}
         </div>
       )}

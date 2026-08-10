@@ -1,12 +1,17 @@
 import { UnlockModel } from "../models/Unlock.js";
-import { UNLOCK_COST_COINS, spendCoins } from "./coinService.js";
+import { spendCoins, unlockCostForCompatibility } from "./coinService.js";
+import { getCompatibilityScore } from "./pairCompatibility.js";
 
 /** Spends coins and unlocks the profile. Already-unlocked is a free no-op (idempotent). */
 export async function unlockUser(viewerClerkId: string, unlockedClerkId: string): Promise<{ coinBalance?: number }> {
   const existing = await UnlockModel.findOne({ viewerClerkId, unlockedClerkId });
   if (existing) return {};
 
-  const { coinBalance } = await spendCoins(viewerClerkId, UNLOCK_COST_COINS, unlockedClerkId);
+  // Recomputed server-side, never trusted from the client — the cost tier is keyed to
+  // the real compatibility score, not whatever number happened to be shown in the UI.
+  const compatibility = await getCompatibilityScore(viewerClerkId, unlockedClerkId);
+  const cost = unlockCostForCompatibility(compatibility);
+  const { coinBalance } = await spendCoins(viewerClerkId, cost, unlockedClerkId);
 
   await UnlockModel.updateOne(
     { viewerClerkId, unlockedClerkId },

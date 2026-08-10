@@ -230,9 +230,14 @@ export interface CoinPackageDTO {
   label: string;
 }
 
+export interface UnlockCostTierDTO {
+  minCompatibility: number;
+  coins: number;
+}
+
 export interface CoinPackagesResponseDTO {
   packages: CoinPackageDTO[];
-  unlockCostCoins: number;
+  unlockCostTiers: UnlockCostTierDTO[];
 }
 
 export interface CreateCheckoutSessionResponseDTO {
