@@ -88,7 +88,10 @@ export function NotificationBell() {
                       </span>
                     )}
                   </div>
-                  <span className="text-neutral-700 dark:text-neutral-300">{n.message}</span>
+                  <span className="flex flex-col">
+                    <span className="font-semibold text-neutral-800 dark:text-neutral-100">{n.title}</span>
+                    <span className="text-neutral-600 dark:text-neutral-400">{n.message}</span>
+                  </span>
                 </Link>
               ))
             )}

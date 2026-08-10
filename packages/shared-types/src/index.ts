@@ -211,6 +211,7 @@ export interface NotificationDTO {
   otherPhotoUrl?: string;
   tier: NotificationTier;
   compatibility: number;
+  title: string;
   message: string;
   createdAt: string;
   readAt?: string;

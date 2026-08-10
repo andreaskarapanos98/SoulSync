@@ -3,13 +3,23 @@ import { firstNameAndPhoto } from "./messageService.js";
 
 export type NotificationTier = (typeof notificationTiers)[number];
 
-// Placeholder copy — the user is supplying the real per-tier notification text; swap
-// these templates out once given (this is the only place that needs to change).
-const NOTIFICATION_MESSAGES: Record<NotificationTier, (name: string, score: number) => string> = {
-  great: (name, score) => `You have a great match — ${name} is ${score}% compatible with you!`,
-  excellent: (name, score) => `You have an excellent match — ${name} is ${score}% compatible with you!`,
-  near_perfect: (name, score) => `Almost perfect! ${name} is ${score}% compatible with you.`,
-  perfect: (name, score) => `🎉 PERFECT MATCH — ${name} is ${score}% compatible with you!`,
+const NOTIFICATION_COPY: Record<NotificationTier, { title: string; body: (score: number) => string }> = {
+  great: {
+    title: "❤️ We found a strong match!",
+    body: (score) => `Someone new is waiting for you with an ${score}% compatibility. Take a look and see where the connection leads.`,
+  },
+  excellent: {
+    title: "🔥 This could be something special...",
+    body: (score) => `You have a ${score}% compatibility with someone new. That's an exceptionally strong match. 👀`,
+  },
+  near_perfect: {
+    title: "💘 Almost perfect!",
+    body: (score) => `Someone new is ${score}% compatible with you. You're incredibly close to a perfect match. Don't miss this one.`,
+  },
+  perfect: {
+    title: "❤️‍🔥 WE FOUND YOUR PERFECT MATCH!",
+    body: () => `You have a 100% compatibility with someone. Every answer matched perfectly. Is this the one? 👀❤️`,
+  },
 };
 
 export function tierFor(score: number): NotificationTier | null {
@@ -47,6 +57,7 @@ export async function getNotifications(clerkId: string) {
   return Promise.all(
     docs.map(async (n) => {
       const { firstName, photoUrl } = await firstNameAndPhoto(n.otherClerkId);
+      const copy = NOTIFICATION_COPY[n.tier as NotificationTier];
       return {
         id: String(n._id),
         otherClerkId: n.otherClerkId,
@@ -54,7 +65,8 @@ export async function getNotifications(clerkId: string) {
         otherPhotoUrl: photoUrl,
         tier: n.tier as NotificationTier,
         compatibility: n.compatibility,
-        message: NOTIFICATION_MESSAGES[n.tier as NotificationTier](firstName || "Someone", n.compatibility),
+        title: copy.title,
+        message: copy.body(n.compatibility),
         createdAt: n.createdAt.toISOString(),
         readAt: n.readAt ? n.readAt.toISOString() : undefined,
       };
