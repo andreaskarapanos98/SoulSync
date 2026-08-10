@@ -8,6 +8,7 @@ import { getPointGivingQuestions, roundScore } from "./scoringEngine.js";
 import { computeScore } from "./compatibilityScoring.js";
 import { deleteFile } from "./storageService.js";
 import { isUnlockedEitherDirection } from "./unlockService.js";
+import { isBlockedEitherDirection } from "./blockService.js";
 import { firstNameAndPhoto, nameAndPhotoFrom } from "./userDisplayService.js";
 
 export { firstNameAndPhoto };
@@ -18,24 +19,49 @@ export class NotUnlockedError extends Error {
   }
 }
 
+export class BlockedError extends Error {
+  constructor() {
+    super("You can't message this user");
+  }
+}
+
+export class MessageRateLimitError extends Error {
+  constructor() {
+    super("You're sending messages too quickly — please slow down");
+  }
+}
+
 // A typing status is considered live for this long after the last ping — the client
 // re-pings every ~2s while the user keeps typing.
 const TYPING_TTL_MS = 4000;
+
+// Generous enough for real chat bursts, tight enough to block scripted spam.
+const MESSAGE_RATE_LIMIT_WINDOW_MS = 60_000;
+const MESSAGE_RATE_LIMIT_MAX = 20;
 
 export function conversationIdFor(a: string, b: string): string {
   return [a, b].sort().join("::");
 }
 
-/** Either side must have unlocked the other — lets the unlocked party reply for free. */
-async function requireUnlocked(fromClerkId: string, toClerkId: string): Promise<void> {
+/**
+ * Either side must have unlocked the other (lets the unlocked party reply for free),
+ * neither side may have blocked the other, and the sender must be under the send-rate
+ * limit — checked on every send, not just the first message of a conversation.
+ */
+export async function requireCanMessage(fromClerkId: string, toClerkId: string): Promise<void> {
   if (!(await isUnlockedEitherDirection(fromClerkId, toClerkId))) throw new NotUnlockedError();
+  if (await isBlockedEitherDirection(fromClerkId, toClerkId)) throw new BlockedError();
+
+  const since = new Date(Date.now() - MESSAGE_RATE_LIMIT_WINDOW_MS);
+  const recentCount = await MessageModel.countDocuments({ fromClerkId, createdAt: { $gte: since } });
+  if (recentCount >= MESSAGE_RATE_LIMIT_MAX) throw new MessageRateLimitError();
 }
 
 export async function sendMessage(fromClerkId: string, toClerkId: string, body: string) {
   const trimmed = body.trim();
   if (!trimmed) throw new ValidationError(["Message cannot be empty"]);
   if (trimmed.length > 2000) throw new ValidationError(["Message is too long (max 2000 characters)"]);
-  await requireUnlocked(fromClerkId, toClerkId);
+  await requireCanMessage(fromClerkId, toClerkId);
 
   return MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
@@ -46,7 +72,7 @@ export async function sendMessage(fromClerkId: string, toClerkId: string, body: 
 }
 
 export async function sendVoiceMessage(fromClerkId: string, toClerkId: string, audioUrl: string, durationSec: number) {
-  await requireUnlocked(fromClerkId, toClerkId);
+  await requireCanMessage(fromClerkId, toClerkId);
 
   return MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
@@ -63,7 +89,7 @@ export async function sendMediaMessage(
   kind: "image" | "video",
   url: string,
 ) {
-  await requireUnlocked(fromClerkId, toClerkId);
+  await requireCanMessage(fromClerkId, toClerkId);
 
   return MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),

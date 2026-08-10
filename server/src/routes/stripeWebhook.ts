@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripeClient } from "../config/stripe.js";
 import { env } from "../config/env.js";
 import { creditCoinsForCheckoutSession } from "../services/coinService.js";
+import { logCheckoutCompleted, logCheckoutExpired, logPaymentIntentFailed } from "../services/paymentEventService.js";
 
 export const stripeWebhookRouter = Router();
 
@@ -25,8 +26,19 @@ stripeWebhookRouter.post("/", async (req, res) => {
     return;
   }
 
-  if (event.type === "checkout.session.completed") {
-    await creditCoinsForCheckoutSession(event.data.object as Stripe.Checkout.Session);
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await creditCoinsForCheckoutSession(session);
+      await logCheckoutCompleted(session);
+      break;
+    }
+    case "checkout.session.expired":
+      await logCheckoutExpired(event.data.object as Stripe.Checkout.Session);
+      break;
+    case "payment_intent.payment_failed":
+      await logPaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+      break;
   }
 
   res.json({ received: true });

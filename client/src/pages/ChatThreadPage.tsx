@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import type { MessageDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
@@ -8,6 +8,7 @@ import { LogoMark } from "../components/Logo";
 import { EmojiPicker } from "../components/chat/EmojiPicker";
 import { VoiceMessageButton } from "../components/chat/VoiceMessageButton";
 import { MessageBubble } from "../components/chat/MessageBubble";
+import { ReportModal } from "../components/ReportModal";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -18,6 +19,7 @@ const TYPING_SOUND_THROTTLE_MS = 120;
 export function ChatThreadPage() {
   const { clerkId } = useParams<{ clerkId: string }>();
   const api = useApi();
+  const navigate = useNavigate();
   const { userId } = useAuth();
   const { refresh: refreshUnreadCount } = useUnreadCount();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
@@ -28,8 +30,14 @@ export function ChatThreadPage() {
   const [sending, setSending] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
+  const [reportingUser, setReportingUser] = useState(false);
+  const [blocking, setBlocking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const seenMessageIdsRef = useRef<Set<string> | null>(null);
   const lastTypingPingRef = useRef(0);
   const lastTypingSoundRef = useRef(0);
@@ -72,6 +80,26 @@ export function ChatThreadPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function handleBlock() {
+    if (!clerkId) return;
+    if (!window.confirm("Block this person? They won't be able to message you and won't appear in your matches.")) return;
+    setBlocking(true);
+    try {
+      await api.blockUser(clerkId);
+      navigate("/chat");
+    } finally {
+      setBlocking(false);
+    }
+  }
+
   function handleDraftChange(value: string) {
     setDraft(value);
     if (!clerkId || !value.trim()) return;
@@ -93,12 +121,13 @@ export function ChatThreadPage() {
   async function handleSend() {
     if (!clerkId || !draft.trim()) return;
     setSending(true);
+    setSendError(null);
     try {
       await api.sendMessage(clerkId, draft);
       setDraft("");
       load();
     } catch (err) {
-      setError(String(err));
+      setSendError(String(err));
     } finally {
       setSending(false);
     }
@@ -106,8 +135,13 @@ export function ChatThreadPage() {
 
   async function handleSendVoice(blob: Blob, durationSec: number) {
     if (!clerkId) return;
-    await api.sendVoiceMessage(clerkId, blob, durationSec);
-    load();
+    setSendError(null);
+    try {
+      await api.sendVoiceMessage(clerkId, blob, durationSec);
+      load();
+    } catch (err) {
+      setSendError(String(err));
+    }
   }
 
   async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -115,11 +149,12 @@ export function ChatThreadPage() {
     e.target.value = ""; // allow selecting the same file again later
     if (!clerkId || !file) return;
     setUploadingMedia(true);
+    setSendError(null);
     try {
       await api.sendMediaMessage(clerkId, file);
       load();
     } catch (err) {
-      setError(String(err));
+      setSendError(String(err));
     } finally {
       setUploadingMedia(false);
     }
@@ -156,11 +191,61 @@ export function ChatThreadPage() {
             </span>
           )}
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-semibold text-neutral-900 dark:text-white">{otherName || "Someone"}</p>
           {otherIsTyping && <p className="text-xs text-brand-500">Typing…</p>}
         </div>
+
+        {clerkId && (
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              title="More options"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              ⋮
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 z-10 mt-1 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setReportingUser(true);
+                  }}
+                  className="block w-full px-4 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  🚩 Report
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleBlock();
+                  }}
+                  disabled={blocking}
+                  className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-neutral-50 disabled:opacity-50 dark:hover:bg-neutral-800"
+                >
+                  🚫 Block
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {reportingUser && clerkId && (
+        <ReportModal reportedClerkId={clerkId} contentType="user" onClose={() => setReportingUser(false)} />
+      )}
+      {reportingMessageId && clerkId && (
+        <ReportModal
+          reportedClerkId={clerkId}
+          contentType="message"
+          contentRef={reportingMessageId}
+          onClose={() => setReportingMessageId(null)}
+        />
+      )}
 
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-6">
         {messages.length === 0 ? (
@@ -176,12 +261,19 @@ export function ChatThreadPage() {
                 showSeen={mine && i === lastMineIndex && lastMineSeen}
                 onEdit={handleEditMessage}
                 onDelete={handleDeleteMessage}
+                onReport={setReportingMessageId}
               />
             );
           })
         )}
         <div ref={bottomRef} />
       </div>
+
+      {sendError && (
+        <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
+          {sendError}
+        </p>
+      )}
 
       <div className="flex items-center gap-1 border-t border-neutral-200 pt-4 dark:border-neutral-800">
         <EmojiPicker onSelect={(emoji) => handleDraftChange(draft + emoji)} />

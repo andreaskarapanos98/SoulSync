@@ -1,22 +1,48 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { ProfileDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { PhotoCarousel } from "../components/profile/PhotoCarousel";
 import { CompatibilityBreakdown } from "../components/profile/CompatibilityBreakdown";
+import { ReportModal } from "../components/ReportModal";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export function ViewProfilePage() {
   const { clerkId } = useParams<{ clerkId: string }>();
   const api = useApi();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!clerkId) return;
     api.getPublicProfile(clerkId).then(setProfile).catch((err) => setError(String(err)));
   }, [api, clerkId]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function handleBlock() {
+    if (!clerkId) return;
+    if (!window.confirm("Block this person? They won't be able to message you and won't appear in your matches.")) return;
+    setBlocking(true);
+    try {
+      await api.blockUser(clerkId);
+      navigate("/matches");
+    } finally {
+      setBlocking(false);
+    }
+  }
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load profile: {error}</p>;
   if (!profile) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading profile…</p>;
@@ -25,9 +51,53 @@ export function ViewProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-6 py-12">
-      <Link to="/matches" className="text-sm text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
-        ← Back to matches
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/matches" className="text-sm text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
+          ← Back to matches
+        </Link>
+
+        {clerkId && (
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              title="More options"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              ⋮
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 z-10 mt-1 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setReporting(true);
+                  }}
+                  className="block w-full px-4 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  🚩 Report
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleBlock();
+                  }}
+                  disabled={blocking}
+                  className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-neutral-50 disabled:opacity-50 dark:hover:bg-neutral-800"
+                >
+                  🚫 Block
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {reporting && clerkId && (
+        <ReportModal reportedClerkId={clerkId} contentType="profile" onClose={() => setReporting(false)} />
+      )}
 
       <div className="mt-4 overflow-hidden rounded-3xl border border-brand-100 bg-white shadow-sm shadow-brand-100/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
         <PhotoCarousel photos={profile.photos} />

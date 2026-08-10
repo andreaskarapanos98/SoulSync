@@ -1,9 +1,11 @@
 import type {
   AboutMeAnswersDTO,
   AnswerValue,
+  BlockedClerkIdsResponseDTO,
   CoinPackagesResponseDTO,
   ConversationsResponseDTO,
   CreateCheckoutSessionResponseDTO,
+  CreateReportRequestDTO,
   DealBreakersDTO,
   MatchesResponseDTO,
   MeDTO,
@@ -159,6 +161,12 @@ export function createApiClient(getToken: GetToken) {
         method: "POST",
         body: JSON.stringify({ packageId }),
       }),
+    createReport: (report: CreateReportRequestDTO) =>
+      request<{ report: { id: string } }>("/api/v1/reports", { method: "POST", body: JSON.stringify(report) }),
+    getBlockedClerkIds: () => request<BlockedClerkIdsResponseDTO>("/api/v1/blocks"),
+    blockUser: (blockedClerkId: string) =>
+      request<{ ok: true }>("/api/v1/blocks", { method: "POST", body: JSON.stringify({ blockedClerkId }) }),
+    unblockUser: (blockedClerkId: string) => request<{ ok: true }>(`/api/v1/blocks/${blockedClerkId}`, { method: "DELETE" }),
   };
 }
 

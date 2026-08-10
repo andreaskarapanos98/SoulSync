@@ -8,6 +8,7 @@ import { calculateAge } from "../utils/age.js";
 import { getPointGivingQuestions, roundScore, type PointGivingQuestion } from "./scoringEngine.js";
 import { computeScore, heightEliminates, miniScaleThresholdEliminates } from "./compatibilityScoring.js";
 import { getUnlockedClerkIds } from "./unlockService.js";
+import { getMutuallyBlockedClerkIds } from "./blockService.js";
 import { recordMatchNotificationsIfNeeded } from "./notificationService.js";
 
 interface Traits {
@@ -188,12 +189,16 @@ export async function getMatches(viewerClerkId: string) {
 
   const { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId } =
     await loadCandidatePool(viewerClerkId);
-  const unlockedClerkIds = await getUnlockedClerkIds(viewerClerkId);
+  const [unlockedClerkIds, blockedClerkIds] = await Promise.all([
+    getUnlockedClerkIds(viewerClerkId),
+    getMutuallyBlockedClerkIds(viewerClerkId),
+  ]);
 
   const yourSoulmates: MatchCardDTO[] = [];
   const theirSoulmate: MatchCardDTO[] = [];
 
   for (const candidateId of ids) {
+    if (blockedClerkIds.has(candidateId)) continue;
     const candidateAboutMeAnswers = aboutMeByClerkId.get(candidateId) ?? {};
     const candidatePreferenceAnswers = preferenceByClerkId.get(candidateId) ?? {};
     const candidateDealBreakers = dealBreakersByClerkId.get(candidateId) ?? {};

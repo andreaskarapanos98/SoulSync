@@ -3,6 +3,7 @@ import { getStripeClient } from "../config/stripe.js";
 import { env } from "../config/env.js";
 import { CoinTransactionModel } from "../models/CoinTransaction.js";
 import { UserAccountModel } from "../models/UserAccount.js";
+import { logAdminAction } from "./adminAuditService.js";
 
 export interface CoinPackage {
   id: string;
@@ -137,6 +138,38 @@ export async function spendCoins(
     amount: -amount,
     relatedClerkId,
   });
+
+  return { coinBalance: updated.coinBalance };
+}
+
+/**
+ * Admin-only credit/debit outside the normal purchase/spend flows (goodwill credit,
+ * correcting a support issue, etc.) — amount can be positive or negative. Allows going
+ * negative only if the admin explicitly debits more than the balance holds; that's a
+ * deliberate admin override, not a user-facing spend, so no InsufficientCoinsError here.
+ */
+export async function adjustCoinsByAdmin(
+  adminClerkId: string,
+  targetClerkId: string,
+  amount: number,
+  reason: string,
+): Promise<{ coinBalance: number }> {
+  const updated = await UserAccountModel.findOneAndUpdate(
+    { clerkId: targetClerkId },
+    { $inc: { coinBalance: amount } },
+    { returnDocument: "after" },
+  );
+  if (!updated) throw new Error("User not found");
+
+  await CoinTransactionModel.create({
+    clerkId: targetClerkId,
+    type: "admin_adjustment",
+    amount,
+    adminClerkId,
+    reason,
+  });
+
+  await logAdminAction(adminClerkId, "coins.adjust", targetClerkId, { amount, reason, newBalance: updated.coinBalance });
 
   return { coinBalance: updated.coinBalance };
 }

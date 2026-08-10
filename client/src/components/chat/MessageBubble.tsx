@@ -9,9 +9,10 @@ interface Props {
   showSeen: boolean;
   onEdit: (id: string, body: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onReport: (messageId: string) => void;
 }
 
-export function MessageBubble({ message, mine, showSeen, onEdit, onDelete }: Props) {
+export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onReport }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(message.body);
@@ -151,6 +152,31 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete }: Pro
                   className="block w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                 >
                   Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        {!mine && !message.deleted && (
+          <div ref={menuRef} className="relative shrink-0 opacity-0 transition group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              ⋯
+            </button>
+            {menuOpen && (
+              <div className="absolute left-0 top-full z-10 mt-1 w-28 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onReport(message.id);
+                  }}
+                  className="block w-full px-3 py-1.5 text-left text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  🚩 Report
                 </button>
               </div>
             )}

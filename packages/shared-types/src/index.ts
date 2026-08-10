@@ -253,3 +253,18 @@ export interface UnlockResponseDTO {
   unlocked: true;
   coinBalance?: number;
 }
+
+export type ReportContentType = "user" | "profile" | "photo" | "voice" | "message";
+export type ReportReason = "inappropriate_content" | "harassment" | "fake_profile" | "spam" | "underage" | "other";
+
+export interface CreateReportRequestDTO {
+  reportedClerkId: string;
+  contentType: ReportContentType;
+  contentRef?: string;
+  reason: ReportReason;
+  details?: string;
+}
+
+export interface BlockedClerkIdsResponseDTO {
+  blockedClerkIds: string[];
+}

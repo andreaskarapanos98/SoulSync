@@ -11,6 +11,8 @@ import {
   saveFile,
 } from "../services/storageService.js";
 import {
+  BlockedError,
+  MessageRateLimitError,
   NotUnlockedError,
   deleteMessage,
   editMessage,
@@ -21,12 +23,18 @@ import {
   getUnreadConversationCount,
   isOtherTyping,
   markConversationRead,
+  requireCanMessage,
   sendMediaMessage,
   sendMessage,
   sendVoiceMessage,
   setTyping,
 } from "../services/messageService.js";
-import { isUnlockedEitherDirection } from "../services/unlockService.js";
+
+function sendGateErrorStatus(err: unknown): number | undefined {
+  if (err instanceof NotUnlockedError || err instanceof BlockedError) return 403;
+  if (err instanceof MessageRateLimitError) return 429;
+  return undefined;
+}
 
 export const conversationsRouter = Router();
 
@@ -145,8 +153,9 @@ conversationsRouter.post("/:otherClerkId/messages", async (req, res) => {
       res.status(400).json({ error: "Validation failed", issues: err.issues });
       return;
     }
-    if (err instanceof NotUnlockedError) {
-      res.status(403).json({ error: err.message });
+    const status = sendGateErrorStatus(err);
+    if (status) {
+      res.status(status).json({ error: (err as Error).message });
       return;
     }
     throw err;
@@ -163,8 +172,11 @@ conversationsRouter.post("/:otherClerkId/voice-messages", upload.single("audio")
     res.status(400).json({ error: "No audio uploaded" });
     return;
   }
-  if (!(await isUnlockedEitherDirection(userId, req.params.otherClerkId))) {
-    res.status(403).json({ error: "You need to unlock this profile before you can message them" });
+  try {
+    await requireCanMessage(userId, req.params.otherClerkId);
+  } catch (err) {
+    const status = sendGateErrorStatus(err);
+    res.status(status ?? 403).json({ error: (err as Error).message });
     return;
   }
 
@@ -190,8 +202,11 @@ conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), asy
     res.status(400).json({ error: "No file uploaded" });
     return;
   }
-  if (!(await isUnlockedEitherDirection(userId, req.params.otherClerkId))) {
-    res.status(403).json({ error: "You need to unlock this profile before you can message them" });
+  try {
+    await requireCanMessage(userId, req.params.otherClerkId);
+  } catch (err) {
+    const status = sendGateErrorStatus(err);
+    res.status(status ?? 403).json({ error: (err as Error).message });
     return;
   }
 

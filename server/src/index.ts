@@ -22,6 +22,8 @@ import { notificationsRouter } from "./routes/notifications.js";
 import { coinsRouter } from "./routes/coins.js";
 import { stripeWebhookRouter } from "./routes/stripeWebhook.js";
 import { adminRouter } from "./routes/admin.js";
+import { reportsRouter } from "./routes/reports.js";
+import { blocksRouter } from "./routes/blocks.js";
 import { requireActiveAccount } from "./middleware/requireActiveAccount.js";
 import { logSystemError } from "./services/errorLogService.js";
 
@@ -56,6 +58,8 @@ app.use("/api/v1/unlocks", unlocksRouter);
 app.use("/api/v1/notifications", notificationsRouter);
 app.use("/api/v1/coins", coinsRouter);
 app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/reports", reportsRouter);
+app.use("/api/v1/blocks", blocksRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(
