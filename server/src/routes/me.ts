@@ -2,6 +2,7 @@ import { Router } from "express";
 import { clerkClient, getAuth } from "@clerk/express";
 import { UserAccountModel } from "../models/UserAccount.js";
 import { track } from "../services/analyticsService.js";
+import { isAdmin } from "../middleware/requireAdmin.js";
 
 export const meRouter = Router();
 
@@ -36,5 +37,6 @@ meRouter.get("/", async (req, res) => {
     email: account.email,
     onboardingStatus: account.onboardingStatus,
     coinBalance: account.coinBalance,
+    isAdmin: await isAdmin(userId),
   });
 });

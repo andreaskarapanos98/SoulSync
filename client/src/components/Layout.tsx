@@ -6,6 +6,7 @@ import { ProfileAvatarButton } from "./ProfileAvatarButton";
 import { ChatNavLink } from "./ChatNavLink";
 import { NotificationBell } from "./NotificationBell";
 import { CoinBalanceBadge } from "./CoinBalanceBadge";
+import { AdminNavLink } from "./AdminNavLink";
 import { UnreadCountProvider } from "../hooks/useUnreadCount";
 import { CoinBalanceProvider } from "../hooks/useCoinBalance";
 
@@ -31,6 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <ChatNavLink />
               <CoinBalanceBadge />
               <NotificationBell />
+              <AdminNavLink />
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">

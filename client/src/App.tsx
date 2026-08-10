@@ -10,7 +10,16 @@ import { ViewProfilePage } from "./pages/ViewProfilePage";
 import { BuyCoinsPage } from "./pages/BuyCoinsPage";
 import { CoinsSuccessPage } from "./pages/CoinsSuccessPage";
 import { CoinsCancelPage } from "./pages/CoinsCancelPage";
+import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { AdminUserDetailPage } from "./pages/admin/AdminUserDetailPage";
+import { AdminReportsPage } from "./pages/admin/AdminReportsPage";
+import { AdminPaymentsPage } from "./pages/admin/AdminPaymentsPage";
+import { AdminErrorsPage } from "./pages/admin/AdminErrorsPage";
+import { AdminQuestionsPage } from "./pages/admin/AdminQuestionsPage";
+import { AdminFunnelPage } from "./pages/admin/AdminFunnelPage";
 import { RequireAuth } from "./components/RequireAuth";
+import { RequireAdmin } from "./components/RequireAdmin";
 import { Layout } from "./components/Layout";
 
 function App() {
@@ -95,6 +104,86 @@ function App() {
           element={
             <RequireAuth>
               <CoinsCancelPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminDashboardPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminUsersPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/users/:clerkId"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminUserDetailPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminReportsPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/payments"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminPaymentsPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/errors"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminErrorsPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminQuestionsPage />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/funnel"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminFunnelPage />
+              </RequireAdmin>
             </RequireAuth>
           }
         />

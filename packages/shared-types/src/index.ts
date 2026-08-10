@@ -11,6 +11,7 @@ export interface MeDTO {
   email: string;
   onboardingStatus: "not_started" | "about_me" | "preferences" | "profile" | "complete";
   coinBalance: number;
+  isAdmin: boolean;
 }
 
 // number_range: two linked numbers within [min, max] (e.g. age range 16-60, where 60
