@@ -97,7 +97,10 @@ export function NotificationBell() {
                   <Link
                     key={n.id}
                     to={`/profiles/${n.otherClerkId}`}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      api.trackEvent("notification_opened", { type: n.type, tier: n.tier });
+                    }}
                     className={`${rowClassName} hover:bg-brand-50 dark:hover:bg-neutral-800`}
                   >
                     {content}

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { clerkClient, getAuth } from "@clerk/express";
 import { UserAccountModel } from "../models/UserAccount.js";
+import { track } from "../services/analyticsService.js";
 
 export const meRouter = Router();
 
@@ -27,6 +28,7 @@ meRouter.get("/", async (req, res) => {
       clerkId: userId,
       email: primaryEmail?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress ?? "",
     });
+    await track(userId, "registration");
   }
 
   res.json({

@@ -33,8 +33,12 @@ export function MatchCard({
     e.preventDefault();
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) audio.pause();
-    else audio.play();
+    if (playing) {
+      audio.pause();
+    } else {
+      audio.play();
+      api.trackEvent("voice_played", { otherClerkId: match.clerkId });
+    }
   }
 
   async function confirmUnlock() {
@@ -101,7 +105,10 @@ export function MatchCard({
           !match.unlocked && (
             <button
               type="button"
-              onClick={() => setConfirming(true)}
+              onClick={() => {
+                setConfirming(true);
+                api.trackEvent("profile_unlock_clicked", { otherClerkId: match.clerkId, compatibility: match.compatibility });
+              }}
               title="Unlock this profile"
               className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition hover:bg-black/70"
             >

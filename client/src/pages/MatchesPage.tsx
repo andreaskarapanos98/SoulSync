@@ -29,7 +29,13 @@ export function MatchesPage() {
   const [unlockCostTiers, setUnlockCostTiers] = useState<UnlockCostTierDTO[]>(DEFAULT_UNLOCK_COST_TIERS);
 
   useEffect(() => {
-    api.getMatches().then(setMatches).catch((err) => setError(String(err)));
+    api
+      .getMatches()
+      .then((res) => {
+        setMatches(res);
+        if (res.yourSoulmates.length > 0 || res.theirSoulmate.length > 0) api.trackEvent("match_viewed");
+      })
+      .catch((err) => setError(String(err)));
     api.getCoinPackages().then((res) => setUnlockCostTiers(res.unlockCostTiers)).catch(() => {});
   }, [api]);
 

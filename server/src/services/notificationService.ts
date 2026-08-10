@@ -1,5 +1,6 @@
 import { NotificationModel, notificationTypes, matchNotificationTiers } from "../models/Notification.js";
 import { firstNameAndPhoto } from "./messageService.js";
+import { track } from "./analyticsService.js";
 
 export type NotificationType = (typeof notificationTypes)[number];
 export type MatchNotificationTier = (typeof matchNotificationTiers)[number];
@@ -51,7 +52,7 @@ export async function recordMatchNotificationsIfNeeded(
   for (const c of candidates) {
     const tier = tierFor(c.compatibility);
     const copy = MATCH_COPY[tier];
-    await NotificationModel.updateOne(
+    const result = await NotificationModel.updateOne(
       { clerkId, otherClerkId: c.clerkId, tier },
       {
         $setOnInsert: {
@@ -66,6 +67,10 @@ export async function recordMatchNotificationsIfNeeded(
       },
       { upsert: true },
     );
+    // Only on a genuinely new insert — otherwise this fires on every /matches poll.
+    if (result.upsertedCount > 0 && tier === "perfect") {
+      await track(clerkId, "hundred_percent_match_discovered", { otherClerkId: c.clerkId });
+    }
   }
 }
 

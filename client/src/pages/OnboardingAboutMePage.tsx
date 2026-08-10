@@ -33,6 +33,7 @@ export function OnboardingAboutMePage() {
         setAnswers(answersRes.answers);
       })
       .catch((err) => setLoadError(String(err)));
+    api.trackEvent("onboarding_started");
     // api is a fresh object every render (memoized on getToken identity); safe to
     // omit here since we only want this to run once on mount.
   }, []);

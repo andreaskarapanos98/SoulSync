@@ -1,4 +1,5 @@
 import { BlockModel } from "../models/Block.js";
+import { track } from "./analyticsService.js";
 
 export async function blockUser(blockerClerkId: string, blockedClerkId: string): Promise<void> {
   if (blockerClerkId === blockedClerkId) throw new Error("Can't block yourself");
@@ -7,6 +8,7 @@ export async function blockUser(blockerClerkId: string, blockedClerkId: string):
     { $setOnInsert: { blockerClerkId, blockedClerkId } },
     { upsert: true },
   );
+  await track(blockerClerkId, "match_blocked", { blockedClerkId });
 }
 
 export async function unblockUser(blockerClerkId: string, blockedClerkId: string): Promise<void> {

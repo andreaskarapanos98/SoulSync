@@ -3,6 +3,7 @@ import { ProfileModel } from "../models/Profile.js";
 import { QuestionDefinitionModel } from "../models/QuestionDefinition.js";
 import { UserAccountModel } from "../models/UserAccount.js";
 import { calculateAge } from "../utils/age.js";
+import { track } from "./analyticsService.js";
 
 // Categories whose about_me answers are safe to surface on a profile. Values,
 // relationship_goals, family, and communication stay private — they only feed
@@ -71,10 +72,11 @@ export async function getProfileCompletionGaps(clerkId: string): Promise<string[
 export async function advanceOnboardingIfProfileComplete(clerkId: string): Promise<string[]> {
   const missing = await getProfileCompletionGaps(clerkId);
   if (missing.length === 0) {
-    await UserAccountModel.updateOne(
+    const result = await UserAccountModel.updateOne(
       { clerkId, onboardingStatus: "preferences" },
       { $set: { onboardingStatus: "complete" } },
     );
+    if (result.modifiedCount > 0) await track(clerkId, "profile_completed");
   }
   return missing;
 }

@@ -10,6 +10,7 @@ import { deleteFile } from "./storageService.js";
 import { isUnlockedEitherDirection } from "./unlockService.js";
 import { isBlockedEitherDirection } from "./blockService.js";
 import { firstNameAndPhoto, nameAndPhotoFrom } from "./userDisplayService.js";
+import { track } from "./analyticsService.js";
 
 export { firstNameAndPhoto };
 
@@ -63,24 +64,28 @@ export async function sendMessage(fromClerkId: string, toClerkId: string, body: 
   if (trimmed.length > 2000) throw new ValidationError(["Message is too long (max 2000 characters)"]);
   await requireCanMessage(fromClerkId, toClerkId);
 
-  return MessageModel.create({
+  const message = await MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
     fromClerkId,
     toClerkId,
     body: trimmed,
   });
+  await track(fromClerkId, "message_sent", { toClerkId, kind: "text" });
+  return message;
 }
 
 export async function sendVoiceMessage(fromClerkId: string, toClerkId: string, audioUrl: string, durationSec: number) {
   await requireCanMessage(fromClerkId, toClerkId);
 
-  return MessageModel.create({
+  const message = await MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
     fromClerkId,
     toClerkId,
     audioUrl,
     durationSec,
   });
+  await track(fromClerkId, "message_sent", { toClerkId, kind: "voice" });
+  return message;
 }
 
 export async function sendMediaMessage(
@@ -91,12 +96,14 @@ export async function sendMediaMessage(
 ) {
   await requireCanMessage(fromClerkId, toClerkId);
 
-  return MessageModel.create({
+  const message = await MessageModel.create({
     conversationId: conversationIdFor(fromClerkId, toClerkId),
     fromClerkId,
     toClerkId,
     ...(kind === "image" ? { imageUrl: url } : { videoUrl: url }),
   });
+  await track(fromClerkId, "message_sent", { toClerkId, kind });
+  return message;
 }
 
 /** Only the sender can edit, only while it isn't deleted, and only plain text messages. */

@@ -4,6 +4,7 @@ import { getAuth } from "@clerk/express";
 import { ProfileModel } from "../models/Profile.js";
 import { ALLOWED_AUDIO_TYPES, baseMimeType, deleteFile, saveFile } from "../services/storageService.js";
 import { advanceOnboardingIfProfileComplete } from "../services/profileService.js";
+import { track } from "../services/analyticsService.js";
 
 export const voiceIntroRouter = Router();
 
@@ -54,6 +55,7 @@ voiceIntroRouter.post("/", upload.single("audio"), async (req, res) => {
 
   profile.voiceIntro = { url, durationSec };
   await profile.save();
+  await track(userId, "voice_uploaded");
 
   const missingRequired = await advanceOnboardingIfProfileComplete(userId);
   res.json({

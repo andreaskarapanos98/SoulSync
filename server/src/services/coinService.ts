@@ -4,6 +4,7 @@ import { env } from "../config/env.js";
 import { CoinTransactionModel } from "../models/CoinTransaction.js";
 import { UserAccountModel } from "../models/UserAccount.js";
 import { logAdminAction } from "./adminAuditService.js";
+import { track } from "./analyticsService.js";
 
 export interface CoinPackage {
   id: string;
@@ -80,6 +81,7 @@ export async function createCheckoutSession(clerkId: string, packageId: string):
   });
 
   if (!session.url) throw new Error("Stripe did not return a Checkout Session URL");
+  await track(clerkId, "coin_purchase_started", { packageId: pkg.id, coins: pkg.coins, priceCents: pkg.priceCents });
   return { url: session.url };
 }
 
@@ -111,6 +113,7 @@ export async function creditCoinsForCheckoutSession(session: Stripe.Checkout.Ses
   }
 
   await UserAccountModel.updateOne({ clerkId }, { $inc: { coinBalance: coins } }, { upsert: true });
+  await track(clerkId, "coin_purchase_completed", { coins, stripeSessionId: session.id });
 }
 
 /**

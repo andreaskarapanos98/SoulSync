@@ -2,6 +2,7 @@ import { UnlockModel } from "../models/Unlock.js";
 import { spendCoins, unlockCostForCompatibility } from "./coinService.js";
 import { getCompatibilityScore } from "./pairCompatibility.js";
 import { createProfileUnlockedNotification } from "./notificationService.js";
+import { track } from "./analyticsService.js";
 
 /** Spends coins and unlocks the profile. Already-unlocked is a free no-op (idempotent). */
 export async function unlockUser(viewerClerkId: string, unlockedClerkId: string): Promise<{ coinBalance?: number }> {
@@ -21,6 +22,7 @@ export async function unlockUser(viewerClerkId: string, unlockedClerkId: string)
   );
 
   await createProfileUnlockedNotification(unlockedClerkId, viewerClerkId);
+  await track(viewerClerkId, "profile_unlocked", { unlockedClerkId, compatibility, cost });
 
   return { coinBalance };
 }

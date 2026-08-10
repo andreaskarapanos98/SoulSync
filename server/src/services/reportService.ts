@@ -1,5 +1,6 @@
 import { ReportModel, type reportContentTypes, type reportReasons } from "../models/Report.js";
 import { logAdminAction } from "./adminAuditService.js";
+import { track } from "./analyticsService.js";
 
 type ReportContentType = (typeof reportContentTypes)[number];
 type ReportReason = (typeof reportReasons)[number];
@@ -21,7 +22,9 @@ export async function createReport(
   const recentCount = await ReportModel.countDocuments({ reporterClerkId, createdAt: { $gte: since } });
   if (recentCount >= RATE_LIMIT_MAX) throw new ReportRateLimitError();
 
-  return ReportModel.create({ reporterClerkId, ...input });
+  const report = await ReportModel.create({ reporterClerkId, ...input });
+  await track(reporterClerkId, "match_reported", { reportedClerkId: input.reportedClerkId, contentType: input.contentType, reason: input.reason });
+  return report;
 }
 
 export async function listReports(opts: { status?: string; page?: number; limit?: number }) {

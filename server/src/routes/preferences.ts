@@ -7,6 +7,7 @@ import {
   getMissingRequiredPreferences,
   savePreferenceAnswers,
 } from "../services/questionnaireService.js";
+import { track } from "../services/analyticsService.js";
 
 export const preferencesRouter = Router();
 
@@ -55,10 +56,11 @@ preferencesRouter.put("/", async (req, res) => {
 
   // Forward-only: only advance out of "about_me", never regress a later status.
   if (missingRequired.length === 0) {
-    await UserAccountModel.updateOne(
+    const result = await UserAccountModel.updateOne(
       { clerkId: userId, onboardingStatus: "about_me" },
       { $set: { onboardingStatus: "preferences" } },
     );
+    if (result.modifiedCount > 0) await track(userId, "onboarding_completed");
   }
 
   res.json({ saved: true, missingRequired });

@@ -167,6 +167,10 @@ export function createApiClient(getToken: GetToken) {
     blockUser: (blockedClerkId: string) =>
       request<{ ok: true }>("/api/v1/blocks", { method: "POST", body: JSON.stringify({ blockedClerkId }) }),
     unblockUser: (blockedClerkId: string) => request<{ ok: true }>(`/api/v1/blocks/${blockedClerkId}`, { method: "DELETE" }),
+    trackEvent: (event: string, properties?: Record<string, unknown>) =>
+      request<{ ok: true }>("/api/v1/analytics/track", { method: "POST", body: JSON.stringify({ event, properties }) }).catch(
+        () => {},
+      ),
   };
 }
 

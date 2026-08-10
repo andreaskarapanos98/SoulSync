@@ -6,6 +6,7 @@ import { adminErrorsRouter } from "./adminErrors.js";
 import { adminQuestionsRouter } from "./adminQuestions.js";
 import { adminCompatibilityRouter } from "./adminCompatibility.js";
 import { adminReportsRouter } from "./adminReports.js";
+import { adminAnalyticsRouter } from "./adminAnalytics.js";
 
 export const adminRouter = Router();
 
@@ -23,3 +24,4 @@ adminRouter.use("/", adminErrorsRouter);
 adminRouter.use("/questions", adminQuestionsRouter);
 adminRouter.use("/", adminCompatibilityRouter);
 adminRouter.use("/", adminReportsRouter);
+adminRouter.use("/", adminAnalyticsRouter);
