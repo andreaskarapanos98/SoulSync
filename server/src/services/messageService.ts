@@ -43,7 +43,21 @@ export async function sendVoiceMessage(fromClerkId: string, toClerkId: string, a
   });
 }
 
-/** Only the sender can edit, only while it isn't deleted, and only text (not voice). */
+export async function sendMediaMessage(
+  fromClerkId: string,
+  toClerkId: string,
+  kind: "image" | "video",
+  url: string,
+) {
+  return MessageModel.create({
+    conversationId: conversationIdFor(fromClerkId, toClerkId),
+    fromClerkId,
+    toClerkId,
+    ...(kind === "image" ? { imageUrl: url } : { videoUrl: url }),
+  });
+}
+
+/** Only the sender can edit, only while it isn't deleted, and only plain text messages. */
 export async function editMessage(clerkId: string, messageId: string, newBody: string) {
   const trimmed = newBody.trim();
   if (!trimmed) throw new ValidationError(["Message cannot be empty"]);
@@ -53,7 +67,9 @@ export async function editMessage(clerkId: string, messageId: string, newBody: s
   if (!message) throw new ValidationError(["Message not found"]);
   if (message.fromClerkId !== clerkId) throw new ValidationError(["You can only edit your own messages"]);
   if (message.deletedAt) throw new ValidationError(["Can't edit a deleted message"]);
-  if (message.audioUrl) throw new ValidationError(["Can't edit a voice message"]);
+  if (message.audioUrl || message.imageUrl || message.videoUrl) {
+    throw new ValidationError(["Can't edit a voice, photo, or video message"]);
+  }
 
   message.body = trimmed;
   message.editedAt = new Date();
@@ -72,9 +88,12 @@ export async function deleteMessage(clerkId: string, messageId: string) {
   if (message.fromClerkId !== clerkId) throw new ValidationError(["You can only delete your own messages"]);
   if (message.deletedAt) return message;
 
-  if (message.audioUrl) await deleteFile(message.audioUrl);
+  const fileUrl = message.audioUrl ?? message.imageUrl ?? message.videoUrl;
+  if (fileUrl) await deleteFile(fileUrl);
   message.body = "";
   message.audioUrl = undefined;
+  message.imageUrl = undefined;
+  message.videoUrl = undefined;
   message.durationSec = undefined;
   message.deletedAt = new Date();
   await message.save();
@@ -172,7 +191,15 @@ export async function getConversations(clerkId: string) {
         clerkId: otherClerkId,
         firstName,
         photoUrl,
-        lastMessage: lastMessage.deletedAt ? "Message deleted" : lastMessage.audioUrl ? "🎙️ Voice message" : lastMessage.body,
+        lastMessage: lastMessage.deletedAt
+          ? "Message deleted"
+          : lastMessage.audioUrl
+            ? "🎙️ Voice message"
+            : lastMessage.imageUrl
+              ? "📷 Photo"
+              : lastMessage.videoUrl
+                ? "🎬 Video"
+                : lastMessage.body,
         lastMessageAt: lastMessage.createdAt.toISOString(),
         lastMessageFromMe: lastMessage.fromClerkId === clerkId,
         compatibility,

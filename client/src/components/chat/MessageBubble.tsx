@@ -93,6 +93,18 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete }: Pro
           <div className={`max-w-[75%] rounded-2xl px-3 py-2 ${mine ? "bg-brand-500" : "bg-neutral-100 dark:bg-neutral-800"}`}>
             <audio controls src={`${API_URL}${message.audioUrl}`} className="h-9 w-56 max-w-full" />
           </div>
+        ) : message.imageUrl ? (
+          // Fixed size (not w-full/max-w-%), deliberately: this sits in a flex item with
+          // items-end/items-start, which shrink-to-fit rather than stretch — a percentage
+          // width has nothing definite to resolve against there, so the image would
+          // silently fall back to its own natural pixel size instead of filling the bubble.
+          <a href={`${API_URL}${message.imageUrl}`} target="_blank" rel="noreferrer" className="block w-64 max-w-full overflow-hidden rounded-2xl">
+            <img src={`${API_URL}${message.imageUrl}`} alt="" className="h-48 w-full object-cover" />
+          </a>
+        ) : message.videoUrl ? (
+          <div className="w-64 max-w-full overflow-hidden rounded-2xl">
+            <video controls src={`${API_URL}${message.videoUrl}`} className="h-48 w-full object-cover" />
+          </div>
         ) : (
           <p
             className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
@@ -117,7 +129,7 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete }: Pro
                   mine ? "right-0" : "left-0"
                 }`}
               >
-                {!message.audioUrl && (
+                {!message.audioUrl && !message.imageUrl && !message.videoUrl && (
                   <button
                     type="button"
                     onClick={() => {

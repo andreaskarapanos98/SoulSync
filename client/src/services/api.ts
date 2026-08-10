@@ -142,6 +142,11 @@ export function createApiClient(getToken: GetToken) {
       }),
     deleteMessage: (messageId: string) =>
       request<SendMessageResponseDTO>(`/api/v1/conversations/messages/${messageId}`, { method: "DELETE" }),
+    sendMediaMessage: (otherClerkId: string, file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return requestMultipart<SendMessageResponseDTO>(`/api/v1/conversations/${otherClerkId}/media`, "POST", formData);
+    },
   };
 }
 

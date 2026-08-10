@@ -182,6 +182,8 @@ export interface MessageDTO {
   toClerkId: string;
   body: string;
   audioUrl?: string;
+  imageUrl?: string;
+  videoUrl?: string;
   durationSec?: number;
   createdAt: string;
   readAt?: string;

@@ -19,6 +19,18 @@ export const ALLOWED_AUDIO_TYPES: Record<string, string> = {
   "audio/ogg": "ogg",
 };
 
+export const ALLOWED_IMAGE_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+export const ALLOWED_VIDEO_TYPES: Record<string, string> = {
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+};
+
 // Browsers report MediaRecorder's mimeType with codec params, e.g.
 // "audio/webm;codecs=opus" — strip everything after ';' before matching.
 export function baseMimeType(mimetype: string): string {
@@ -27,7 +39,7 @@ export function baseMimeType(mimetype: string): string {
 
 export async function saveFile(
   buffer: Buffer,
-  subfolder: "photos" | "voice-intros" | "voice-messages",
+  subfolder: "photos" | "voice-intros" | "voice-messages" | "chat-media",
   extension: string,
 ): Promise<{ url: string }> {
   const dir = path.join(UPLOADS_ROOT, subfolder);

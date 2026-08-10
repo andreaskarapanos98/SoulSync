@@ -26,8 +26,10 @@ export function ChatThreadPage() {
   const [otherIsTyping, setOtherIsTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const seenMessageIdsRef = useRef<Set<string> | null>(null);
   const lastTypingPingRef = useRef(0);
   const lastTypingSoundRef = useRef(0);
@@ -108,6 +110,21 @@ export function ChatThreadPage() {
     load();
   }
 
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow selecting the same file again later
+    if (!clerkId || !file) return;
+    setUploadingMedia(true);
+    try {
+      await api.sendMediaMessage(clerkId, file);
+      load();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setUploadingMedia(false);
+    }
+  }
+
   async function handleEditMessage(messageId: string, body: string) {
     await api.editMessage(messageId, body);
     load();
@@ -168,6 +185,16 @@ export function ChatThreadPage() {
 
       <div className="flex items-center gap-1 border-t border-neutral-200 pt-4 dark:border-neutral-800">
         <EmojiPicker onSelect={(emoji) => handleDraftChange(draft + emoji)} />
+        <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleFileSelected} className="hidden" />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadingMedia}
+          title="Send a photo or video"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+        >
+          {uploadingMedia ? "…" : "📎"}
+        </button>
         <input
           type="text"
           value={draft}

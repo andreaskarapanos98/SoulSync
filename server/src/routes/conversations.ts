@@ -3,7 +3,13 @@ import multer from "multer";
 import { getAuth } from "@clerk/express";
 import type { Message } from "../models/Message.js";
 import { ValidationError } from "../services/questionnaireService.js";
-import { ALLOWED_AUDIO_TYPES, baseMimeType, saveFile } from "../services/storageService.js";
+import {
+  ALLOWED_AUDIO_TYPES,
+  ALLOWED_IMAGE_TYPES,
+  ALLOWED_VIDEO_TYPES,
+  baseMimeType,
+  saveFile,
+} from "../services/storageService.js";
 import {
   deleteMessage,
   editMessage,
@@ -14,6 +20,7 @@ import {
   getUnreadConversationCount,
   isOtherTyping,
   markConversationRead,
+  sendMediaMessage,
   sendMessage,
   sendVoiceMessage,
   setTyping,
@@ -35,6 +42,20 @@ const upload = multer({
   },
 });
 
+const ALLOWED_MEDIA_TYPES: Record<string, string> = { ...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES };
+
+const uploadMedia = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MEDIA_TYPES[baseMimeType(file.mimetype)]) {
+      cb(new Error(`Unsupported file type: ${file.mimetype}`));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
 function toMessageDTO(m: Message & { _id: unknown }) {
   const withTimestamps = m as unknown as { createdAt: Date; readAt?: Date; editedAt?: Date; deletedAt?: Date };
   return {
@@ -43,6 +64,8 @@ function toMessageDTO(m: Message & { _id: unknown }) {
     toClerkId: m.toClerkId,
     body: m.body ?? "",
     audioUrl: m.audioUrl,
+    imageUrl: m.imageUrl,
+    videoUrl: m.videoUrl,
     durationSec: m.durationSec,
     createdAt: withTimestamps.createdAt.toISOString(),
     readAt: withTimestamps.readAt ? withTimestamps.readAt.toISOString() : undefined,
@@ -144,6 +167,25 @@ conversationsRouter.post("/:otherClerkId/voice-messages", upload.single("audio")
   const extension = ALLOWED_AUDIO_TYPES[baseMimeType(req.file.mimetype)];
   const { url } = await saveFile(req.file.buffer, "voice-messages", extension);
   const message = await sendVoiceMessage(userId, req.params.otherClerkId, url, durationSec);
+  res.json({ message: toMessageDTO(message) });
+});
+
+conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  if (!req.file) {
+    res.status(400).json({ error: "No file uploaded" });
+    return;
+  }
+
+  const mimeType = baseMimeType(req.file.mimetype);
+  const kind: "image" | "video" = ALLOWED_IMAGE_TYPES[mimeType] ? "image" : "video";
+  const extension = ALLOWED_MEDIA_TYPES[mimeType];
+  const { url } = await saveFile(req.file.buffer, "chat-media", extension);
+  const message = await sendMediaMessage(userId, req.params.otherClerkId, kind, url);
   res.json({ message: toMessageDTO(message) });
 });
 

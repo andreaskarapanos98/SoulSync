@@ -2,16 +2,10 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "@clerk/express";
 import { ProfileModel } from "../models/Profile.js";
-import { deleteFile, saveFile } from "../services/storageService.js";
+import { ALLOWED_IMAGE_TYPES, deleteFile, saveFile } from "../services/storageService.js";
 import { advanceOnboardingIfProfileComplete } from "../services/profileService.js";
 
 export const profilePhotosRouter = Router();
-
-const ALLOWED_IMAGE_TYPES: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 const MAX_PHOTOS = 5;
 
