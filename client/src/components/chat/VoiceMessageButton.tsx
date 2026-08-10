@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   onSend: (blob: Blob, durationSec: number) => Promise<void>;
@@ -23,6 +23,18 @@ export function VoiceMessageButton({ onSend }: Props) {
       timerRef.current = null;
     }
   }
+
+  // Release the mic and stop the timer if the user navigates away mid-recording —
+  // without this, the MediaRecorder and mic stream would keep running in the
+  // background indefinitely (and the browser's recording indicator would stay lit).
+  useEffect(() => {
+    return () => {
+      clearTimer();
+      if (mediaRecorderRef.current) mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current?.stop();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
 
   async function startRecording() {
     try {

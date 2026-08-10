@@ -74,7 +74,7 @@ export function ChatThreadPage() {
 
   function handleDraftChange(value: string) {
     setDraft(value);
-    if (!clerkId) return;
+    if (!clerkId || !value.trim()) return;
     const now = Date.now();
     if (now - lastTypingPingRef.current > TYPING_PING_THROTTLE_MS) {
       lastTypingPingRef.current = now;

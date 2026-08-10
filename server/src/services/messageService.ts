@@ -135,6 +135,17 @@ export async function isOtherTyping(clerkId: string, otherClerkId: string): Prom
   return Date.now() - status.updatedAt.getTime() < TYPING_TTL_MS;
 }
 
+function nameAndPhotoFrom(
+  answers: Record<string, unknown>,
+  profile: { photos: { url: string; isPrimary: boolean }[] } | null,
+) {
+  const photo = profile?.photos.find((p) => p.isPrimary) ?? profile?.photos[0];
+  return {
+    firstName: (answers.first_name as string) ?? "",
+    photoUrl: photo?.url as string | undefined,
+  };
+}
+
 export async function firstNameAndPhoto(clerkId: string) {
   // Not .lean() on the about_me doc — `answers` is a Mongoose Map, and Object.fromEntries
   // needs the real Map (lean() strips it down to a plain object with no entries() iterator).
@@ -143,11 +154,7 @@ export async function firstNameAndPhoto(clerkId: string) {
     ProfileModel.findOne({ clerkId }).lean(),
   ]);
   const answers = aboutMe ? Object.fromEntries(aboutMe.answers) : {};
-  const photo = profile?.photos.find((p) => p.isPrimary) ?? profile?.photos[0];
-  return {
-    firstName: (answers.first_name as string) ?? "",
-    photoUrl: photo?.url as string | undefined,
-  };
+  return nameAndPhotoFrom(answers, profile);
 }
 
 /** One row per conversation partner, most recently active first. */
@@ -179,11 +186,12 @@ export async function getConversations(clerkId: string) {
 
   return Promise.all(
     [...latestByOther.entries()].map(async ([otherClerkId, lastMessage]) => {
-      const [{ firstName, photoUrl }, otherAboutMeDoc] = await Promise.all([
-        firstNameAndPhoto(otherClerkId),
+      const [otherAboutMeDoc, otherProfile] = await Promise.all([
         AboutMeAnswerModel.findOne({ clerkId: otherClerkId }),
+        ProfileModel.findOne({ clerkId: otherClerkId }).lean(),
       ]);
       const otherAboutMe = otherAboutMeDoc ? Object.fromEntries(otherAboutMeDoc.answers) : {};
+      const { firstName, photoUrl } = nameAndPhotoFrom(otherAboutMe, otherProfile);
       const compatibility = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences, candidateAboutMe: otherAboutMe }),
       );
