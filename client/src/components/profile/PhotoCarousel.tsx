@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { PhotoDTO } from "@soulsync/shared-types";
 import { LogoMark } from "../Logo";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
-export function PhotoCarousel({ photos }: { photos: PhotoDTO[] }) {
+export function PhotoCarousel({ photos, badge }: { photos: PhotoDTO[]; badge?: ReactNode }) {
   const [index, setIndex] = useState(0);
 
   if (photos.length === 0) {
     return (
-      <div className="flex aspect-[4/3] items-center justify-center rounded-t-3xl bg-brand-50 dark:bg-brand-950/20">
+      <div className="relative flex aspect-[4/3] items-center justify-center rounded-t-3xl bg-brand-50 dark:bg-brand-950/20">
         <LogoMark size={48} className="opacity-40" />
+        {badge}
       </div>
     );
   }
@@ -25,6 +26,7 @@ export function PhotoCarousel({ photos }: { photos: PhotoDTO[] }) {
     <div>
       <div className="relative aspect-[4/3] overflow-hidden rounded-t-3xl bg-brand-50 dark:bg-brand-950/20">
         <img src={`${API_URL}${current.url}`} alt="" className="h-full w-full object-cover" />
+        {badge}
         {photos.length > 1 && (
           <>
             <button

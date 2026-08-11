@@ -3,8 +3,8 @@ import { getAuth } from "@clerk/express";
 import { assembleProfile } from "../services/profileService.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
-import { getPointGivingQuestions } from "../services/scoringEngine.js";
-import { computeScoreByCategory } from "../services/compatibilityScoring.js";
+import { getPointGivingQuestions, roundScore } from "../services/scoringEngine.js";
+import { computeScore, computeScoreByCategory } from "../services/compatibilityScoring.js";
 import { isUnlockedEitherDirection } from "../services/unlockService.js";
 
 export const publicProfilesRouter = Router();
@@ -21,6 +21,7 @@ publicProfilesRouter.get("/:clerkId", async (req, res) => {
 
   // Comparing someone against themselves isn't a compatibility score — only compute
   // this when viewing someone else's profile.
+  let compatibility: number | undefined;
   let compatibilityByCategory: ReturnType<typeof computeScoreByCategory> | undefined;
   if (!isSelf) {
     const [questions, viewerPreferenceDoc, candidateAboutMeDoc] = await Promise.all([
@@ -31,6 +32,11 @@ publicProfilesRouter.get("/:clerkId", async (req, res) => {
     const fullPoints = questions.length === 0 ? 0 : 100 / questions.length;
     const viewerPreferences = viewerPreferenceDoc ? Object.fromEntries(viewerPreferenceDoc.answers) : {};
     const candidateAboutMe = candidateAboutMeDoc ? Object.fromEntries(candidateAboutMeDoc.answers) : {};
+    // Same direction, same math as the "Your Soulmates" score on the match card this
+    // profile was opened from — computeScore() (not an average of the category
+    // percentages, which are each normalized within their own category and don't sum
+    // back to the overall score).
+    compatibility = roundScore(computeScore({ questions, fullPoints, viewerPreferences, candidateAboutMe }));
     compatibilityByCategory = computeScoreByCategory({ questions, fullPoints, viewerPreferences, candidateAboutMe }).sort(
       (a, b) => b.percent - a.percent,
     );
@@ -50,11 +56,12 @@ publicProfilesRouter.get("/:clerkId", async (req, res) => {
       photos: profile.photos.slice(0, 1),
       voiceIntro: profile.voiceIntro,
       traits: [],
+      compatibility,
       compatibilityByCategory,
       locked: true,
     });
     return;
   }
 
-  res.json({ ...profile, compatibilityByCategory, locked: false });
+  res.json({ ...profile, compatibility, compatibilityByCategory, locked: false });
 });

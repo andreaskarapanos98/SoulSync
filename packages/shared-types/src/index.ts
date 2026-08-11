@@ -120,7 +120,9 @@ export interface ProfileDTO {
   photos: PhotoDTO[];
   voiceIntro: VoiceIntroDTO | null;
   traits: ProfileTraitDTO[];
-  // Absent when viewing your own profile (comparing yourself to yourself isn't a score).
+  // Both absent when viewing your own profile (comparing yourself to yourself isn't a
+  // score). Same number/direction as the match card this profile was opened from.
+  compatibility?: number;
   compatibilityByCategory?: CategoryCompatibilityDTO[];
   // true when the viewer hasn't unlocked this profile — response is stripped to a
   // preview (primary photo only, no bio/traits) regardless of what's requested.

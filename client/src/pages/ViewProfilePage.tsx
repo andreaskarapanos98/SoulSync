@@ -101,7 +101,16 @@ export function ViewProfilePage() {
       )}
 
       <div className="mt-4 overflow-hidden rounded-3xl border border-brand-100 bg-white shadow-sm shadow-brand-100/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
-        <PhotoCarousel photos={profile.photos} />
+        <PhotoCarousel
+          photos={profile.photos}
+          badge={
+            profile.compatibility !== undefined && (
+              <div className="absolute right-2 top-2 flex h-12 w-12 items-center justify-center rounded-full bg-brand-500/95 text-sm font-bold text-white shadow-md">
+                {profile.compatibility}%
+              </div>
+            )
+          }
+        />
 
         <div className="p-6">
           <h1 className="flex items-center gap-1.5 text-xl font-semibold text-neutral-900 dark:text-white">
