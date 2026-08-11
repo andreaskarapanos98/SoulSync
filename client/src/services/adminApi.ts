@@ -17,7 +17,7 @@ export interface AdminUserSummary {
 export interface AdminCoinTransaction {
   _id: string;
   clerkId: string;
-  type: "purchase" | "unlock_spend" | "admin_adjustment" | "verification_spend";
+  type: "purchase" | "unlock_spend" | "admin_adjustment" | "verification_spend" | "gift_spend";
   amount: number;
   stripeSessionId?: string;
   relatedClerkId?: string;

@@ -11,6 +11,7 @@ import { isUnlockedEitherDirection } from "./unlockService.js";
 import { isBlockedEitherDirection } from "./blockService.js";
 import { firstNameAndPhoto, nameAndPhotoFrom } from "./userDisplayService.js";
 import { track } from "./analyticsService.js";
+import { getGift, spendCoinsForGift } from "./coinService.js";
 
 export { firstNameAndPhoto };
 
@@ -106,6 +107,41 @@ export async function sendMediaMessage(
   return message;
 }
 
+export async function sendGiftMessage(fromClerkId: string, toClerkId: string, giftId: string) {
+  await requireCanMessage(fromClerkId, toClerkId);
+  const gift = getGift(giftId);
+  const { coinBalance } = await spendCoinsForGift(fromClerkId, gift.id, toClerkId);
+
+  const message = await MessageModel.create({
+    conversationId: conversationIdFor(fromClerkId, toClerkId),
+    fromClerkId,
+    toClerkId,
+    giftId: gift.id,
+    giftEmoji: gift.emoji,
+    giftLabel: gift.label,
+  });
+  await track(fromClerkId, "message_sent", { toClerkId, kind: "gift", giftId: gift.id });
+  return { message, coinBalance };
+}
+
+export class NotGiftRecipientError extends Error {
+  constructor() {
+    super("You can only open a gift that was sent to you");
+  }
+}
+
+/** Idempotent — a repeated open (double-tap, retry) is a no-op, not an error. */
+export async function openGift(clerkId: string, messageId: string) {
+  const message = await MessageModel.findById(messageId);
+  if (!message) throw new ValidationError(["Message not found"]);
+  if (message.toClerkId !== clerkId) throw new NotGiftRecipientError();
+  if (!message.giftOpenedAt) {
+    message.giftOpenedAt = new Date();
+    await message.save();
+  }
+  return message;
+}
+
 /** Only the sender can edit, only while it isn't deleted, and only plain text messages. */
 export async function editMessage(clerkId: string, messageId: string, newBody: string) {
   const trimmed = newBody.trim();
@@ -116,8 +152,8 @@ export async function editMessage(clerkId: string, messageId: string, newBody: s
   if (!message) throw new ValidationError(["Message not found"]);
   if (message.fromClerkId !== clerkId) throw new ValidationError(["You can only edit your own messages"]);
   if (message.deletedAt) throw new ValidationError(["Can't edit a deleted message"]);
-  if (message.audioUrl || message.imageUrl || message.videoUrl) {
-    throw new ValidationError(["Can't edit a voice, photo, or video message"]);
+  if (message.audioUrl || message.imageUrl || message.videoUrl || message.giftId) {
+    throw new ValidationError(["Can't edit a voice, photo, video, or gift message"]);
   }
 
   message.body = trimmed;
@@ -144,6 +180,10 @@ export async function deleteMessage(clerkId: string, messageId: string) {
   message.imageUrl = undefined;
   message.videoUrl = undefined;
   message.durationSec = undefined;
+  message.giftId = undefined;
+  message.giftEmoji = undefined;
+  message.giftLabel = undefined;
+  message.giftOpenedAt = undefined;
   message.deletedAt = new Date();
   await message.save();
   return message;
@@ -234,7 +274,9 @@ export async function getConversations(clerkId: string) {
               ? "📷 Photo"
               : lastMessage.videoUrl
                 ? "🎬 Video"
-                : lastMessage.body,
+                : lastMessage.giftId
+                  ? `${lastMessage.giftEmoji} Gift`
+                  : lastMessage.body,
         lastMessageAt: lastMessage.createdAt.toISOString(),
         lastMessageFromMe: lastMessage.fromClerkId === clerkId,
         compatibility,

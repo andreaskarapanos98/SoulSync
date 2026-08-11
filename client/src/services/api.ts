@@ -7,6 +7,7 @@ import type {
   CreateCheckoutSessionResponseDTO,
   CreateReportRequestDTO,
   DealBreakersDTO,
+  GiftCatalogResponseDTO,
   MatchesResponseDTO,
   MeDTO,
   MessagesResponseDTO,
@@ -17,6 +18,7 @@ import type {
   ProfileDTO,
   QuestionDTO,
   SaveAnswersResponseDTO,
+  SendGiftResponseDTO,
   SendMessageResponseDTO,
   StartVerificationResponseDTO,
   UnlockPerspective,
@@ -160,6 +162,14 @@ export function createApiClient(getToken: GetToken) {
       formData.append("file", file);
       return requestMultipart<SendMessageResponseDTO>(`/api/v1/conversations/${otherClerkId}/media`, "POST", formData);
     },
+    getGiftCatalog: () => request<GiftCatalogResponseDTO>("/api/v1/gifts"),
+    sendGift: (otherClerkId: string, giftId: string) =>
+      request<SendGiftResponseDTO>(`/api/v1/conversations/${otherClerkId}/gifts`, {
+        method: "POST",
+        body: JSON.stringify({ giftId }),
+      }),
+    openGift: (messageId: string) =>
+      request<SendMessageResponseDTO>(`/api/v1/conversations/messages/${messageId}/open`, { method: "POST" }),
     getNotifications: () => request<NotificationsResponseDTO>("/api/v1/notifications"),
     markAllNotificationsRead: () => request<{ ok: true }>("/api/v1/notifications/mark-all-read", { method: "POST" }),
     getCoinPackages: () => request<CoinPackagesResponseDTO>("/api/v1/coins/packages"),

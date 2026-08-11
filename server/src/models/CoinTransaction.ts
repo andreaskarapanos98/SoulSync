@@ -1,6 +1,6 @@
 import { Schema, model, type InferSchemaType } from "mongoose";
 
-const coinTransactionTypes = ["purchase", "unlock_spend", "admin_adjustment", "verification_spend"] as const;
+const coinTransactionTypes = ["purchase", "unlock_spend", "admin_adjustment", "verification_spend", "gift_spend"] as const;
 
 const coinTransactionSchema = new Schema(
   {
@@ -12,8 +12,10 @@ const coinTransactionSchema = new Schema(
     // purchase only: the Stripe Checkout Session id. Unique+sparse so a retried/duplicate
     // webhook delivery can never credit the same purchase twice.
     stripeSessionId: { type: String, unique: true, sparse: true },
-    // unlock_spend only: who got unlocked.
+    // unlock_spend/gift_spend only: who got unlocked / who received the gift.
     relatedClerkId: { type: String },
+    // gift_spend only: which catalog gift was sent.
+    giftId: { type: String },
     // admin_adjustment only.
     adminClerkId: { type: String },
     // admin_adjustment (why) and verification_spend (fixed descriptive text).

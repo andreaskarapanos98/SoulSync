@@ -205,6 +205,10 @@ export interface MessageDTO {
   imageUrl?: string;
   videoUrl?: string;
   durationSec?: number;
+  giftId?: string;
+  giftEmoji?: string;
+  giftLabel?: string;
+  giftOpenedAt?: string;
   createdAt: string;
   readAt?: string;
   editedAt?: string;
@@ -271,6 +275,22 @@ export interface CreateCheckoutSessionResponseDTO {
 export interface UnlockResponseDTO {
   unlocked: true;
   coinBalance?: number;
+}
+
+export interface GiftDTO {
+  id: string;
+  label: string;
+  emoji: string;
+  coins: number;
+}
+
+export interface GiftCatalogResponseDTO {
+  gifts: GiftDTO[];
+}
+
+export interface SendGiftResponseDTO {
+  message: MessageDTO;
+  coinBalance: number;
 }
 
 export interface StartVerificationResponseDTO {

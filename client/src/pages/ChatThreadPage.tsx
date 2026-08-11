@@ -4,11 +4,15 @@ import { useAuth } from "@clerk/clerk-react";
 import type { MessageDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { useUnreadCount } from "../hooks/useUnreadCount";
+import { useCoinBalance } from "../hooks/useCoinBalance";
 import { LogoMark } from "../components/Logo";
 import { EmojiPicker } from "../components/chat/EmojiPicker";
 import { VoiceMessageButton } from "../components/chat/VoiceMessageButton";
+import { GiftPicker } from "../components/chat/GiftPicker";
+import { GiftAnimationOverlay } from "../components/chat/GiftAnimationOverlay";
 import { MessageBubble } from "../components/chat/MessageBubble";
 import { ReportModal } from "../components/ReportModal";
+import { ApiError } from "../services/api";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -22,7 +26,9 @@ export function ChatThreadPage() {
   const navigate = useNavigate();
   const { userId } = useAuth();
   const { refresh: refreshUnreadCount } = useUnreadCount();
+  const { setBalance } = useCoinBalance();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
+  const [openingGift, setOpeningGift] = useState<{ emoji: string; label: string } | null>(null);
   const [otherName, setOtherName] = useState("");
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
   const [otherIsTyping, setOtherIsTyping] = useState(false);
@@ -162,6 +168,29 @@ export function ChatThreadPage() {
     }
   }
 
+  async function handleSendGift(giftId: string) {
+    if (!clerkId) return;
+    setSendError(null);
+    try {
+      const res = await api.sendGift(clerkId, giftId);
+      setBalance(res.coinBalance);
+      load();
+    } catch (err) {
+      setSendError(
+        err instanceof ApiError && err.status === 402 ? "You don't have enough coins for that gift." : String(err),
+      );
+    }
+  }
+
+  async function handleOpenGift(messageId: string) {
+    try {
+      const res = await api.openGift(messageId);
+      setOpeningGift({ emoji: res.message.giftEmoji ?? "🎁", label: res.message.giftLabel ?? "Gift" });
+    } catch (err) {
+      setSendError(String(err));
+    }
+  }
+
   async function handleEditMessage(messageId: string, body: string) {
     await api.editMessage(messageId, body);
     load();
@@ -180,6 +209,16 @@ export function ChatThreadPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8">
+      {openingGift && (
+        <GiftAnimationOverlay
+          emoji={openingGift.emoji}
+          label={openingGift.label}
+          onDone={() => {
+            setOpeningGift(null);
+            load();
+          }}
+        />
+      )}
       <div className="flex items-center gap-3 border-b border-neutral-200 pb-4 dark:border-neutral-800">
         <Link to="/chat" className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
           ←
@@ -277,6 +316,7 @@ export function ChatThreadPage() {
                 onEdit={handleEditMessage}
                 onDelete={handleDeleteMessage}
                 onReport={setReportingMessageId}
+                onOpenGift={handleOpenGift}
               />
             );
           })
@@ -313,6 +353,7 @@ export function ChatThreadPage() {
           placeholder="Type a message…"
           className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:ring-brand-900"
         />
+        <GiftPicker onSend={handleSendGift} />
         <VoiceMessageButton onSend={handleSendVoice} />
         <button
           type="button"

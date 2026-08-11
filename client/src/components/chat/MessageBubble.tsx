@@ -10,9 +10,10 @@ interface Props {
   onEdit: (id: string, body: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onReport: (messageId: string) => void;
+  onOpenGift: (id: string) => void;
 }
 
-export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onReport }: Props) {
+export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onReport, onOpenGift }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(message.body);
@@ -90,7 +91,24 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
   return (
     <div className={`group flex flex-col ${mine ? "items-end" : "items-start"}`}>
       <div className={`flex items-center gap-1.5 ${mine ? "flex-row-reverse" : "flex-row"}`}>
-        {message.audioUrl ? (
+        {message.giftId ? (
+          mine || message.giftOpenedAt ? (
+            <div
+              className={`flex max-w-[75%] items-center gap-2 rounded-2xl px-3 py-2 ${mine ? "bg-brand-500 text-white" : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"}`}
+            >
+              <span className="text-xl">{message.giftEmoji}</span>
+              <span className="text-sm">{mine ? `You sent a ${message.giftLabel}` : `Sent you a ${message.giftLabel}`}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onOpenGift(message.id)}
+              className="animate-gift-glow-pulse flex max-w-[75%] items-center gap-2 rounded-2xl bg-brand-50 px-4 py-3 text-sm font-medium text-brand-600 dark:bg-brand-950/40 dark:text-brand-400"
+            >
+              🎁 Tap to open your gift
+            </button>
+          )
+        ) : message.audioUrl ? (
           <div className={`max-w-[75%] rounded-2xl px-3 py-2 ${mine ? "bg-brand-500" : "bg-neutral-100 dark:bg-neutral-800"}`}>
             <audio controls src={`${API_URL}${message.audioUrl}`} className="h-9 w-56 max-w-full" />
           </div>
@@ -130,7 +148,7 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
                   mine ? "right-0" : "left-0"
                 }`}
               >
-                {!message.audioUrl && !message.imageUrl && !message.videoUrl && (
+                {!message.audioUrl && !message.imageUrl && !message.videoUrl && !message.giftId && (
                   <button
                     type="button"
                     onClick={() => {

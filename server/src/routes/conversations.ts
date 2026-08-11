@@ -11,9 +11,11 @@ import {
   baseMimeType,
   saveFile,
 } from "../services/storageService.js";
+import { InsufficientCoinsError, UnknownGiftError } from "../services/coinService.js";
 import {
   BlockedError,
   MessageRateLimitError,
+  NotGiftRecipientError,
   NotUnlockedError,
   deleteMessage,
   editMessage,
@@ -24,7 +26,9 @@ import {
   getUnreadConversationCount,
   isOtherTyping,
   markConversationRead,
+  openGift,
   requireCanMessage,
+  sendGiftMessage,
   sendMediaMessage,
   sendMessage,
   sendVoiceMessage,
@@ -68,7 +72,13 @@ const uploadMedia = multer({
 });
 
 function toMessageDTO(m: Message & { _id: unknown }) {
-  const withTimestamps = m as unknown as { createdAt: Date; readAt?: Date; editedAt?: Date; deletedAt?: Date };
+  const withTimestamps = m as unknown as {
+    createdAt: Date;
+    readAt?: Date;
+    editedAt?: Date;
+    deletedAt?: Date;
+    giftOpenedAt?: Date;
+  };
   return {
     id: String(m._id),
     fromClerkId: m.fromClerkId,
@@ -78,6 +88,10 @@ function toMessageDTO(m: Message & { _id: unknown }) {
     imageUrl: m.imageUrl,
     videoUrl: m.videoUrl,
     durationSec: m.durationSec,
+    giftId: m.giftId,
+    giftEmoji: m.giftEmoji,
+    giftLabel: m.giftLabel,
+    giftOpenedAt: withTimestamps.giftOpenedAt ? withTimestamps.giftOpenedAt.toISOString() : undefined,
     createdAt: withTimestamps.createdAt.toISOString(),
     readAt: withTimestamps.readAt ? withTimestamps.readAt.toISOString() : undefined,
     editedAt: withTimestamps.editedAt ? withTimestamps.editedAt.toISOString() : undefined,
@@ -219,6 +233,63 @@ conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), asy
   const { url } = await saveFile(req.file.buffer, "chat-media", extension);
   const message = await sendMediaMessage(userId, req.params.otherClerkId, kind, url);
   res.json({ message: toMessageDTO(message) });
+});
+
+conversationsRouter.post("/:otherClerkId/gifts", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const { giftId } = req.body as { giftId?: string };
+  if (typeof giftId !== "string" || !giftId) {
+    res.status(400).json({ error: "Request body must include a 'giftId' string" });
+    return;
+  }
+
+  try {
+    const { message, coinBalance } = await sendGiftMessage(userId, req.params.otherClerkId, giftId);
+    res.json({ message: toMessageDTO(message), coinBalance });
+  } catch (err) {
+    if (err instanceof UnknownGiftError) {
+      res.status(400).json({ error: "Unknown gift" });
+      return;
+    }
+    if (err instanceof InsufficientCoinsError) {
+      res.status(402).json({ error: "Not enough coins", required: err.required, balance: err.balance });
+      return;
+    }
+    const status = sendGateErrorStatus(err);
+    if (status) {
+      res.status(status).json({ error: (err as Error).message });
+      return;
+    }
+    throw err;
+  }
+});
+
+conversationsRouter.post("/messages/:messageId/open", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  try {
+    const message = await openGift(userId, req.params.messageId);
+    res.json({ message: toMessageDTO(message) });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      res.status(400).json({ error: "Validation failed", issues: err.issues });
+      return;
+    }
+    if (err instanceof NotGiftRecipientError) {
+      res.status(403).json({ error: err.message });
+      return;
+    }
+    throw err;
+  }
 });
 
 conversationsRouter.patch("/messages/:messageId", async (req, res) => {

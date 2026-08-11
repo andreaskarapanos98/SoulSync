@@ -45,10 +45,38 @@ export function unlockCostForCompatibility(compatibility: number): number {
 
 export const VERIFICATION_COST_COINS = 60;
 
+export interface Gift {
+  id: string;
+  label: string;
+  emoji: string;
+  coins: number;
+}
+
+export const GIFT_CATALOG: Gift[] = [
+  { id: "rose", label: "Rose", emoji: "🌹", coins: 15 },
+  { id: "chocolates", label: "Chocolates", emoji: "🍫", coins: 25 },
+  { id: "teddy", label: "Teddy Bear", emoji: "🧸", coins: 30 },
+  { id: "bouquet", label: "Bouquet", emoji: "💐", coins: 40 },
+  { id: "champagne", label: "Champagne", emoji: "🍾", coins: 60 },
+  { id: "ring", label: "Diamond Ring", emoji: "💍", coins: 150 },
+];
+
 export class InsufficientCoinsError extends Error {
   constructor(public required: number, public balance: number) {
     super(`Insufficient coins: need ${required}, have ${balance}`);
   }
+}
+
+export class UnknownGiftError extends Error {
+  constructor(public giftId: string) {
+    super(`Unknown gift: ${giftId}`);
+  }
+}
+
+export function getGift(giftId: string): Gift {
+  const gift = GIFT_CATALOG.find((g) => g.id === giftId);
+  if (!gift) throw new UnknownGiftError(giftId);
+  return gift;
 }
 
 function getPackage(packageId: string): CoinPackage {
@@ -161,6 +189,24 @@ export async function spendCoinsForVerification(clerkId: string): Promise<{ coin
     type: "verification_spend",
     amount: -VERIFICATION_COST_COINS,
     reason: "Identity verification (Stripe Identity)",
+  });
+  return { coinBalance };
+}
+
+/** Spends coins on a catalog gift sent to another user — price is always resolved server-side. */
+export async function spendCoinsForGift(
+  clerkId: string,
+  giftId: string,
+  toClerkId: string,
+): Promise<{ coinBalance: number }> {
+  const gift = getGift(giftId);
+  const { coinBalance } = await debitCoins(clerkId, gift.coins);
+  await CoinTransactionModel.create({
+    clerkId,
+    type: "gift_spend",
+    amount: -gift.coins,
+    relatedClerkId: toClerkId,
+    giftId: gift.id,
   });
   return { coinBalance };
 }
