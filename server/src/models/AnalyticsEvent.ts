@@ -17,6 +17,9 @@ export const analyticsEventTypes = [
   "match_reported",
   "notification_opened",
   "hundred_percent_match_discovered",
+  "verification_started",
+  "verification_completed",
+  "verification_failed",
 ] as const;
 
 const analyticsEventSchema = new Schema(

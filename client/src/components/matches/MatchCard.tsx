@@ -7,6 +7,7 @@ import { ApiError } from "../../services/api";
 import { unlockCostForCompatibility } from "../../utils/unlockCost";
 import { LogoMark } from "../Logo";
 import { CoinIcon } from "../CoinIcon";
+import { VerifiedBadge } from "../VerifiedBadge";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -121,8 +122,9 @@ export function MatchCard({
         )}
       </div>
       <div className="p-4">
-        <p className="font-semibold text-neutral-900 dark:text-white">
+        <p className="flex items-center gap-1 font-semibold text-neutral-900 dark:text-white">
           {match.firstName || "Someone new"}
+          {match.verified && <VerifiedBadge />}
           {match.age !== undefined && <span className="font-normal text-neutral-500"> · {match.age}</span>}
         </p>
         {location && <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">{location}</p>}

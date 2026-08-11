@@ -18,7 +18,7 @@ const PUBLIC_TRAIT_CATEGORIES = ["lifestyle", "personality"] as const;
  * is paid for.
  */
 export async function assembleProfile(clerkId: string) {
-  const [aboutMe, profile, traitQuestions] = await Promise.all([
+  const [aboutMe, profile, traitQuestions, account] = await Promise.all([
     AboutMeAnswerModel.findOne({ clerkId }),
     ProfileModel.findOne({ clerkId }),
     QuestionDefinitionModel.find({
@@ -26,6 +26,7 @@ export async function assembleProfile(clerkId: string) {
       category: { $in: PUBLIC_TRAIT_CATEGORIES },
       active: true,
     }).sort({ category: 1, order: 1 }),
+    UserAccountModel.findOne({ clerkId }).select("verificationStatus").lean(),
   ]);
 
   const answers: Record<string, unknown> = aboutMe ? Object.fromEntries(aboutMe.answers) : {};
@@ -56,6 +57,7 @@ export async function assembleProfile(clerkId: string) {
       ? { url: profile.voiceIntro.url, durationSec: profile.voiceIntro.durationSec }
       : null,
     traits,
+    verified: account?.verificationStatus === "verified",
   };
 }
 

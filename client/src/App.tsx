@@ -9,6 +9,7 @@ import { ChatThreadPage } from "./pages/ChatThreadPage";
 import { ViewProfilePage } from "./pages/ViewProfilePage";
 import { BuyCoinsPage } from "./pages/BuyCoinsPage";
 import { CoinsSuccessPage } from "./pages/CoinsSuccessPage";
+import { VerificationReturnPage } from "./pages/VerificationReturnPage";
 import { CoinsCancelPage } from "./pages/CoinsCancelPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
@@ -102,6 +103,14 @@ function App() {
           element={
             <RequireAuth>
               <CoinsSuccessPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/verification/return"
+          element={
+            <RequireAuth>
+              <VerificationReturnPage />
             </RequireAuth>
           }
         />

@@ -151,11 +151,18 @@ async function loadCandidatePool(excludeClerkId: string) {
   const preferenceByClerkId = new Map(preferenceDocs.map((d) => [d.clerkId, Object.fromEntries(d.answers)]));
   const dealBreakersByClerkId = new Map(dealBreakerDocs.map((d) => [d.clerkId, Object.fromEntries(d.dealBreakers)]));
   const profileByClerkId = new Map(profileDocs.map((d) => [d.clerkId, d]));
+  const verifiedByClerkId = new Map(accounts.map((a) => [a.clerkId, a.verificationStatus === "verified"]));
 
-  return { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId };
+  return { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId, verifiedByClerkId };
 }
 
-function toCard(traits: Traits, profile: Profile | undefined, score: number, unlocked: boolean): MatchCardDTO {
+function toCard(
+  traits: Traits,
+  profile: Profile | undefined,
+  score: number,
+  unlocked: boolean,
+  verified: boolean,
+): MatchCardDTO {
   const photo = profile?.photos.find((p) => p.isPrimary) ?? profile?.photos[0];
   return {
     clerkId: traits.clerkId,
@@ -168,6 +175,7 @@ function toCard(traits: Traits, profile: Profile | undefined, score: number, unl
     voiceIntroUrl: profile?.voiceIntro?.url,
     compatibility: score,
     unlocked,
+    verified,
   };
 }
 
@@ -187,7 +195,7 @@ export async function getMatches(viewerClerkId: string) {
   const viewer = traitsOf(viewerClerkId, viewerAboutMeAnswers);
   const viewerPrefs = prefsOf(viewerPreferenceAnswers);
 
-  const { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId } =
+  const { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId, verifiedByClerkId } =
     await loadCandidatePool(viewerClerkId);
   const [unlockedClerkIds, blockedClerkIds] = await Promise.all([
     getUnlockedClerkIds(viewerClerkId),
@@ -223,7 +231,11 @@ export async function getMatches(viewerClerkId: string) {
         computeScore({ questions, fullPoints, viewerPreferences: viewerPreferenceAnswers, candidateAboutMe: candidateAboutMeAnswers }),
       );
       // A 0% score isn't a match by any definition — don't show it in either direction.
-      if (score > 0) yourSoulmates.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
+      if (score > 0) {
+        yourSoulmates.push(
+          toCard(candidate, profile, score, unlockedClerkIds.has(candidateId), verifiedByClerkId.get(candidateId) ?? false),
+        );
+      }
     }
     if (
       !isEliminated(
@@ -241,7 +253,11 @@ export async function getMatches(viewerClerkId: string) {
       const score = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences: candidatePreferenceAnswers, candidateAboutMe: viewerAboutMeAnswers }),
       );
-      if (score > 0) theirSoulmate.push(toCard(candidate, profile, score, unlockedClerkIds.has(candidateId)));
+      if (score > 0) {
+        theirSoulmate.push(
+          toCard(candidate, profile, score, unlockedClerkIds.has(candidateId), verifiedByClerkId.get(candidateId) ?? false),
+        );
+      }
     }
   }
 

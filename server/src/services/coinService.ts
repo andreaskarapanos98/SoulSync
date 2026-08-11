@@ -43,6 +43,8 @@ export function unlockCostForCompatibility(compatibility: number): number {
   return tier?.coins ?? UNLOCK_COST_TIERS[UNLOCK_COST_TIERS.length - 1].coins;
 }
 
+export const VERIFICATION_COST_COINS = 60;
+
 export class InsufficientCoinsError extends Error {
   constructor(public required: number, public balance: number) {
     super(`Insufficient coins: need ${required}, have ${balance}`);
@@ -117,13 +119,11 @@ export async function creditCoinsForCheckoutSession(session: Stripe.Checkout.Ses
 }
 
 /**
- * Atomically spends coins if the balance covers it. Throws InsufficientCoinsError otherwise.
+ * Atomically debits coins if the balance covers it — the `findOneAndUpdate` filter's
+ * `coinBalance: { $gte: amount }` both checks and debits in one atomic op, so concurrent
+ * spends can never take a balance negative. Throws InsufficientCoinsError otherwise.
  */
-export async function spendCoins(
-  clerkId: string,
-  amount: number,
-  relatedClerkId?: string,
-): Promise<{ coinBalance: number }> {
+async function debitCoins(clerkId: string, amount: number): Promise<{ coinBalance: number }> {
   const updated = await UserAccountModel.findOneAndUpdate(
     { clerkId, coinBalance: { $gte: amount } },
     { $inc: { coinBalance: -amount } },
@@ -135,14 +135,34 @@ export async function spendCoins(
     throw new InsufficientCoinsError(amount, account?.coinBalance ?? 0);
   }
 
+  return { coinBalance: updated.coinBalance };
+}
+
+export async function spendCoins(
+  clerkId: string,
+  amount: number,
+  relatedClerkId?: string,
+): Promise<{ coinBalance: number }> {
+  const { coinBalance } = await debitCoins(clerkId, amount);
   await CoinTransactionModel.create({
     clerkId,
     type: "unlock_spend",
     amount: -amount,
     relatedClerkId,
   });
+  return { coinBalance };
+}
 
-  return { coinBalance: updated.coinBalance };
+/** Spends the flat verification fee — see VERIFICATION_COST_COINS. */
+export async function spendCoinsForVerification(clerkId: string): Promise<{ coinBalance: number }> {
+  const { coinBalance } = await debitCoins(clerkId, VERIFICATION_COST_COINS);
+  await CoinTransactionModel.create({
+    clerkId,
+    type: "verification_spend",
+    amount: -VERIFICATION_COST_COINS,
+    reason: "Identity verification (Stripe Identity)",
+  });
+  return { coinBalance };
 }
 
 /**

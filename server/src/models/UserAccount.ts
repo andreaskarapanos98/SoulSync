@@ -10,6 +10,7 @@ const onboardingStatuses = [
 
 const accountStatuses = ["active", "suspended", "banned", "deleted"] as const;
 const accountRoles = ["user", "admin"] as const;
+const verificationStatuses = ["unverified", "pending", "verified", "failed"] as const;
 
 const userAccountSchema = new Schema(
   {
@@ -36,6 +37,18 @@ const userAccountSchema = new Schema(
       enum: accountRoles,
       default: "user",
     },
+    // Stripe Identity verification state. "pending" is set the moment coins are spent and
+    // a VerificationSession is created; the webhook moves it to "verified"/"failed" (see
+    // verificationService.ts). verificationSessionId guards against a stale/out-of-order
+    // webhook from an old attempt regressing a since-verified account.
+    verificationStatus: {
+      type: String,
+      enum: verificationStatuses,
+      default: "unverified",
+    },
+    verificationSessionId: { type: String },
+    verificationPendingAt: { type: Date },
+    verifiedAt: { type: Date },
   },
   { timestamps: true },
 );

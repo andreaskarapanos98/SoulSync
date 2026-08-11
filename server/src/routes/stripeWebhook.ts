@@ -4,6 +4,7 @@ import { getStripeClient } from "../config/stripe.js";
 import { env } from "../config/env.js";
 import { creditCoinsForCheckoutSession } from "../services/coinService.js";
 import { logCheckoutCompleted, logCheckoutExpired, logPaymentIntentFailed } from "../services/paymentEventService.js";
+import { handleVerificationEvent } from "../services/verificationService.js";
 
 export const stripeWebhookRouter = Router();
 
@@ -38,6 +39,15 @@ stripeWebhookRouter.post("/", async (req, res) => {
       break;
     case "payment_intent.payment_failed":
       await logPaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+      break;
+    case "identity.verification_session.verified":
+      await handleVerificationEvent(event.data.object as Stripe.Identity.VerificationSession, "verified");
+      break;
+    case "identity.verification_session.requires_input":
+      await handleVerificationEvent(event.data.object as Stripe.Identity.VerificationSession, "requires_input");
+      break;
+    case "identity.verification_session.canceled":
+      await handleVerificationEvent(event.data.object as Stripe.Identity.VerificationSession, "canceled");
       break;
   }
 

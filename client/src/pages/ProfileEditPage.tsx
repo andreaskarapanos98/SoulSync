@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { OwnProfileDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { PhotoUploader } from "../components/profile/PhotoUploader";
 import { VoiceRecorder } from "../components/profile/VoiceRecorder";
+import { VerifiedBadge } from "../components/VerifiedBadge";
+import { CoinIcon } from "../components/CoinIcon";
+import { ApiError } from "../services/api";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -17,6 +20,9 @@ export function ProfileEditPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [savingBio, setSavingBio] = useState(false);
   const [bioSaved, setBioSaved] = useState(false);
+  const [startingVerification, setStartingVerification] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationInsufficientFunds, setVerificationInsufficientFunds] = useState(false);
 
   useEffect(() => {
     api
@@ -95,6 +101,25 @@ export function ProfileEditPage() {
     setProfile((prev) => (prev ? { ...prev, voiceIntro: null } : prev));
   }
 
+  async function handleGetVerified() {
+    setStartingVerification(true);
+    setVerificationError(null);
+    setVerificationInsufficientFunds(false);
+    try {
+      const { url } = await api.startVerification();
+      window.location.href = url;
+    } catch (err) {
+      const insufficientFunds = err instanceof ApiError && err.status === 402;
+      setVerificationInsufficientFunds(insufficientFunds);
+      setVerificationError(
+        insufficientFunds
+          ? `You don't have enough coins for this. Verification costs ${profile?.verificationCostCoins ?? 60} coins.`
+          : String(err),
+      );
+      setStartingVerification(false);
+    }
+  }
+
   const isComplete = profile.missingRequired.length === 0;
 
   return (
@@ -155,6 +180,68 @@ export function ProfileEditPage() {
           onSave={handleSaveVoiceIntro}
           onDelete={handleDeleteVoiceIntro}
         />
+      </section>
+
+      <section className="mt-8">
+        <h3 className="mb-3 text-sm font-semibold text-neutral-900 dark:text-white">Verification</h3>
+        <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+          {profile.verificationStatus === "verified" && (
+            <p className="flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              <VerifiedBadge /> You're verified
+            </p>
+          )}
+
+          {profile.verificationStatus === "pending" && (
+            <div>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                Verification in progress — this can take a few minutes.
+              </p>
+              <button
+                type="button"
+                onClick={handleGetVerified}
+                disabled={startingVerification}
+                className="mt-2 text-xs text-neutral-400 underline hover:text-neutral-600 disabled:opacity-50 dark:hover:text-neutral-300"
+              >
+                Still stuck? Start a new verification
+              </button>
+            </div>
+          )}
+
+          {(profile.verificationStatus === "unverified" || profile.verificationStatus === "failed") && (
+            <div>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                {profile.verificationStatus === "failed"
+                  ? "That attempt didn't succeed — you can try again."
+                  : "Verify your identity to show a badge on your profile and build trust with matches."}
+              </p>
+              <button
+                type="button"
+                onClick={handleGetVerified}
+                disabled={startingVerification}
+                className="mt-3 flex items-center gap-1.5 rounded-full bg-brand-500 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-60"
+              >
+                {startingVerification ? (
+                  "Redirecting…"
+                ) : (
+                  <>
+                    Get Verified — <CoinIcon /> {profile.verificationCostCoins}
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {verificationError && (
+            <p className="mt-3 text-sm text-red-600">
+              {verificationError}{" "}
+              {verificationInsufficientFunds && (
+                <Link to="/coins" className="font-semibold underline">
+                  Buy coins
+                </Link>
+              )}
+            </p>
+          )}
+        </div>
       </section>
 
       <button

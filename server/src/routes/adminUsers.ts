@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
-import { getUserDetail, listUsers, setUserStatus } from "../services/adminUserService.js";
+import { getUserDetail, listUsers, setUserStatus, setVerificationStatus } from "../services/adminUserService.js";
 import { adjustCoinsByAdmin } from "../services/coinService.js";
 
 export const adminUsersRouter = Router();
@@ -42,6 +42,25 @@ adminUsersRouter.post("/:clerkId/restore", async (req, res) => {
   const { userId: adminClerkId } = getAuth(req);
   const account = await setUserStatus(adminClerkId!, req.params.clerkId, "active");
   res.json({ account });
+});
+
+adminUsersRouter.post("/:clerkId/verification", async (req, res) => {
+  const { userId: adminClerkId } = getAuth(req);
+  const { status, reason } = req.body as { status?: "verified" | "unverified"; reason?: string };
+  if (status !== "verified" && status !== "unverified") {
+    res.status(400).json({ error: "status must be 'verified' or 'unverified'" });
+    return;
+  }
+  try {
+    const account = await setVerificationStatus(adminClerkId!, req.params.clerkId, status, reason);
+    res.json({ account });
+  } catch (err) {
+    if (err instanceof Error && err.message === "User not found") {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    throw err;
+  }
 });
 
 adminUsersRouter.post("/:clerkId/coins/adjust", async (req, res) => {

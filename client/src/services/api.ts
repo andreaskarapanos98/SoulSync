@@ -18,6 +18,7 @@ import type {
   QuestionDTO,
   SaveAnswersResponseDTO,
   SendMessageResponseDTO,
+  StartVerificationResponseDTO,
   UnlockPerspective,
   UnlockResponseDTO,
   UnreadCountDTO,
@@ -137,6 +138,7 @@ export function createApiClient(getToken: GetToken) {
         method: "POST",
         body: JSON.stringify({ perspective }),
       }),
+    startVerification: () => request<StartVerificationResponseDTO>("/api/v1/verification/start", { method: "POST" }),
     sendTyping: (otherClerkId: string) =>
       request<{ ok: true }>(`/api/v1/conversations/${otherClerkId}/typing`, { method: "POST" }),
     getUnreadCount: () => request<UnreadCountDTO>("/api/v1/conversations/unread-count"),

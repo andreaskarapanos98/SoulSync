@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
 import { ProfileModel } from "../models/Profile.js";
+import { UserAccountModel } from "../models/UserAccount.js";
 import { advanceOnboardingIfProfileComplete, assembleProfile, getProfileCompletionGaps } from "../services/profileService.js";
+import { VERIFICATION_COST_COINS } from "../services/coinService.js";
 
 export const profileRouter = Router();
 
@@ -12,12 +14,18 @@ profileRouter.get("/", async (req, res) => {
     return;
   }
 
-  const [profile, missingRequired] = await Promise.all([
+  const [profile, missingRequired, account] = await Promise.all([
     assembleProfile(userId),
     getProfileCompletionGaps(userId),
+    UserAccountModel.findOne({ clerkId: userId }).select("verificationStatus").lean(),
   ]);
 
-  res.json({ ...profile, missingRequired });
+  res.json({
+    ...profile,
+    missingRequired,
+    verificationStatus: account?.verificationStatus ?? "unverified",
+    verificationCostCoins: VERIFICATION_COST_COINS,
+  });
 });
 
 profileRouter.put("/", async (req, res) => {

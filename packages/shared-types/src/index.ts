@@ -6,12 +6,15 @@ export interface HealthCheckResponse {
   timestamp: string;
 }
 
+export type VerificationStatus = "unverified" | "pending" | "verified" | "failed";
+
 export interface MeDTO {
   userId: string;
   email: string;
   onboardingStatus: "not_started" | "about_me" | "preferences" | "profile" | "complete";
   coinBalance: number;
   isAdmin: boolean;
+  verificationStatus: VerificationStatus;
 }
 
 // number_range: two linked numbers within [min, max] (e.g. age range 16-60, where 60
@@ -122,10 +125,16 @@ export interface ProfileDTO {
   // true when the viewer hasn't unlocked this profile — response is stripped to a
   // preview (primary photo only, no bio/traits) regardless of what's requested.
   locked?: boolean;
+  // Has this person completed Stripe Identity verification — shown as a badge.
+  verified: boolean;
 }
 
 export interface OwnProfileDTO extends ProfileDTO {
   missingRequired: string[];
+  // Self-view only: the full status (not just the verified boolean) drives the
+  // Verification section's UI (unverified/pending/verified/failed).
+  verificationStatus: VerificationStatus;
+  verificationCostCoins: number;
 }
 
 export interface PhotosResponseDTO {
@@ -151,6 +160,8 @@ export interface MatchCardDTO {
   compatibility: number;
   // Whether the viewer has unlocked this candidate (no payment gate yet — free for now).
   unlocked: boolean;
+  // Has this person completed Stripe Identity verification — shown as a badge.
+  verified: boolean;
 }
 
 export interface MatchesResponseDTO {
@@ -253,6 +264,11 @@ export interface CreateCheckoutSessionResponseDTO {
 export interface UnlockResponseDTO {
   unlocked: true;
   coinBalance?: number;
+}
+
+export interface StartVerificationResponseDTO {
+  url: string;
+  coinBalance: number;
 }
 
 /**

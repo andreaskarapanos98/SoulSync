@@ -75,3 +75,25 @@ export async function setUserStatus(
 
   return account;
 }
+
+/** Support-case override — force a verified badge on/off outside the normal Stripe Identity flow. */
+export async function setVerificationStatus(
+  adminClerkId: string,
+  targetClerkId: string,
+  status: "verified" | "unverified",
+  reason?: string,
+) {
+  const account = await UserAccountModel.findOne({ clerkId: targetClerkId });
+  if (!account) throw new Error("User not found");
+
+  const previousStatus = account.verificationStatus;
+  account.verificationStatus = status;
+  // Leave verifiedAt as the last time they *were* verified rather than clearing it on
+  // revoke — useful admin context, and avoids Mongoose undefined-assignment edge cases.
+  if (status === "verified") account.verifiedAt = new Date();
+  await account.save();
+
+  await logAdminAction(adminClerkId, `user.verification.${status}`, targetClerkId, { from: previousStatus, to: status, reason });
+
+  return account;
+}

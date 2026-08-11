@@ -1,6 +1,6 @@
 import { Schema, model, type InferSchemaType } from "mongoose";
 
-const coinTransactionTypes = ["purchase", "unlock_spend", "admin_adjustment"] as const;
+const coinTransactionTypes = ["purchase", "unlock_spend", "admin_adjustment", "verification_spend"] as const;
 
 const coinTransactionSchema = new Schema(
   {
@@ -16,6 +16,7 @@ const coinTransactionSchema = new Schema(
     relatedClerkId: { type: String },
     // admin_adjustment only.
     adminClerkId: { type: String },
+    // admin_adjustment (why) and verification_spend (fixed descriptive text).
     reason: { type: String },
   },
   { timestamps: true },

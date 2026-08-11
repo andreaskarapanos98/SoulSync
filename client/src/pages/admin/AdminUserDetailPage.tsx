@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAdminApi } from "../../hooks/useAdminApi";
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { CoinIcon } from "../../components/CoinIcon";
+import { VerifiedBadge } from "../../components/VerifiedBadge";
 import type { AdminCoinTransaction, AdminUserSummary } from "../../services/adminApi";
 
 export function AdminUserDetailPage() {
@@ -38,6 +39,21 @@ export function AdminUserDetailPage() {
       if (action === "suspend") await api.suspendUser(clerkId, reasonDraft || undefined);
       else if (action === "ban") await api.banUser(clerkId, reasonDraft || undefined);
       else await api.restoreUser(clerkId);
+      setReasonDraft("");
+      load();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSetVerification(status: "verified" | "unverified") {
+    if (!clerkId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.setVerification(clerkId, status, reasonDraft || undefined);
       setReasonDraft("");
       load();
     } catch (err) {
@@ -96,6 +112,15 @@ export function AdminUserDetailPage() {
             </span>
           }
         />
+        <Stat
+          label="Verification"
+          value={
+            <span className="inline-flex items-center gap-1">
+              {account.verificationStatus === "verified" && <VerifiedBadge />}
+              {account.verificationStatus ?? "unverified"}
+            </span>
+          }
+        />
         <Stat label="Onboarding" value={account.onboardingStatus} />
         <Stat label="Unlocked by them" value={String(unlockedCount)} />
         <Stat label="Unlocked them" value={String(unlockedByCount)} />
@@ -136,6 +161,22 @@ export function AdminUserDetailPage() {
             className="rounded-full bg-green-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
           >
             Restore
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSetVerification("verified")}
+            disabled={busy || account.verificationStatus === "verified"}
+            className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
+          >
+            Mark verified
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSetVerification("unverified")}
+            disabled={busy || !account.verificationStatus || account.verificationStatus === "unverified"}
+            className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300"
+          >
+            Reset to unverified
           </button>
         </div>
       </div>

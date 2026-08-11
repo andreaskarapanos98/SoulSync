@@ -5,6 +5,7 @@ import { useApi } from "../hooks/useApi";
 import { PhotoCarousel } from "../components/profile/PhotoCarousel";
 import { CompatibilityBreakdown } from "../components/profile/CompatibilityBreakdown";
 import { ReportModal } from "../components/ReportModal";
+import { VerifiedBadge } from "../components/VerifiedBadge";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -103,8 +104,9 @@ export function ViewProfilePage() {
         <PhotoCarousel photos={profile.photos} />
 
         <div className="p-6">
-          <h1 className="text-xl font-semibold text-neutral-900 dark:text-white">
+          <h1 className="flex items-center gap-1.5 text-xl font-semibold text-neutral-900 dark:text-white">
             {profile.firstName || "Someone"}
+            {profile.verified && <VerifiedBadge size={18} />}
             {profile.age !== undefined && <span className="font-normal text-neutral-500"> · {profile.age}</span>}
           </h1>
           {location && <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{location}</p>}

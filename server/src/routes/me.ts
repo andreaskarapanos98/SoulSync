@@ -39,6 +39,7 @@ meRouter.get("/", async (req, res) => {
     onboardingStatus: account.onboardingStatus,
     coinBalance: account.coinBalance,
     isAdmin: await isAdmin(userId),
+    verificationStatus: account.verificationStatus ?? "unverified",
   });
 });
 

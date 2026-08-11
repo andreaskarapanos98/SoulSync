@@ -1,4 +1,4 @@
-import type { MatchesResponseDTO } from "@soulsync/shared-types";
+import type { MatchesResponseDTO, VerificationStatus } from "@soulsync/shared-types";
 import { ApiError } from "./api";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -10,13 +10,14 @@ export interface AdminUserSummary {
   coinBalance: number;
   status: "active" | "suspended" | "banned" | "deleted";
   role: "user" | "admin";
+  verificationStatus?: VerificationStatus;
   createdAt: string;
 }
 
 export interface AdminCoinTransaction {
   _id: string;
   clerkId: string;
-  type: "purchase" | "unlock_spend" | "admin_adjustment";
+  type: "purchase" | "unlock_spend" | "admin_adjustment" | "verification_spend";
   amount: number;
   stripeSessionId?: string;
   relatedClerkId?: string;
@@ -158,6 +159,11 @@ export function createAdminApiClient(getToken: GetToken) {
       }),
     restoreUser: (clerkId: string) =>
       request<{ account: AdminUserSummary }>(`/api/v1/admin/users/${clerkId}/restore`, { method: "POST" }),
+    setVerification: (clerkId: string, status: "verified" | "unverified", reason?: string) =>
+      request<{ account: AdminUserSummary }>(`/api/v1/admin/users/${clerkId}/verification`, {
+        method: "POST",
+        body: JSON.stringify({ status, reason }),
+      }),
     adjustCoins: (clerkId: string, amount: number, reason: string) =>
       request<{ coinBalance: number }>(`/api/v1/admin/users/${clerkId}/coins/adjust`, {
         method: "POST",
