@@ -12,11 +12,6 @@ const FEATURES = [
     body: "Every answer you give is run through dozens of weighted compatibility dimensions — not a vibe, an actual calculation.",
   },
   {
-    icon: "🔁",
-    title: "Calculated both ways",
-    body: "You see how well they fit what you want, and how well you fit what they want. Two honest percentages, not one flattering one.",
-  },
-  {
     icon: "🚫",
     title: "Your deal breakers, respected",
     body: "Mark what's truly non-negotiable and we remove anyone who crosses it — before a percentage is ever calculated.",
