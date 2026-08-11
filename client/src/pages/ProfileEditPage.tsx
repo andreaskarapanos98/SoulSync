@@ -213,6 +213,7 @@ export function ProfileEditPage() {
                 {profile.verificationStatus === "failed"
                   ? "That attempt didn't succeed — you can try again."
                   : "Verify your identity to show a badge on your profile and build trust with matches."}
+                {profile.verificationPaid && " You've already paid, so this is free."}
               </p>
               <button
                 type="button"
@@ -222,6 +223,8 @@ export function ProfileEditPage() {
               >
                 {startingVerification ? (
                   "Redirecting…"
+                ) : profile.verificationPaid ? (
+                  "Try again — free"
                 ) : (
                   <>
                     Get Verified — <CoinIcon /> {profile.verificationCostCoins}

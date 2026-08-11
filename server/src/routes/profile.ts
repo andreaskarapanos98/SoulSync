@@ -17,7 +17,7 @@ profileRouter.get("/", async (req, res) => {
   const [profile, missingRequired, account] = await Promise.all([
     assembleProfile(userId),
     getProfileCompletionGaps(userId),
-    UserAccountModel.findOne({ clerkId: userId }).select("verificationStatus").lean(),
+    UserAccountModel.findOne({ clerkId: userId }).select("verificationStatus verificationPaid").lean(),
   ]);
 
   res.json({
@@ -25,6 +25,7 @@ profileRouter.get("/", async (req, res) => {
     missingRequired,
     verificationStatus: account?.verificationStatus ?? "unverified",
     verificationCostCoins: VERIFICATION_COST_COINS,
+    verificationPaid: account?.verificationPaid ?? false,
   });
 });
 

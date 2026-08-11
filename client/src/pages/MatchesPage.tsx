@@ -14,10 +14,10 @@ const DEFAULT_UNLOCK_COST_TIERS: UnlockCostTierDTO[] = [
   { minCompatibility: 0, coins: 25 },
 ];
 
-type Filter = "all" | "unlocked";
+type Filter = "matches" | "unlocked";
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all", label: "All" },
+  { key: "matches", label: "Matches" },
   { key: "unlocked", label: "Unlocked" },
 ];
 
@@ -25,7 +25,7 @@ export function MatchesPage() {
   const api = useApi();
   const [matches, setMatches] = useState<MatchesResponseDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>("matches");
   const [unlockCostTiers, setUnlockCostTiers] = useState<UnlockCostTierDTO[]>(DEFAULT_UNLOCK_COST_TIERS);
 
   useEffect(() => {
@@ -42,7 +42,8 @@ export function MatchesPage() {
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load matches: {error}</p>;
   if (!matches) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Finding your matches…</p>;
 
-  const list = filter === "unlocked" ? matches.yourSoulmates.filter((m) => m.unlocked) : matches.yourSoulmates;
+  // Unlocking moves someone out of Matches and into Unlocked — the two lists never overlap.
+  const list = matches.yourSoulmates.filter((m) => (filter === "unlocked" ? m.unlocked : !m.unlocked));
 
   function handleUnlocked(clerkId: string) {
     setMatches((prev) =>
@@ -79,8 +80,8 @@ export function MatchesPage() {
           <span className="text-3xl">💌</span>
           <p className="text-neutral-600 dark:text-neutral-400">
             {filter === "unlocked"
-              ? "You haven't unlocked anyone yet — unlock a match below to start chatting."
-              : "No matches here yet — check back soon."}
+              ? "You haven't unlocked anyone yet — unlock a match to start chatting."
+              : "No new matches here yet — check back soon."}
           </p>
         </div>
       ) : (

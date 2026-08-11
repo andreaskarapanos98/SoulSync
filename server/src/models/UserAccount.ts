@@ -49,6 +49,10 @@ const userAccountSchema = new Schema(
     verificationSessionId: { type: String },
     verificationPendingAt: { type: Date },
     verifiedAt: { type: Date },
+    // The 60-coin fee buys the *ability* to get verified, not a single attempt — once
+    // this is true, every future startVerification() call is free, no matter how many
+    // times a check comes back failed.
+    verificationPaid: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

@@ -137,6 +137,9 @@ export interface OwnProfileDTO extends ProfileDTO {
   // Verification section's UI (unverified/pending/verified/failed).
   verificationStatus: VerificationStatus;
   verificationCostCoins: number;
+  // Once true, every future verification attempt is free — the coins buy the ability to
+  // get verified, not a single try. Drives whether the button shows a coin cost.
+  verificationPaid: boolean;
 }
 
 export interface PhotosResponseDTO {
@@ -270,7 +273,8 @@ export interface UnlockResponseDTO {
 
 export interface StartVerificationResponseDTO {
   url: string;
-  coinBalance: number;
+  // Absent for a free retry (verificationPaid was already true) — no coins were spent.
+  coinBalance?: number;
 }
 
 /**

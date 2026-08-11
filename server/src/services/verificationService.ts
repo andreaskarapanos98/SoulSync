@@ -15,17 +15,24 @@ export class AlreadyVerifiedError extends Error {
 /**
  * Starts a Stripe Identity verification: creates the hosted session first, and only
  * spends coins once that succeeds — a Stripe/infra failure here must never cost the user
- * coins. The no-refund policy is for failed/abandoned verifications, not our own errors.
+ * coins. The 60 coins buy the *ability* to get verified, not a single attempt — once
+ * `verificationPaid` is true, every future call here is free, no matter how many times a
+ * check comes back failed. That's the point of paying: a bad document scan shouldn't cost
+ * more coins to fix.
  */
-export async function startVerification(clerkId: string): Promise<{ url: string; coinBalance: number }> {
+export async function startVerification(clerkId: string): Promise<{ url: string; coinBalance?: number }> {
   const account = await UserAccountModel.findOne({ clerkId });
   if (account?.verificationStatus === "verified") throw new AlreadyVerifiedError();
 
-  // Cheap pre-check so we don't create — and have Stripe potentially bill us for — a
-  // session for someone who can't pay for it. spendCoinsForVerification() below is still
-  // the real (atomic) guard against a balance race between this check and the debit.
-  if ((account?.coinBalance ?? 0) < VERIFICATION_COST_COINS) {
-    throw new InsufficientCoinsError(VERIFICATION_COST_COINS, account?.coinBalance ?? 0);
+  const alreadyPaid = account?.verificationPaid ?? false;
+  if (!alreadyPaid) {
+    // Cheap pre-check so we don't create — and have Stripe potentially bill us for — a
+    // session for someone who can't pay for it. spendCoinsForVerification() below is
+    // still the real (atomic) guard against a balance race between this check and the
+    // debit.
+    if ((account?.coinBalance ?? 0) < VERIFICATION_COST_COINS) {
+      throw new InsufficientCoinsError(VERIFICATION_COST_COINS, account?.coinBalance ?? 0);
+    }
   }
 
   const stripe = getStripeClient();
@@ -36,7 +43,7 @@ export async function startVerification(clerkId: string): Promise<{ url: string;
   });
   if (!session.url) throw new Error("Stripe did not return a Verification Session URL");
 
-  const { coinBalance } = await spendCoinsForVerification(clerkId);
+  const coinBalance = alreadyPaid ? undefined : (await spendCoinsForVerification(clerkId)).coinBalance;
 
   await UserAccountModel.updateOne(
     { clerkId },
@@ -44,10 +51,11 @@ export async function startVerification(clerkId: string): Promise<{ url: string;
       verificationStatus: "pending",
       verificationSessionId: session.id,
       verificationPendingAt: new Date(),
+      verificationPaid: true,
     },
   );
 
-  await track(clerkId, "verification_started");
+  await track(clerkId, "verification_started", { free_retry: alreadyPaid });
   return { url: session.url, coinBalance };
 }
 
