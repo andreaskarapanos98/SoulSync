@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import type { MatchCardDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
+import type { MatchCardDTO, UnlockCostTierDTO, UnlockPerspective } from "@soulsync/shared-types";
 import { useApi } from "../../hooks/useApi";
 import { useCoinBalance } from "../../hooks/useCoinBalance";
 import { ApiError } from "../../services/api";
@@ -11,10 +11,12 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export function MatchCard({
   match,
+  perspective,
   unlockCostTiers,
   onUnlocked,
 }: {
   match: MatchCardDTO;
+  perspective: UnlockPerspective;
   unlockCostTiers: UnlockCostTierDTO[];
   onUnlocked: (clerkId: string) => void;
 }) {
@@ -45,7 +47,7 @@ export function MatchCard({
     setUnlocking(true);
     setUnlockError(null);
     try {
-      const res = await api.unlockUser(match.clerkId);
+      const res = await api.unlockUser(match.clerkId, perspective);
       if (res.coinBalance !== undefined) setBalance(res.coinBalance);
       setConfirming(false);
       setUnlockAnimating(true);

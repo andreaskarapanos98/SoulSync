@@ -255,6 +255,13 @@ export interface UnlockResponseDTO {
   coinBalance?: number;
 }
 
+/**
+ * Which of the two directional compatibility scores this unlock should be billed
+ * against — must match whichever score was actually shown on the card the user
+ * clicked "unlock" on (the "Your Soulmates" tab vs the "You're Their Soulmate" tab).
+ */
+export type UnlockPerspective = "yourSoulmates" | "theirSoulmate";
+
 export type ReportContentType = "user" | "profile" | "photo" | "voice" | "message";
 export type ReportReason = "inappropriate_content" | "harassment" | "fake_profile" | "spam" | "underage" | "other";
 

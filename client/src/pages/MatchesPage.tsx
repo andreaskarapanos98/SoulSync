@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { MatchesResponseDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
+import type { MatchesResponseDTO, UnlockCostTierDTO, UnlockPerspective } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { MatchCard } from "../components/matches/MatchCard";
 
@@ -14,7 +14,7 @@ const DEFAULT_UNLOCK_COST_TIERS: UnlockCostTierDTO[] = [
   { minCompatibility: 0, coins: 25 },
 ];
 
-type Tab = "yourSoulmates" | "theirSoulmate";
+type Tab = UnlockPerspective;
 
 const TABS: { key: Tab; label: string; blurb: string }[] = [
   { key: "yourSoulmates", label: "Your Soulmates", blurb: "People who fit what you're looking for." },
@@ -87,7 +87,7 @@ export function MatchesPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((m) => (
-            <MatchCard key={m.clerkId} match={m} unlockCostTiers={unlockCostTiers} onUnlocked={handleUnlocked} />
+            <MatchCard key={m.clerkId} match={m} perspective={tab} unlockCostTiers={unlockCostTiers} onUnlocked={handleUnlocked} />
           ))}
         </div>
       )}

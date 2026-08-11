@@ -18,6 +18,7 @@ import type {
   QuestionDTO,
   SaveAnswersResponseDTO,
   SendMessageResponseDTO,
+  UnlockPerspective,
   UnlockResponseDTO,
   UnreadCountDTO,
   VoiceIntroResponseDTO,
@@ -131,7 +132,11 @@ export function createApiClient(getToken: GetToken) {
         method: "POST",
         body: JSON.stringify({ body }),
       }),
-    unlockUser: (clerkId: string) => request<UnlockResponseDTO>(`/api/v1/unlocks/${clerkId}`, { method: "POST" }),
+    unlockUser: (clerkId: string, perspective: UnlockPerspective) =>
+      request<UnlockResponseDTO>(`/api/v1/unlocks/${clerkId}`, {
+        method: "POST",
+        body: JSON.stringify({ perspective }),
+      }),
     sendTyping: (otherClerkId: string) =>
       request<{ ok: true }>(`/api/v1/conversations/${otherClerkId}/typing`, { method: "POST" }),
     getUnreadCount: () => request<UnreadCountDTO>("/api/v1/conversations/unread-count"),

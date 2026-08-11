@@ -1,3 +1,4 @@
+import type { UnlockPerspective } from "@soulsync/shared-types";
 import { UnlockModel } from "../models/Unlock.js";
 import { spendCoins, unlockCostForCompatibility } from "./coinService.js";
 import { getCompatibilityScore } from "./pairCompatibility.js";
@@ -5,13 +6,24 @@ import { createProfileUnlockedNotification } from "./notificationService.js";
 import { track } from "./analyticsService.js";
 
 /** Spends coins and unlocks the profile. Already-unlocked is a free no-op (idempotent). */
-export async function unlockUser(viewerClerkId: string, unlockedClerkId: string): Promise<{ coinBalance?: number }> {
+export async function unlockUser(
+  viewerClerkId: string,
+  unlockedClerkId: string,
+  perspective: UnlockPerspective,
+): Promise<{ coinBalance?: number }> {
   const existing = await UnlockModel.findOne({ viewerClerkId, unlockedClerkId });
   if (existing) return {};
 
-  // Recomputed server-side, never trusted from the client — the cost tier is keyed to
-  // the real compatibility score, not whatever number happened to be shown in the UI.
-  const compatibility = await getCompatibilityScore(viewerClerkId, unlockedClerkId);
+  // Recomputed server-side, never trusted from the client — but which of the two
+  // directional scores to recompute *is* taken from the client, because "yourSoulmates"
+  // vs "theirSoulmate" reflects which tab/card the user actually clicked unlock on, and
+  // billing the other direction's score silently charges a different price than the one
+  // shown on screen. `perspective` only selects which formula runs; the resulting number
+  // is still computed fresh from the DB, not trusted as a raw value from the client.
+  const compatibility =
+    perspective === "theirSoulmate"
+      ? await getCompatibilityScore(unlockedClerkId, viewerClerkId)
+      : await getCompatibilityScore(viewerClerkId, unlockedClerkId);
   const cost = unlockCostForCompatibility(compatibility);
   const { coinBalance } = await spendCoins(viewerClerkId, cost, unlockedClerkId);
 
