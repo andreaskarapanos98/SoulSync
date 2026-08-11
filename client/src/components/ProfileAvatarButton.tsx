@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth, useClerk } from "@clerk/clerk-react";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
-import { LogoMark } from "./Logo";
+import { DefaultAvatarIcon } from "./DefaultAvatarIcon";
 
 // Shows the user's own profile photo (falling back to the app mark) instead of Clerk's
 // generic avatar. Clicking it opens a small menu (View Profile / Edit Profile / Sign
@@ -36,7 +36,7 @@ export function ProfileAvatarButton() {
           <img src={photoUrl} alt="Your profile" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center bg-brand-50 dark:bg-brand-950/40">
-            <LogoMark size={18} />
+            <DefaultAvatarIcon size={20} />
           </span>
         )}
       </button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { CoinPackagesResponseDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { ApiError } from "../services/api";
+import { CoinIcon } from "../components/CoinIcon";
 
 function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(cents / 100);
@@ -61,7 +62,9 @@ export function BuyCoinsPage() {
               className="flex items-center justify-between rounded-2xl border border-brand-100 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
             >
               <div>
-                <p className="text-lg font-semibold text-neutral-900 dark:text-white">🪙 {pkg.coins}</p>
+                <p className="flex items-center gap-1.5 text-lg font-semibold text-neutral-900 dark:text-white">
+                  <CoinIcon className="h-5 w-5" /> {pkg.coins}
+                </p>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   {formatPrice(pkg.priceCents, pkg.currency)}
                 </p>
@@ -97,7 +100,9 @@ export function BuyCoinsPage() {
                       {tierRangeLabel(data.unlockCostTiers, i)}
                     </td>
                     <td className="px-4 py-2 text-right font-medium text-neutral-800 dark:text-neutral-200">
-                      {tier.minCompatibility >= 100 ? "❤️" : "🪙"} {tier.coins} Coins
+                      <span className="inline-flex items-center gap-1">
+                        {tier.minCompatibility >= 100 ? "❤️" : <CoinIcon />} {tier.coins} Coins
+                      </span>
                     </td>
                   </tr>
                 ))}

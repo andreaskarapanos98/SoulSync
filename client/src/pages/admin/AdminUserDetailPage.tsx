@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAdminApi } from "../../hooks/useAdminApi";
 import { AdminLayout } from "../../components/admin/AdminLayout";
+import { CoinIcon } from "../../components/CoinIcon";
 import type { AdminCoinTransaction, AdminUserSummary } from "../../services/adminApi";
 
 export function AdminUserDetailPage() {
@@ -87,7 +88,14 @@ export function AdminUserDetailPage() {
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Stat label="Status" value={account.status} />
         <Stat label="Role" value={account.role} />
-        <Stat label="Coins" value={`🪙 ${account.coinBalance}`} />
+        <Stat
+          label="Coins"
+          value={
+            <span className="inline-flex items-center gap-1">
+              <CoinIcon /> {account.coinBalance}
+            </span>
+          }
+        />
         <Stat label="Onboarding" value={account.onboardingStatus} />
         <Stat label="Unlocked by them" value={String(unlockedCount)} />
         <Stat label="Unlocked them" value={String(unlockedByCount)} />
@@ -200,7 +208,7 @@ export function AdminUserDetailPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
       <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">{label}</p>

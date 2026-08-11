@@ -6,6 +6,7 @@ import { useCoinBalance } from "../../hooks/useCoinBalance";
 import { ApiError } from "../../services/api";
 import { unlockCostForCompatibility } from "../../utils/unlockCost";
 import { LogoMark } from "../Logo";
+import { CoinIcon } from "../CoinIcon";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -158,7 +159,10 @@ export function MatchCard({
             </p>
             <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
               Unlocking lets you view their full profile and start a chat. Costs{" "}
-              <span className="font-semibold text-neutral-700 dark:text-neutral-300">🪙 {unlockCost}</span>.
+              <span className="inline-flex items-center gap-1 font-semibold text-neutral-700 dark:text-neutral-300">
+                <CoinIcon /> {unlockCost}
+              </span>
+              .
             </p>
             {unlockError && (
               <p className="mt-3 text-sm text-red-600">

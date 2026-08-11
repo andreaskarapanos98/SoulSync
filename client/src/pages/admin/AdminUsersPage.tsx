@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdminApi } from "../../hooks/useAdminApi";
 import { AdminLayout } from "../../components/admin/AdminLayout";
+import { CoinIcon } from "../../components/CoinIcon";
 import type { AdminUserSummary } from "../../services/adminApi";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -80,7 +81,11 @@ export function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">{u.role}</td>
-                  <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">🪙 {u.coinBalance}</td>
+                  <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">
+                    <span className="inline-flex items-center gap-1">
+                      <CoinIcon /> {u.coinBalance}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">{u.onboardingStatus}</td>
                   <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">
                     {new Date(u.createdAt).toLocaleDateString()}
