@@ -3,6 +3,7 @@ import multer from "multer";
 import { getAuth } from "@clerk/express";
 import type { Message } from "../models/Message.js";
 import { ValidationError } from "../services/questionnaireService.js";
+import { getCompatibilityScore } from "../services/pairCompatibility.js";
 import {
   ALLOWED_AUDIO_TYPES,
   ALLOWED_IMAGE_TYPES,
@@ -118,10 +119,11 @@ conversationsRouter.get("/:otherClerkId/messages", async (req, res) => {
 
   await markConversationRead(userId, req.params.otherClerkId);
 
-  const [messages, other, otherTyping] = await Promise.all([
+  const [messages, other, otherTyping, otherCompatibility] = await Promise.all([
     getMessages(userId, req.params.otherClerkId),
     firstNameAndPhoto(req.params.otherClerkId),
     isOtherTyping(userId, req.params.otherClerkId),
+    getCompatibilityScore(userId, req.params.otherClerkId),
   ]);
 
   res.json({
@@ -129,6 +131,7 @@ conversationsRouter.get("/:otherClerkId/messages", async (req, res) => {
     otherFirstName: other.firstName,
     otherPhotoUrl: other.photoUrl,
     otherIsTyping: otherTyping,
+    otherCompatibility,
   });
 });
 

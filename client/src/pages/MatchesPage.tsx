@@ -17,7 +17,7 @@ const DEFAULT_UNLOCK_COST_TIERS: UnlockCostTierDTO[] = [
 type Filter = "matches" | "unlocked";
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "matches", label: "Matches" },
+  { key: "matches", label: "Soulmates" },
   { key: "unlocked", label: "Unlocked" },
 ];
 
@@ -81,7 +81,7 @@ export function MatchesPage() {
           <p className="text-neutral-600 dark:text-neutral-400">
             {filter === "unlocked"
               ? "You haven't unlocked anyone yet — unlock a match to start chatting."
-              : "No new matches here yet — check back soon."}
+              : "No new soulmates here yet — check back soon."}
           </p>
         </div>
       ) : (

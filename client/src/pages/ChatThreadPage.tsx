@@ -26,6 +26,7 @@ export function ChatThreadPage() {
   const [otherName, setOtherName] = useState("");
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
   const [otherIsTyping, setOtherIsTyping] = useState(false);
+  const [otherCompatibility, setOtherCompatibility] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -61,6 +62,7 @@ export function ChatThreadPage() {
         setOtherName(res.otherFirstName);
         setOtherPhoto(res.otherPhotoUrl);
         setOtherIsTyping(res.otherIsTyping);
+        setOtherCompatibility(res.otherCompatibility);
 
         // Fetching messages marks this conversation read server-side — refresh the
         // nav badge immediately instead of waiting on its own independent poll timer.
@@ -198,7 +200,14 @@ export function ChatThreadPage() {
           </Link>
         )}
         <div className="flex-1">
-          <p className="font-semibold text-neutral-900 dark:text-white">{otherName || "Someone"}</p>
+          <p className="flex items-center gap-1.5 font-semibold text-neutral-900 dark:text-white">
+            {otherName || "Someone"}
+            {otherCompatibility !== null && (
+              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+                {otherCompatibility}%
+              </span>
+            )}
+          </p>
           {otherIsTyping && <p className="text-xs text-brand-500">Typing…</p>}
         </div>
 

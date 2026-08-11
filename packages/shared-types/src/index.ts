@@ -216,6 +216,8 @@ export interface MessagesResponseDTO {
   otherFirstName: string;
   otherPhotoUrl?: string;
   otherIsTyping: boolean;
+  // Same direction/number as their match card: how well they fit what you're looking for.
+  otherCompatibility: number;
 }
 
 export interface SendMessageResponseDTO {

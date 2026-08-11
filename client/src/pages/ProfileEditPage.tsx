@@ -224,7 +224,7 @@ export function ProfileEditPage() {
                 {startingVerification ? (
                   "Redirecting…"
                 ) : profile.verificationPaid ? (
-                  "Try again — free"
+                  "Try Again"
                 ) : (
                   <>
                     Get Verified — <CoinIcon /> {profile.verificationCostCoins}
