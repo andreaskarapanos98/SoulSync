@@ -192,7 +192,7 @@ const preferenceQuestions: SeedQuestion[] = [
   // basics
   { key: "gender", category: "basics", type: "multi_select", label: "Which genders are you interested in?", required: true, scoringMechanic: "hard_filter", order: 1,
     options: opts(["man", "Male"], ["woman", "Female"], ["non_binary", "Non-Binary"]) },
-  { key: "age_range", category: "basics", type: "number_range", label: "What age range are you looking for?", required: true, scoringMechanic: "hard_filter", min: 16, max: 60, order: 2 },
+  { key: "age_range", category: "basics", type: "number_range", label: "What age range are you looking for?", required: true, scoringMechanic: "hard_filter", min: 18, max: 60, order: 2 },
   { key: "country", category: "basics", type: "single_select", label: "Would you like your soulmate to live in your country?", scoringMechanic: "relative_self", order: 3,
     options: opts(["same_country", "Same country as me"], ["anywhere", "Anywhere"]) },
   { key: "languages", category: "basics", type: "multi_select", label: "Which languages would you like your soulmate to speak?", scoringMechanic: "checklist", order: 4,

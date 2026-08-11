@@ -22,15 +22,28 @@ export function QuestionField({ question, value, onChange }: Props) {
         />
       );
 
-    case "date":
+    case "date": {
+      // SoulSync is 18+ only. This caps the date picker so a too-recent birthdate can't
+      // even be selected — the real enforcement is server-side (questionnaireService.ts),
+      // this is just the earlier, friendlier check.
+      const maxDate =
+        question.key === "date_of_birth"
+          ? (() => {
+              const d = new Date();
+              d.setFullYear(d.getFullYear() - 18);
+              return d.toISOString().slice(0, 10);
+            })()
+          : undefined;
       return (
         <input
           type="date"
           className={textInputClass}
+          max={maxDate}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
         />
       );
+    }
 
     case "number":
       return (

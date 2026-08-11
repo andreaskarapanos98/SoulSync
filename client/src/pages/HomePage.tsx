@@ -26,6 +26,11 @@ const FEATURES = [
     title: "Hear them before you unlock",
     body: "Possibility to listen a short voice introduction, before spending a single coin.",
   },
+  {
+    icon: "✅",
+    title: "Get Verified",
+    body: "A quick identity check earns you a badge on your profile — verified people are trusted more, and get into conversations faster.",
+  },
 ];
 
 const STEPS = [
