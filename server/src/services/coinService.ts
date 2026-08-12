@@ -53,11 +53,19 @@ export interface Gift {
 }
 
 export const GIFT_CATALOG: Gift[] = [
+  { id: "heart", label: "Heart", emoji: "❤️", coins: 8 },
+  { id: "sparkles", label: "Sparkle", emoji: "✨", coins: 8 },
+  { id: "kiss", label: "Kiss", emoji: "💋", coins: 10 },
+  { id: "flame", label: "Fire", emoji: "🔥", coins: 12 },
   { id: "rose", label: "Rose", emoji: "🌹", coins: 15 },
+  { id: "hearts", label: "Two Hearts", emoji: "💕", coins: 18 },
   { id: "chocolates", label: "Chocolates", emoji: "🍫", coins: 25 },
   { id: "teddy", label: "Teddy Bear", emoji: "🧸", coins: 30 },
+  { id: "cupid", label: "Cupid's Arrow", emoji: "💘", coins: 35 },
   { id: "bouquet", label: "Bouquet", emoji: "💐", coins: 40 },
+  { id: "confetti", label: "Celebration", emoji: "🎉", coins: 45 },
   { id: "champagne", label: "Champagne", emoji: "🍾", coins: 60 },
+  { id: "diamond", label: "Diamond", emoji: "💎", coins: 90 },
   { id: "ring", label: "Diamond Ring", emoji: "💍", coins: 150 },
 ];
 

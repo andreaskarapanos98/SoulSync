@@ -28,7 +28,7 @@ export function ChatThreadPage() {
   const { refresh: refreshUnreadCount } = useUnreadCount();
   const { setBalance } = useCoinBalance();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
-  const [openingGift, setOpeningGift] = useState<{ emoji: string; label: string } | null>(null);
+  const [openingGift, setOpeningGift] = useState<{ giftId: string; emoji: string; label: string } | null>(null);
   const [otherName, setOtherName] = useState("");
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
   const [otherIsTyping, setOtherIsTyping] = useState(false);
@@ -185,7 +185,11 @@ export function ChatThreadPage() {
   async function handleOpenGift(messageId: string) {
     try {
       const res = await api.openGift(messageId);
-      setOpeningGift({ emoji: res.message.giftEmoji ?? "🎁", label: res.message.giftLabel ?? "Gift" });
+      setOpeningGift({
+        giftId: res.message.giftId ?? "",
+        emoji: res.message.giftEmoji ?? "🎁",
+        label: res.message.giftLabel ?? "Gift",
+      });
     } catch (err) {
       setSendError(String(err));
     }
@@ -211,6 +215,7 @@ export function ChatThreadPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8">
       {openingGift && (
         <GiftAnimationOverlay
+          giftId={openingGift.giftId}
           emoji={openingGift.emoji}
           label={openingGift.label}
           onDone={() => {
