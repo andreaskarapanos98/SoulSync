@@ -10,6 +10,7 @@ import { EmojiPicker } from "../components/chat/EmojiPicker";
 import { VoiceMessageButton } from "../components/chat/VoiceMessageButton";
 import { GiftPicker } from "../components/chat/GiftPicker";
 import { GiftAnimationOverlay } from "../components/chat/GiftAnimationOverlay";
+import { CameraCapture } from "../components/chat/CameraCapture";
 import { MessageBubble } from "../components/chat/MessageBubble";
 import { ReportModal } from "../components/ReportModal";
 import { ApiError } from "../services/api";
@@ -29,6 +30,7 @@ export function ChatThreadPage() {
   const { setBalance } = useCoinBalance();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
   const [openingGift, setOpeningGift] = useState<{ giftId: string; emoji: string; label: string } | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [otherName, setOtherName] = useState("");
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
   const [otherIsTyping, setOtherIsTyping] = useState(false);
@@ -152,10 +154,8 @@ export function ChatThreadPage() {
     }
   }
 
-  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow selecting the same file again later
-    if (!clerkId || !file) return;
+  async function sendPhotoFile(file: File) {
+    if (!clerkId) return;
     setUploadingMedia(true);
     setSendError(null);
     try {
@@ -166,6 +166,13 @@ export function ChatThreadPage() {
     } finally {
       setUploadingMedia(false);
     }
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow selecting the same file again later
+    if (!file) return;
+    await sendPhotoFile(file);
   }
 
   async function handleSendGift(giftId: string) {
@@ -224,6 +231,7 @@ export function ChatThreadPage() {
           }}
         />
       )}
+      {cameraOpen && <CameraCapture onSend={sendPhotoFile} onClose={() => setCameraOpen(false)} />}
       <div className="flex items-center gap-3 border-b border-neutral-200 pb-4 dark:border-neutral-800">
         <Link to="/chat" className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
           ←
@@ -346,6 +354,15 @@ export function ChatThreadPage() {
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
         >
           {uploadingMedia ? "…" : "📎"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setCameraOpen(true)}
+          disabled={uploadingMedia}
+          title="Take a photo"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+        >
+          📷
         </button>
         <input
           type="text"
