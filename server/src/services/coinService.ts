@@ -14,11 +14,18 @@ export interface CoinPackage {
   label: string;
 }
 
+// Coin-per-euro rate deliberately improves at each tier (bulk discount). The existing
+// tiers follow a consistent curve — price roughly doubles while coins grow ~2.4-2.5x, so
+// the effective cents-per-coin rate decays by a fairly constant ~19% per price-doubling
+// (4.99 -> 3.996 -> 3.332 -> 2.666 cents/coin). coins_3000 and coins_5000 continue that
+// same curve out to the 69.99/99.99 EUR price points (rounded to clean coin amounts).
 export const COIN_PACKAGES: CoinPackage[] = [
   { id: "coins_100", coins: 100, priceCents: 499, currency: "eur", label: "100 SoulSync Coins" },
   { id: "coins_250", coins: 250, priceCents: 999, currency: "eur", label: "250 SoulSync Coins" },
   { id: "coins_600", coins: 600, priceCents: 1999, currency: "eur", label: "600 SoulSync Coins" },
   { id: "coins_1500", coins: 1500, priceCents: 3999, currency: "eur", label: "1,500 SoulSync Coins" },
+  { id: "coins_3000", coins: 3000, priceCents: 6999, currency: "eur", label: "3,000 SoulSync Coins" },
+  { id: "coins_5000", coins: 5000, priceCents: 9999, currency: "eur", label: "5,000 SoulSync Coins" },
 ];
 
 export interface UnlockCostTier {
@@ -53,20 +60,20 @@ export interface Gift {
 }
 
 export const GIFT_CATALOG: Gift[] = [
-  { id: "heart", label: "Heart", emoji: "❤️", coins: 8 },
-  { id: "sparkles", label: "Sparkle", emoji: "✨", coins: 8 },
-  { id: "kiss", label: "Kiss", emoji: "💋", coins: 10 },
-  { id: "flame", label: "Fire", emoji: "🔥", coins: 12 },
-  { id: "rose", label: "Rose", emoji: "🌹", coins: 15 },
-  { id: "hearts", label: "Two Hearts", emoji: "💕", coins: 18 },
+  { id: "teddy", label: "Teddy Bear", emoji: "🧸", coins: 20 },
+  { id: "confetti", label: "Celebration", emoji: "🎉", coins: 20 },
+  { id: "sparkles", label: "Sparkle", emoji: "✨", coins: 25 },
   { id: "chocolates", label: "Chocolates", emoji: "🍫", coins: 25 },
-  { id: "teddy", label: "Teddy Bear", emoji: "🧸", coins: 30 },
-  { id: "cupid", label: "Cupid's Arrow", emoji: "💘", coins: 35 },
-  { id: "bouquet", label: "Bouquet", emoji: "💐", coins: 40 },
-  { id: "confetti", label: "Celebration", emoji: "🎉", coins: 45 },
-  { id: "champagne", label: "Champagne", emoji: "🍾", coins: 60 },
-  { id: "diamond", label: "Diamond", emoji: "💎", coins: 90 },
-  { id: "ring", label: "Diamond Ring", emoji: "💍", coins: 150 },
+  { id: "heart", label: "Heart", emoji: "❤️", coins: 50 },
+  { id: "kiss", label: "Kiss", emoji: "💋", coins: 50 },
+  { id: "flame", label: "Fire", emoji: "🔥", coins: 50 },
+  { id: "hearts", label: "Two Hearts", emoji: "💕", coins: 50 },
+  { id: "cupid", label: "Cupid's Arrow", emoji: "💘", coins: 50 },
+  { id: "rose", label: "Rose", emoji: "🌹", coins: 100 },
+  { id: "bouquet", label: "Bouquet", emoji: "💐", coins: 250 },
+  { id: "champagne", label: "Champagne", emoji: "🍾", coins: 500 },
+  { id: "diamond", label: "Diamond", emoji: "💎", coins: 1500 },
+  { id: "ring", label: "Diamond Ring", emoji: "💍", coins: 2000 },
 ];
 
 export class InsufficientCoinsError extends Error {
