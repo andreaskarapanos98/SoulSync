@@ -77,7 +77,7 @@ export function AdminPaymentsPage() {
                       {e.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">{e.clerkId ?? "—"}</td>
+                  <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">{e.email ?? e.clerkId ?? "—"}</td>
                   <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">
                     {formatAmount(e.amountCents, e.currency)}
                   </td>

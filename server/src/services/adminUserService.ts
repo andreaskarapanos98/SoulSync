@@ -4,6 +4,16 @@ import { UnlockModel } from "../models/Unlock.js";
 import { logAdminAction } from "./adminAuditService.js";
 import { createAccountNotification } from "./notificationService.js";
 
+/** Batch clerkId -> email lookup, for admin views that otherwise only have a raw clerkId to show. */
+export async function resolveEmails(clerkIds: (string | null | undefined)[]): Promise<Map<string, string>> {
+  const uniqueIds = [...new Set(clerkIds.filter((id): id is string => Boolean(id)))];
+  if (uniqueIds.length === 0) return new Map();
+  const accounts = await UserAccountModel.find({ clerkId: { $in: uniqueIds } })
+    .select("clerkId email")
+    .lean();
+  return new Map(accounts.map((a) => [a.clerkId, a.email]));
+}
+
 export async function listUsers(opts: { search?: string; page?: number; limit?: number }) {
   const page = opts.page && opts.page > 0 ? opts.page : 1;
   const limit = opts.limit && opts.limit > 0 ? Math.min(opts.limit, 100) : 25;
@@ -32,9 +42,16 @@ export async function getUserDetail(clerkId: string) {
     UnlockModel.find({ viewerClerkId: clerkId }).lean(),
     UnlockModel.find({ unlockedClerkId: clerkId }).lean(),
   ]);
+
+  const relatedEmailByClerkId = await resolveEmails(coinTransactions.map((t) => t.relatedClerkId));
+  const enrichedTransactions = coinTransactions.map((t) => ({
+    ...t,
+    relatedEmail: t.relatedClerkId ? relatedEmailByClerkId.get(t.relatedClerkId) : undefined,
+  }));
+
   return {
     account,
-    coinTransactions,
+    coinTransactions: enrichedTransactions,
     unlockedCount: unlockedByThem.length,
     unlockedByCount: unlockedThem.length,
   };

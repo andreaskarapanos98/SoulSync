@@ -17,10 +17,12 @@ export interface AdminUserSummary {
 export interface AdminCoinTransaction {
   _id: string;
   clerkId: string;
+  email?: string;
   type: "purchase" | "unlock_spend" | "admin_adjustment" | "verification_spend" | "gift_spend";
   amount: number;
   stripeSessionId?: string;
   relatedClerkId?: string;
+  relatedEmail?: string;
   adminClerkId?: string;
   reason?: string;
   createdAt: string;
@@ -29,6 +31,7 @@ export interface AdminCoinTransaction {
 export interface AdminPaymentEvent {
   _id: string;
   clerkId?: string;
+  email?: string;
   stripeSessionId?: string;
   stripeEventType: string;
   status: "succeeded" | "failed" | "expired";
@@ -48,6 +51,7 @@ export interface AdminSystemErrorLog {
   method?: string;
   statusCode?: number;
   clerkId?: string;
+  email?: string;
   source: string;
   createdAt: string;
 }
@@ -55,8 +59,10 @@ export interface AdminSystemErrorLog {
 export interface AdminAuditLogEntry {
   _id: string;
   adminClerkId: string;
+  adminEmail?: string;
   action: string;
   targetClerkId?: string;
+  targetEmail?: string;
   details?: Record<string, unknown>;
   createdAt: string;
 }
@@ -64,13 +70,17 @@ export interface AdminAuditLogEntry {
 export interface AdminReport {
   _id: string;
   reporterClerkId: string;
+  reporterEmail?: string;
   reportedClerkId: string;
+  reportedEmail?: string;
   contentType: string;
   contentRef?: string;
+  reportedContent?: string;
   reason: string;
   details?: string;
   status: "open" | "reviewed" | "dismissed";
   reviewedByClerkId?: string;
+  reviewedByEmail?: string;
   reviewedAt?: string;
   createdAt: string;
 }

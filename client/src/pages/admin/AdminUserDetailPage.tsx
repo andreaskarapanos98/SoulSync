@@ -236,7 +236,7 @@ export function AdminUserDetailPage() {
                       {t.amount > 0 ? "+" : ""}
                       {t.amount}
                     </td>
-                    <td className="px-4 py-2 text-neutral-500">{t.reason ?? t.relatedClerkId ?? "—"}</td>
+                    <td className="px-4 py-2 text-neutral-500">{t.reason ?? t.relatedEmail ?? t.relatedClerkId ?? "—"}</td>
                     <td className="px-4 py-2 text-neutral-500">{new Date(t.createdAt).toLocaleString()}</td>
                   </tr>
                 ))

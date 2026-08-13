@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { CoinTransactionModel } from "../models/CoinTransaction.js";
 import { PaymentEventModel } from "../models/PaymentEvent.js";
+import { resolveEmails } from "../services/adminUserService.js";
 
 export const adminPaymentsRouter = Router();
 
@@ -20,7 +21,13 @@ adminPaymentsRouter.get("/coin-transactions", async (req, res) => {
     CoinTransactionModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     CoinTransactionModel.countDocuments(filter),
   ]);
-  res.json({ transactions, total, page, limit });
+  const emailByClerkId = await resolveEmails(transactions.flatMap((t) => [t.clerkId, t.relatedClerkId, t.adminClerkId]));
+  const enriched = transactions.map((t) => ({
+    ...t,
+    email: emailByClerkId.get(t.clerkId),
+    relatedEmail: t.relatedClerkId ? emailByClerkId.get(t.relatedClerkId) : undefined,
+  }));
+  res.json({ transactions: enriched, total, page, limit });
 });
 
 adminPaymentsRouter.get("/payments", async (req, res) => {
@@ -32,5 +39,7 @@ adminPaymentsRouter.get("/payments", async (req, res) => {
     PaymentEventModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     PaymentEventModel.countDocuments(filter),
   ]);
-  res.json({ events, total, page, limit });
+  const emailByClerkId = await resolveEmails(events.map((e) => e.clerkId));
+  const enriched = events.map((e) => ({ ...e, email: e.clerkId ? emailByClerkId.get(e.clerkId) : undefined }));
+  res.json({ events: enriched, total, page, limit });
 });

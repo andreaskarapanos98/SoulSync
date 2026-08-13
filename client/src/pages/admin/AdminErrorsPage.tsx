@@ -55,7 +55,7 @@ export function AdminErrorsPage() {
                     <p className="text-xs text-neutral-400">
                       {e.source}
                       {e.path ? ` · ${e.method} ${e.path}` : ""}
-                      {e.clerkId ? ` · ${e.clerkId}` : ""}
+                      {e.clerkId ? ` · ${e.email ?? e.clerkId}` : ""}
                     </p>
                   </div>
                   <span className="shrink-0 text-xs text-neutral-400">{new Date(e.createdAt).toLocaleString()}</span>
@@ -97,9 +97,11 @@ export function AdminErrorsPage() {
               ) : (
                 auditLog.map((entry) => (
                   <tr key={entry._id} className="border-b border-neutral-100 last:border-0 dark:border-neutral-900">
-                    <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">{entry.adminClerkId}</td>
+                    <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">
+                      {entry.adminEmail ?? entry.adminClerkId}
+                    </td>
                     <td className="px-4 py-2 font-medium text-neutral-900 dark:text-white">{entry.action}</td>
-                    <td className="px-4 py-2 text-neutral-500">{entry.targetClerkId ?? "—"}</td>
+                    <td className="px-4 py-2 text-neutral-500">{entry.targetEmail ?? entry.targetClerkId ?? "—"}</td>
                     <td className="px-4 py-2 text-neutral-500">
                       {entry.details ? JSON.stringify(entry.details) : "—"}
                     </td>

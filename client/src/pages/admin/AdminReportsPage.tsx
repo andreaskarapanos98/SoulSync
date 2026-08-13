@@ -62,12 +62,16 @@ export function AdminReportsPage() {
                     {r.reason.replace(/_/g, " ")} — {r.contentType}
                   </p>
                   <p className="text-xs text-neutral-400">
-                    Reporter: {r.reporterClerkId} · Reported: {r.reportedClerkId}
-                    {r.contentRef ? ` · Ref: ${r.contentRef}` : ""}
+                    Reporter: {r.reporterEmail ?? r.reporterClerkId} · Reported: {r.reportedEmail ?? r.reportedClerkId}
                   </p>
                 </div>
                 <span className="text-xs text-neutral-400">{new Date(r.createdAt).toLocaleString()}</span>
               </div>
+              {r.reportedContent && (
+                <p className="mt-2 rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700 dark:bg-neutral-950 dark:text-neutral-300">
+                  {r.reportedContent}
+                </p>
+              )}
               {r.details && <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">{r.details}</p>}
               {r.status === "open" ? (
                 <div className="mt-3 flex gap-2">
@@ -90,7 +94,8 @@ export function AdminReportsPage() {
                 </div>
               ) : (
                 <p className="mt-3 text-xs font-medium text-neutral-400">
-                  {r.status} by {r.reviewedByClerkId} at {r.reviewedAt && new Date(r.reviewedAt).toLocaleString()}
+                  {r.status} by {r.reviewedByEmail ?? r.reviewedByClerkId} at{" "}
+                  {r.reviewedAt && new Date(r.reviewedAt).toLocaleString()}
                 </p>
               )}
             </div>

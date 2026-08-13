@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { SystemErrorLogModel } from "../models/SystemErrorLog.js";
 import { AdminAuditLogModel } from "../models/AdminAuditLog.js";
+import { resolveEmails } from "../services/adminUserService.js";
 
 export const adminErrorsRouter = Router();
 
@@ -16,7 +17,9 @@ adminErrorsRouter.get("/errors", async (req, res) => {
     SystemErrorLogModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     SystemErrorLogModel.countDocuments(),
   ]);
-  res.json({ errors, total, page, limit });
+  const emailByClerkId = await resolveEmails(errors.map((e) => e.clerkId));
+  const enriched = errors.map((e) => ({ ...e, email: e.clerkId ? emailByClerkId.get(e.clerkId) : undefined }));
+  res.json({ errors: enriched, total, page, limit });
 });
 
 adminErrorsRouter.get("/audit-log", async (req, res) => {
@@ -25,5 +28,11 @@ adminErrorsRouter.get("/audit-log", async (req, res) => {
     AdminAuditLogModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     AdminAuditLogModel.countDocuments(),
   ]);
-  res.json({ entries, total, page, limit });
+  const emailByClerkId = await resolveEmails(entries.flatMap((e) => [e.adminClerkId, e.targetClerkId]));
+  const enriched = entries.map((e) => ({
+    ...e,
+    adminEmail: emailByClerkId.get(e.adminClerkId),
+    targetEmail: e.targetClerkId ? emailByClerkId.get(e.targetClerkId) : undefined,
+  }));
+  res.json({ entries: enriched, total, page, limit });
 });
