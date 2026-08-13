@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "August 10, 2026";
+const LAST_UPDATED = "August 13, 2026";
 
 export function LegalPageLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -12,12 +12,6 @@ export function LegalPageLayout({ title, children }: { title: string; children: 
 
       <h1 className="mt-4 text-3xl font-semibold text-neutral-900 dark:text-white">{title}</h1>
       <p className="mt-1 text-sm text-neutral-400">Last updated: {LAST_UPDATED}</p>
-
-      <p className="mt-4 rounded-xl bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300">
-        ⚠️ Draft document. This page describes how SoulSync is built to operate today, but it
-        has not been reviewed by a lawyer and should not be treated as final before public
-        launch.
-      </p>
 
       <div className="mt-8 flex flex-col gap-4 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
         {children}

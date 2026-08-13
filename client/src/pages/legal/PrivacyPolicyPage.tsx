@@ -25,9 +25,16 @@ export function PrivacyPolicyPage() {
             lifestyle, values, and relationship-goal answers, and any deal breakers you set.
           </li>
           <li>
+            <strong>Date of birth:</strong> your exact birth date, collected once during
+            onboarding to confirm you're 18 or older. Only your derived age is ever shown to
+            other users — your exact birth date is never displayed to anyone.
+          </li>
+          <li>
             <strong>Photos and voice recordings:</strong> profile photos and an optional short
             voice introduction you record, used only to be shown to matches you or they
-            unlock.
+            unlock. Photos can be uploaded from your device or taken directly in the app using
+            your camera (with your browser's permission) — either way, the resulting photo is
+            handled identically once it's sent.
           </li>
           <li>
             <strong>Location-related fields:</strong> the country and city you tell us you're
@@ -35,13 +42,23 @@ export function PrivacyPolicyPage() {
             We do not collect GPS/device location.
           </li>
           <li>
-            <strong>Messages:</strong> the content of messages, photos, and voice notes you
-            exchange with matches.
+            <strong>Messages:</strong> the content of messages, photos, voice notes, and virtual
+            gifts you exchange with matches.
           </li>
           <li>
-            <strong>Payment data:</strong> when you buy coins, payment is handled entirely by
-            Stripe — we never see or store your card number. We keep a record of the purchase
-            (amount, coin quantity, date) for your account history and accounting.
+            <strong>Payment and coin activity:</strong> when you buy coins, payment is handled
+            entirely by Stripe — we never see or store your card number. We keep a record of
+            each purchase (amount, coin quantity, date) and of what your coins were spent on —
+            unlocking a profile, sending a gift, or identity verification — for your account
+            history and accounting.
+          </li>
+          <li>
+            <strong>Identity verification result:</strong> if you choose to use "Get Verified,"
+            our processor, Stripe Identity, collects a government-issued ID photo and a live
+            selfie <em>directly from you</em> to confirm you're a real person. SoulSync's
+            servers never receive or store that ID photo or selfie — we only receive and store
+            the result (verified, pending, or failed) and a reference ID for the Stripe
+            verification session.
           </li>
           <li>
             <strong>Usage data:</strong> product analytics events (e.g. that you viewed a
@@ -61,17 +78,25 @@ export function PrivacyPolicyPage() {
           <li>To display your profile (photo, bio, voice intro) to users who unlock you.</li>
           <li>To deliver and moderate messages, and to detect abuse, spam, and policy violations.</li>
           <li>To process coin purchases and maintain your coin balance and transaction history.</li>
+          <li>To let you send and receive optional paid virtual gifts in chat.</li>
+          <li>To run identity verification through Stripe Identity when you choose to use it, and to show a verified badge on your profile if you pass.</li>
           <li>To send you in-app notifications about matches, messages, and account status.</li>
           <li>To keep the product working and improve it, using aggregated usage analytics.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="4. Voice and photo processing">
+      <LegalSection title="4. Photos, voice, and identity verification">
         <p>
           Photos and voice recordings you upload are stored so they can be displayed to other
           users you match with (subject to the unlock system). We do not currently run
           automated facial recognition or voice-biometric analysis on this content; it is used
           for direct display only. If that ever changes, we'll update this policy first.
+        </p>
+        <p>
+          Identity verification is different: the government ID photo and selfie used to
+          confirm you're a real person are captured and matched entirely on Stripe's own
+          systems. They never pass through SoulSync's servers, so we have nothing to run
+          recognition on even if we wanted to — we only ever receive a pass/fail result.
         </p>
       </LegalSection>
 
@@ -85,6 +110,17 @@ export function PrivacyPolicyPage() {
             your payment details directly; we never do.
           </li>
           <li>
+            <strong>Stripe Identity</strong> — if you use "Get Verified," Stripe Identity
+            receives your ID document and selfie directly from you to perform the check. We
+            only receive the pass/fail result, never the images themselves.
+          </li>
+          <li>
+            <strong>Our support and moderation team</strong> — a small internal team can see
+            your account status, coin balance, and transaction history to help with support
+            requests and enforce our policies. They do not have a tool to read the content of
+            your private messages or your questionnaire answers.
+          </li>
+          <li>
             <strong>Other users</strong> — only what your profile and matching settings
             expose, and only once they've unlocked you (or you them).
           </li>
@@ -96,9 +132,11 @@ export function PrivacyPolicyPage() {
         <p>
           We keep your account data for as long as your account is active. If you delete your
           account, we anonymize your profile, questionnaire answers, photos, and voice
-          recordings, and delete your sign-in identity so the account can never be used again.
-          Financial transaction records are retained afterward for accounting and legal
-          purposes, referencing only an anonymous account identifier.
+          recordings, clear your identity-verification status, and delete your sign-in identity
+          so the account can never be used again. Financial transaction records (including
+          gift and verification purchases) and message history are retained afterward for
+          accounting, legal, and conversation-integrity purposes, referencing only an anonymous
+          account identifier.
         </p>
       </LegalSection>
 

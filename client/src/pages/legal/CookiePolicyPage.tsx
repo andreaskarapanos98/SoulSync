@@ -25,6 +25,16 @@ export function CookiePolicyPage() {
         </p>
       </LegalSection>
 
+      <LegalSection title="Stripe-hosted pages">
+        <p>
+          Buying coins and completing identity verification both briefly take you to a page
+          hosted by Stripe (checkout.stripe.com or Stripe Identity's own domain), not SoulSync.
+          Stripe may set its own cookies there for fraud prevention and to complete the
+          transaction — those are governed by Stripe's own privacy and cookie policies, not
+          this one.
+        </p>
+      </LegalSection>
+
       <LegalSection title="Product analytics">
         <p>
           We record product-usage events (e.g. viewing a match, sending a message) tied to your

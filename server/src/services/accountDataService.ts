@@ -65,7 +65,10 @@ export async function deleteUserAccount(clerkId: string): Promise<void> {
     UnlockModel.deleteMany({ $or: [{ viewerClerkId: clerkId }, { unlockedClerkId: clerkId }] }),
     UserAccountModel.updateOne(
       { clerkId },
-      { $set: { email: `deleted-${clerkId}@deleted.soulsync.local`, status: "deleted" } },
+      {
+        $set: { email: `deleted-${clerkId}@deleted.soulsync.local`, status: "deleted", verificationStatus: "unverified" },
+        $unset: { verifiedAt: "", verificationSessionId: "", verificationPendingAt: "" },
+      },
     ),
   ]);
 

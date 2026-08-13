@@ -14,6 +14,7 @@ export function CommunityGuidelinesPage() {
           <li>Use your own photos and voice — no stock photos, no impersonating someone else, no fake profiles.</li>
           <li>Answer the questionnaire honestly. The compatibility score is only useful if your answers are real.</li>
           <li>One account per person.</li>
+          <li>A verified badge means someone completed ID verification — it's not a character reference, so don't let it lower your guard.</li>
         </ul>
       </LegalSection>
 
@@ -22,6 +23,7 @@ export function CommunityGuidelinesPage() {
           <li>No harassment, hate speech, threats, or targeted abuse of any kind.</li>
           <li>No unsolicited explicit content in photos, voice recordings, or messages.</li>
           <li>Take no for an answer. If someone stops responding or asks you to stop, respect that.</li>
+          <li>Sending a virtual gift doesn't entitle you to anything back — no pressure, no obligation, no exceptions.</li>
         </ul>
       </LegalSection>
 
