@@ -53,18 +53,18 @@ export function ProfileAvatarButton() {
             </Link>
           )}
           <Link
-            to="/"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
-          >
-            Questionnaires
-          </Link>
-          <Link
             to="/profile/edit"
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
           >
             Edit Profile
+          </Link>
+          <Link
+            to="/"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          >
+            Questionnaires
           </Link>
           <Link
             to="/account"
