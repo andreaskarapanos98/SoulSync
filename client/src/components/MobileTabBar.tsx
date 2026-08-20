@@ -23,7 +23,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-10 flex border-t border-neutral-200 bg-white/95 backdrop-blur sm:hidden dark:border-neutral-800 dark:bg-neutral-950/95"
+      className="fixed inset-x-0 bottom-0 z-10 flex bg-white/95 shadow-[0_-1px_6px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden dark:bg-neutral-950/95 dark:shadow-[0_-1px_6px_rgba(0,0,0,0.4)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <Link to="/matches" className={tabClass(isActive("/matches"))}>
