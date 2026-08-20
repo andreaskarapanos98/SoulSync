@@ -26,6 +26,9 @@ const reportSchema = new Schema(
     status: { type: String, enum: reportStatuses, default: "open" },
     reviewedByClerkId: { type: String },
     reviewedAt: { type: Date },
+    // Free-text record of what the reviewing admin did/decided — editable any time,
+    // independent of status (fixing a note later doesn't re-trigger notifications).
+    adminNote: { type: String },
   },
   { timestamps: true },
 );

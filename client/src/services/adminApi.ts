@@ -11,6 +11,8 @@ export interface AdminUserSummary {
   status: "active" | "suspended" | "banned" | "deleted";
   role: "user" | "admin";
   verificationStatus?: VerificationStatus;
+  chatBanExpiresAt?: string;
+  chatBannedIndefinitely?: boolean;
   createdAt: string;
 }
 
@@ -79,10 +81,18 @@ export interface AdminReport {
   reason: string;
   details?: string;
   status: "open" | "reviewed" | "dismissed";
+  adminNote?: string;
   reviewedByClerkId?: string;
   reviewedByEmail?: string;
   reviewedAt?: string;
   createdAt: string;
+}
+
+export interface TakeReportActionInput {
+  outcome: "dismiss" | "chat_ban" | "account_ban";
+  days?: number;
+  permanent?: boolean;
+  note?: string;
 }
 
 export interface AdminQuestion {
@@ -174,6 +184,11 @@ export function createAdminApiClient(getToken: GetToken) {
         method: "POST",
         body: JSON.stringify({ status, reason }),
       }),
+    setChatBan: (clerkId: string, ban: { days: number } | { permanent: true } | { lift: true }, reason?: string) =>
+      request<{ account: AdminUserSummary }>(`/api/v1/admin/users/${clerkId}/chat-ban`, {
+        method: "POST",
+        body: JSON.stringify({ ...ban, reason }),
+      }),
     adjustCoins: (clerkId: string, amount: number, reason: string) =>
       request<{ coinBalance: number }>(`/api/v1/admin/users/${clerkId}/coins/adjust`, {
         method: "POST",
@@ -203,10 +218,15 @@ export function createAdminApiClient(getToken: GetToken) {
       request<{ aToB: number; bToA: number }>(`/api/v1/admin/compatibility${qs({ a, b })}`),
     listReports: (opts: { status?: string; page?: number; limit?: number } = {}) =>
       request<{ reports: AdminReport[] } & Page>(`/api/v1/admin/reports${qs(opts)}`),
-    resolveReport: (id: string, status: "reviewed" | "dismissed") =>
-      request<{ report: AdminReport }>(`/api/v1/admin/reports/${id}/resolve`, {
+    takeReportAction: (id: string, input: TakeReportActionInput) =>
+      request<{ report: AdminReport }>(`/api/v1/admin/reports/${id}/action`, {
         method: "POST",
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(input),
+      }),
+    updateReportNote: (id: string, note: string) =>
+      request<{ report: AdminReport }>(`/api/v1/admin/reports/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ note }),
       }),
     getFunnel: () => request<{ funnel: AdminFunnelStep[] }>("/api/v1/admin/analytics/funnel"),
     getEventCounts: () => request<{ events: AdminEventCount[] }>("/api/v1/admin/analytics/events"),

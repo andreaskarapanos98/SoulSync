@@ -14,6 +14,7 @@ import {
 import { InsufficientCoinsError, UnknownGiftError } from "../services/coinService.js";
 import {
   BlockedError,
+  ChatBannedError,
   MessageRateLimitError,
   NotGiftRecipientError,
   NotUnlockedError,
@@ -36,7 +37,7 @@ import {
 } from "../services/messageService.js";
 
 function sendGateErrorStatus(err: unknown): number | undefined {
-  if (err instanceof NotUnlockedError || err instanceof BlockedError) return 403;
+  if (err instanceof NotUnlockedError || err instanceof BlockedError || err instanceof ChatBannedError) return 403;
   if (err instanceof MessageRateLimitError) return 429;
   return undefined;
 }

@@ -93,6 +93,51 @@ export async function setUserStatus(
   return account;
 }
 
+export type ChatBanInput = { days: number } | { permanent: true } | { lift: true };
+
+/**
+ * Chat-only restriction — lighter than setUserStatus("banned"), which locks out the whole
+ * account. Everything else (browsing, unlocking, profile edits) still works; only sending
+ * new messages/gifts is blocked, enforced in messageService.requireCanMessage().
+ */
+export async function setChatBan(adminClerkId: string, targetClerkId: string, ban: ChatBanInput, reason?: string) {
+  const account = await UserAccountModel.findOne({ clerkId: targetClerkId });
+  if (!account) throw new Error("User not found");
+
+  let actionKey: string;
+  let copy: { title: string; message: string } | undefined;
+
+  if ("lift" in ban) {
+    account.chatBanExpiresAt = undefined;
+    account.chatBannedIndefinitely = false;
+    actionKey = "user.chatban.lift";
+    copy = { title: "✅ Your chat restriction has been lifted", message: "You can send messages again." };
+  } else if ("permanent" in ban) {
+    account.chatBanExpiresAt = undefined;
+    account.chatBannedIndefinitely = true;
+    actionKey = "user.chatban.permanent";
+    copy = {
+      title: "🚫 You've been restricted from chatting",
+      message: "You've been permanently restricted from sending messages, for violating our Community Guidelines.",
+    };
+  } else {
+    const until = new Date(Date.now() + ban.days * 24 * 60 * 60 * 1000);
+    account.chatBanExpiresAt = until;
+    account.chatBannedIndefinitely = false;
+    actionKey = "user.chatban.temporary";
+    copy = {
+      title: "🚫 You've been restricted from chatting",
+      message: `You've been restricted from sending messages for ${ban.days} day${ban.days === 1 ? "" : "s"}, for violating our Community Guidelines.`,
+    };
+  }
+
+  await account.save();
+  await logAdminAction(adminClerkId, actionKey, targetClerkId, { ban, reason });
+  await createAccountNotification(targetClerkId, copy.title, copy.message);
+
+  return account;
+}
+
 /** Support-case override — force a verified badge on/off outside the normal Stripe Identity flow. */
 export async function setVerificationStatus(
   adminClerkId: string,

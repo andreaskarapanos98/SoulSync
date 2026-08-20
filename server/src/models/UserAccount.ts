@@ -53,6 +53,11 @@ const userAccountSchema = new Schema(
     // this is true, every future startVerification() call is free, no matter how many
     // times a check comes back failed.
     verificationPaid: { type: Boolean, default: false },
+    // Chat-only restriction — lighter than `status: "banned"`, which locks out everything
+    // via requireActiveAccount. Checked at send-time in requireCanMessage(); no background
+    // job needed since expiry is just a Date comparison.
+    chatBanExpiresAt: { type: Date },
+    chatBannedIndefinitely: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

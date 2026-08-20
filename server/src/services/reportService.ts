@@ -2,7 +2,8 @@ import { ReportModel, type reportContentTypes, type reportReasons } from "../mod
 import { MessageModel } from "../models/Message.js";
 import { logAdminAction } from "./adminAuditService.js";
 import { track } from "./analyticsService.js";
-import { resolveEmails } from "./adminUserService.js";
+import { resolveEmails, setChatBan, setUserStatus } from "./adminUserService.js";
+import { createAccountNotification } from "./notificationService.js";
 
 type ReportContentType = (typeof reportContentTypes)[number];
 type ReportReason = (typeof reportReasons)[number];
@@ -87,13 +88,61 @@ export async function listReports(opts: { status?: string; page?: number; limit?
   return { reports: enrichedReports, total, page, limit };
 }
 
-export async function resolveReport(adminClerkId: string, reportId: string, status: "reviewed" | "dismissed") {
-  const report = await ReportModel.findByIdAndUpdate(
-    reportId,
-    { status, reviewedByClerkId: adminClerkId, reviewedAt: new Date() },
-    { returnDocument: "after" },
-  );
+export interface TakeReportActionInput {
+  outcome: "dismiss" | "chat_ban" | "account_ban";
+  days?: number;
+  permanent?: boolean;
+  note?: string;
+}
+
+const DEFAULT_CHAT_BAN_DAYS = 7;
+const REPORTER_NOTIFICATION_TITLE = "🔎 Your report has been reviewed";
+
+/**
+ * The single entry point for acting on an open report: applies the chosen account action
+ * (if any), resolves the report with the admin's note, and tells the *reporter* the
+ * outcome. The reported user, if any action was taken against them, is notified
+ * separately by setChatBan()/setUserStatus() themselves.
+ */
+export async function takeReportAction(adminClerkId: string, reportId: string, input: TakeReportActionInput) {
+  const report = await ReportModel.findById(reportId);
   if (!report) throw new Error("Report not found");
-  await logAdminAction(adminClerkId, `report.${status}`, report.reportedClerkId, { reportId });
+
+  let reporterMessage: string;
+  const reason = `Report ${reportId}`;
+
+  if (input.outcome === "chat_ban") {
+    if (input.permanent) {
+      await setChatBan(adminClerkId, report.reportedClerkId, { permanent: true }, reason);
+      reporterMessage = "We reviewed your report and permanently restricted the user from chatting.";
+    } else {
+      const days = input.days && input.days > 0 ? input.days : DEFAULT_CHAT_BAN_DAYS;
+      await setChatBan(adminClerkId, report.reportedClerkId, { days }, reason);
+      reporterMessage = `We reviewed your report and restricted the user from chatting for ${days} day${days === 1 ? "" : "s"}.`;
+    }
+  } else if (input.outcome === "account_ban") {
+    await setUserStatus(adminClerkId, report.reportedClerkId, "banned", reason);
+    reporterMessage = "We reviewed your report and banned the user from SoulSync.";
+  } else {
+    reporterMessage = "We looked into your report and didn't find a violation that requires action.";
+  }
+
+  report.status = input.outcome === "dismiss" ? "dismissed" : "reviewed";
+  report.adminNote = input.note;
+  report.reviewedByClerkId = adminClerkId;
+  report.reviewedAt = new Date();
+  await report.save();
+
+  await logAdminAction(adminClerkId, `report.${report.status}`, report.reportedClerkId, { reportId, outcome: input.outcome });
+  await createAccountNotification(report.reporterClerkId, REPORTER_NOTIFICATION_TITLE, reporterMessage);
+
+  return report;
+}
+
+/** Fixes/extends the admin note after the fact — no re-notification, no re-applying an account action. */
+export async function updateReportNote(adminClerkId: string, reportId: string, note: string) {
+  const report = await ReportModel.findByIdAndUpdate(reportId, { adminNote: note }, { returnDocument: "after" });
+  if (!report) throw new Error("Report not found");
+  await logAdminAction(adminClerkId, "report.note.edit", report.reportedClerkId, { reportId });
   return report;
 }

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
-import { getUserDetail, listUsers, setUserStatus, setVerificationStatus } from "../services/adminUserService.js";
+import { getUserDetail, listUsers, setChatBan, setUserStatus, setVerificationStatus, type ChatBanInput } from "../services/adminUserService.js";
 import { adjustCoinsByAdmin } from "../services/coinService.js";
 
 export const adminUsersRouter = Router();
@@ -42,6 +42,26 @@ adminUsersRouter.post("/:clerkId/restore", async (req, res) => {
   const { userId: adminClerkId } = getAuth(req);
   const account = await setUserStatus(adminClerkId!, req.params.clerkId, "active");
   res.json({ account });
+});
+
+adminUsersRouter.post("/:clerkId/chat-ban", async (req, res) => {
+  const { userId: adminClerkId } = getAuth(req);
+  const { days, permanent, lift, reason } = req.body as { days?: number; permanent?: boolean; lift?: boolean; reason?: string };
+  const ban: ChatBanInput = lift ? { lift: true } : permanent ? { permanent: true } : { days: Number(days) || 0 };
+  if (!("lift" in ban) && !("permanent" in ban) && (!("days" in ban) || ban.days <= 0)) {
+    res.status(400).json({ error: "Provide a positive 'days' number, or 'permanent'/'lift'" });
+    return;
+  }
+  try {
+    const account = await setChatBan(adminClerkId!, req.params.clerkId, ban, reason);
+    res.json({ account });
+  } catch (err) {
+    if (err instanceof Error && err.message === "User not found") {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    throw err;
+  }
 });
 
 adminUsersRouter.post("/:clerkId/verification", async (req, res) => {

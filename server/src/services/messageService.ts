@@ -1,4 +1,5 @@
 import { MessageModel } from "../models/Message.js";
+import { UserAccountModel } from "../models/UserAccount.js";
 import { TypingStatusModel } from "../models/TypingStatus.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
@@ -33,6 +34,16 @@ export class MessageRateLimitError extends Error {
   }
 }
 
+export class ChatBannedError extends Error {
+  constructor(public until?: Date) {
+    super(
+      until
+        ? `You're restricted from chatting until ${until.toLocaleDateString()}`
+        : "You're permanently restricted from chatting",
+    );
+  }
+}
+
 // A typing status is considered live for this long after the last ping — the client
 // re-pings every ~2s while the user keeps typing.
 const TYPING_TTL_MS = 4000;
@@ -51,6 +62,12 @@ export function conversationIdFor(a: string, b: string): string {
  * limit — checked on every send, not just the first message of a conversation.
  */
 export async function requireCanMessage(fromClerkId: string, toClerkId: string): Promise<void> {
+  const account = await UserAccountModel.findOne({ clerkId: fromClerkId })
+    .select("chatBanExpiresAt chatBannedIndefinitely")
+    .lean();
+  if (account?.chatBannedIndefinitely) throw new ChatBannedError();
+  if (account?.chatBanExpiresAt && account.chatBanExpiresAt > new Date()) throw new ChatBannedError(account.chatBanExpiresAt);
+
   if (!(await isUnlockedEitherDirection(fromClerkId, toClerkId))) throw new NotUnlockedError();
   if (await isBlockedEitherDirection(fromClerkId, toClerkId)) throw new BlockedError();
 

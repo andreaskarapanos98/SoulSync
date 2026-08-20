@@ -16,6 +16,8 @@ export function AdminUserDetailPage() {
   const [reasonDraft, setReasonDraft] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
+  const [chatBanDays, setChatBanDays] = useState(7);
+  const [chatBanPermanent, setChatBanPermanent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +56,21 @@ export function AdminUserDetailPage() {
     setError(null);
     try {
       await api.setVerification(clerkId, status, reasonDraft || undefined);
+      setReasonDraft("");
+      load();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleChatBan(ban: { days: number } | { permanent: true } | { lift: true }) {
+    if (!clerkId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.setChatBan(clerkId, ban, reasonDraft || undefined);
       setReasonDraft("");
       load();
     } catch (err) {
@@ -177,6 +194,48 @@ export function AdminUserDetailPage() {
             className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300"
           >
             Reset to unverified
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Chat ban</h2>
+        <p className="mt-1 text-xs text-neutral-400">
+          {account.chatBannedIndefinitely
+            ? "Currently permanently restricted from chatting."
+            : account.chatBanExpiresAt && new Date(account.chatBanExpiresAt) > new Date()
+              ? `Currently restricted from chatting until ${new Date(account.chatBanExpiresAt).toLocaleString()}.`
+              : "Not currently chat-banned."}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {!chatBanPermanent && (
+            <input
+              type="number"
+              min={1}
+              value={chatBanDays}
+              onChange={(e) => setChatBanDays(Math.max(1, Number(e.target.value) || 1))}
+              className="w-16 rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+            />
+          )}
+          <label className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+            <input type="checkbox" checked={chatBanPermanent} onChange={(e) => setChatBanPermanent(e.target.checked)} />
+            permanent
+          </label>
+          <button
+            type="button"
+            onClick={() => handleChatBan(chatBanPermanent ? { permanent: true } : { days: chatBanDays })}
+            disabled={busy}
+            className="rounded-full bg-yellow-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
+          >
+            Chat ban
+          </button>
+          <button
+            type="button"
+            onClick={() => handleChatBan({ lift: true })}
+            disabled={busy}
+            className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300"
+          >
+            Lift chat ban
           </button>
         </div>
       </div>
