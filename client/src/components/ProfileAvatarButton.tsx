@@ -9,7 +9,7 @@ import { DefaultAvatarIcon } from "./DefaultAvatarIcon";
 // Out) instead of opening Clerk's own account UI. Photo comes from the shared
 // ProfilePhotoProvider so it updates the moment ProfileEditPage changes the primary
 // photo, instead of only on next mount/refresh.
-export function ProfileAvatarButton() {
+export function ProfileAvatarButton({ openUpward = false }: { openUpward?: boolean }) {
   const { userId } = useAuth();
   const { signOut } = useClerk();
   const { photoUrl } = useProfilePhoto();
@@ -42,7 +42,11 @@ export function ProfileAvatarButton() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+        <div
+          className={`absolute right-0 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900 ${
+            openUpward ? "bottom-full mb-2" : "mt-2"
+          }`}
+        >
           {userId && (
             <Link
               to={`/profiles/${userId}`}

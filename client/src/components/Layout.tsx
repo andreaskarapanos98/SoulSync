@@ -7,6 +7,7 @@ import { ChatNavLink } from "./ChatNavLink";
 import { NotificationBell } from "./NotificationBell";
 import { CoinBalanceBadge } from "./CoinBalanceBadge";
 import { AdminNavLink } from "./AdminNavLink";
+import { MobileTabBar } from "./MobileTabBar";
 import { UnreadCountProvider } from "../hooks/useUnreadCount";
 import { CoinBalanceProvider } from "../hooks/useCoinBalance";
 import { ProfilePhotoProvider } from "../hooks/useProfilePhoto";
@@ -27,14 +28,18 @@ export function Layout({ children }: { children: ReactNode }) {
             <SignedIn>
               <Link
                 to="/matches"
-                className="rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-brand-50 hover:text-brand-600 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                className="hidden rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-brand-50 hover:text-brand-600 sm:block dark:text-neutral-200 dark:hover:bg-neutral-800"
               >
                 💘 Soulmates
               </Link>
-              <ChatNavLink />
+              <span className="hidden sm:block">
+                <ChatNavLink />
+              </span>
               <CoinBalanceBadge />
               <NotificationBell />
-              <AdminNavLink />
+              <span className="hidden sm:block">
+                <AdminNavLink />
+              </span>
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">
@@ -49,13 +54,19 @@ export function Layout({ children }: { children: ReactNode }) {
               </SignUpButton>
             </SignedOut>
             <SignedIn>
-              <ProfileAvatarButton />
+              <span className="hidden sm:block">
+                <ProfileAvatarButton />
+              </span>
             </SignedIn>
           </div>
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col">{children}</main>
+      <main className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
+
+      <SignedIn>
+        <MobileTabBar />
+      </SignedIn>
 
       <footer className="border-t border-neutral-200 px-6 py-6 text-xs text-neutral-400 dark:border-neutral-800">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
