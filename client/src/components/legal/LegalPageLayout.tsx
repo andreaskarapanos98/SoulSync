@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "August 13, 2026";
+const LAST_UPDATED = "August 20, 2026";
 
 export function LegalPageLayout({ title, children }: { title: string; children: ReactNode }) {
   return (

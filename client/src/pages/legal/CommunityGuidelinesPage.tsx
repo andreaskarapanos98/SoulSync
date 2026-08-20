@@ -51,8 +51,9 @@ export function CommunityGuidelinesPage() {
         </p>
         <p>
           Reports are reviewed by our team. Depending on severity, an account may receive a
-          warning, be temporarily suspended, or be permanently banned. We don't refund
-          previously spent coins for enforcement actions.
+          warning, be restricted from chatting (for a set number of days or indefinitely), be
+          temporarily suspended, or be permanently banned. We don't refund previously spent
+          coins for enforcement actions.
         </p>
       </LegalSection>
     </LegalPageLayout>

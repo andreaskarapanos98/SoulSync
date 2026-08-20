@@ -84,9 +84,12 @@ export function TermsOfServicePage() {
       <LegalSection title="8. Reporting, blocking, and moderation">
         <p>
           You can report or block any user, profile, photo, voice recording, or message
-          directly in the app. We review reports and may warn, suspend, or permanently ban
-          accounts that violate these Terms or our Community Guidelines, at our discretion and
-          without a refund of previously spent coins.
+          directly in the app. We review reports and, depending on severity, may take one or
+          more of the following actions against an account that violates these Terms or our
+          Community Guidelines, at our discretion and without a refund of previously spent
+          coins: a warning; restricting the account from sending messages or gifts, for a set
+          number of days or indefinitely; suspending the account entirely; or permanently
+          banning it.
         </p>
       </LegalSection>
 

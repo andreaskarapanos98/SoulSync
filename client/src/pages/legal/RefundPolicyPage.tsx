@@ -46,7 +46,10 @@ export function RefundPolicyPage() {
             </Link>
             ), but the original fee itself isn't refunded.
           </li>
-          <li>Your account was suspended or banned for violating our Terms or Community Guidelines.</li>
+          <li>
+            Your account was restricted from chatting, suspended, or banned for violating our
+            Terms or Community Guidelines.
+          </li>
         </ul>
       </LegalSection>
 
