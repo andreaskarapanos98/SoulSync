@@ -71,7 +71,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <MobileTabBar />
       </SignedIn>
 
-      <footer className="border-t border-neutral-200 px-6 py-6 text-xs text-neutral-400 dark:border-neutral-800">
+      <footer className="hidden border-t border-neutral-200 px-6 py-6 text-xs text-neutral-400 sm:block dark:border-neutral-800">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
           <span>🔞 SoulSync is for adults 18+ only.</span>
           <nav className="flex flex-wrap gap-x-4 gap-y-1">
