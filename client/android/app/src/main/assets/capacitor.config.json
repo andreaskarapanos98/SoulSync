@@ -1,9 +1,0 @@
-{
-	"appId": "com.soulsync.app",
-	"appName": "SoulSync",
-	"webDir": "dist",
-	"server": {
-		"url": "https://soul-sync-client.vercel.app",
-		"cleartext": false
-	}
-}
