@@ -31,6 +31,7 @@ export function ChatThreadPage() {
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
   const [openingGift, setOpeningGift] = useState<{ giftId: string; emoji: string; label: string } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [showMobileActions, setShowMobileActions] = useState(false);
   const [otherName, setOtherName] = useState("");
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
   const [otherIsTyping, setOtherIsTyping] = useState(false);
@@ -343,27 +344,70 @@ export function ChatThreadPage() {
         </p>
       )}
 
+      <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleFileSelected} className="hidden" />
+
+      {/* Emoji/attach/camera/gift are common actions but there isn't room for them
+          inline on a narrow phone alongside the text input — collapsed behind a
+          single "+" toggle below sm, shown inline as before at sm and up. */}
+      {showMobileActions && (
+        <div className="flex items-center gap-1 pb-2 sm:hidden">
+          <EmojiPicker onSelect={(emoji) => handleDraftChange(draft + emoji)} />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingMedia}
+            title="Send a photo or video"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+          >
+            {uploadingMedia ? "…" : "📎"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setCameraOpen(true)}
+            disabled={uploadingMedia}
+            title="Take a photo"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+          >
+            📷
+          </button>
+          <GiftPicker onSend={handleSendGift} />
+        </div>
+      )}
+
       <div className="flex items-center gap-1 border-t border-neutral-200 pt-4 dark:border-neutral-800">
-        <EmojiPicker onSelect={(emoji) => handleDraftChange(draft + emoji)} />
-        <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleFileSelected} className="hidden" />
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadingMedia}
-          title="Send a photo or video"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+          onClick={() => setShowMobileActions((v) => !v)}
+          title="More"
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl text-neutral-500 hover:bg-neutral-100 sm:hidden dark:hover:bg-neutral-800 ${
+            showMobileActions ? "rotate-45" : ""
+          } transition-transform`}
         >
-          {uploadingMedia ? "…" : "📎"}
+          +
         </button>
-        <button
-          type="button"
-          onClick={() => setCameraOpen(true)}
-          disabled={uploadingMedia}
-          title="Take a photo"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
-        >
-          📷
-        </button>
+
+        <span className="hidden shrink-0 items-center gap-1 sm:flex">
+          <EmojiPicker onSelect={(emoji) => handleDraftChange(draft + emoji)} />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingMedia}
+            title="Send a photo or video"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+          >
+            {uploadingMedia ? "…" : "📎"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setCameraOpen(true)}
+            disabled={uploadingMedia}
+            title="Take a photo"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50 dark:hover:bg-neutral-800"
+          >
+            📷
+          </button>
+        </span>
+
         <input
           type="text"
           value={draft}
@@ -373,17 +417,23 @@ export function ChatThreadPage() {
             if (e.key === "Enter" && !sending) handleSend();
           }}
           placeholder="Type a message…"
-          className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:ring-brand-900"
+          className="min-w-0 flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:ring-brand-900"
         />
-        <GiftPicker onSend={handleSendGift} />
+
+        <span className="hidden shrink-0 sm:block">
+          <GiftPicker onSend={handleSendGift} />
+        </span>
+
         <VoiceMessageButton onSend={handleSendVoice} />
+
         <button
           type="button"
           onClick={handleSend}
           disabled={sending || !draft.trim()}
-          className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="shrink-0 rounded-full bg-brand-500 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 sm:px-5"
         >
-          Send
+          <span className="sm:hidden">➤</span>
+          <span className="hidden sm:inline">Send</span>
         </button>
       </div>
     </div>

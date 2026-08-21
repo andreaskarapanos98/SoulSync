@@ -38,7 +38,7 @@ export class ChatBannedError extends Error {
   constructor(public until?: Date) {
     super(
       until
-        ? `You're restricted from chatting until ${until.toLocaleDateString()}`
+        ? `You're restricted from chatting until ${until.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
         : "You're permanently restricted from chatting",
     );
   }
