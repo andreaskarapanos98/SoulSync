@@ -25,6 +25,8 @@ import { CommunityGuidelinesPage } from "./pages/legal/CommunityGuidelinesPage";
 import { CookiePolicyPage } from "./pages/legal/CookiePolicyPage";
 import { RefundPolicyPage } from "./pages/legal/RefundPolicyPage";
 import { AccountSettingsPage } from "./pages/AccountSettingsPage";
+import { SignInPage } from "./pages/SignInPage";
+import { SignUpPage } from "./pages/SignUpPage";
 import { SsoCallbackPage } from "./pages/SsoCallbackPage";
 import { OAuthNativeCallbackPage } from "./pages/OAuthNativeCallbackPage";
 import { RequireAuth } from "./components/RequireAuth";
@@ -41,6 +43,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/sso-callback" element={<SsoCallbackPage />} />
         <Route path="/oauth-native-callback" element={<OAuthNativeCallbackPage />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
         <Route
           path="/onboarding/about-me"
           element={
