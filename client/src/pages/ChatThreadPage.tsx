@@ -235,10 +235,13 @@ export function ChatThreadPage() {
 
   return (
     // Fixed full-screen takeover on mobile (like Instagram/WhatsApp) so the on-screen
-    // keyboard resizes the *message list* instead of scrolling the header out of view —
-    // h-dvh tracks the visual viewport as the keyboard opens/closes, unlike svh/lvh.
+    // keyboard resizes the *message list* instead of scrolling the header out of view.
+    // Sized off --keyboard-inset (set natively to the exact keyboard height, see
+    // MainActivity.java) rather than dvh — dvh's reaction to the keyboard turned out to
+    // be unreliable under this app's edge-to-edge status bar. --keyboard-inset defaults
+    // to 0px everywhere else, so this is just 100svh (unchanged) on plain web.
     // Desktop/tablet (sm:) keeps the original inline layout, completely unchanged.
-    <div className="fixed inset-0 z-20 flex h-dvh flex-col bg-white sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 dark:bg-neutral-950">
+    <div className="fixed inset-0 z-20 flex h-[calc(100svh-var(--keyboard-inset,0px))] flex-col bg-white sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 dark:bg-neutral-950">
       {openingGift && (
         <GiftAnimationOverlay
           giftId={openingGift.giftId}

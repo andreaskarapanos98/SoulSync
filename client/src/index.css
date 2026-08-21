@@ -16,6 +16,10 @@
 
 html {
   color-scheme: light dark;
+  /* Set from native (MainActivity.java) to the on-screen keyboard's exact height in the
+     wrapped Android app; 0 elsewhere (regular web, keyboard closed). Chat's mobile
+     layout sizes itself off this directly instead of relying on dvh/native resize. */
+  --keyboard-inset: 0px;
 }
 
 body {
