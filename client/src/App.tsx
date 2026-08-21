@@ -25,15 +25,22 @@ import { CommunityGuidelinesPage } from "./pages/legal/CommunityGuidelinesPage";
 import { CookiePolicyPage } from "./pages/legal/CookiePolicyPage";
 import { RefundPolicyPage } from "./pages/legal/RefundPolicyPage";
 import { AccountSettingsPage } from "./pages/AccountSettingsPage";
+import { SsoCallbackPage } from "./pages/SsoCallbackPage";
+import { OAuthNativeCallbackPage } from "./pages/OAuthNativeCallbackPage";
 import { RequireAuth } from "./components/RequireAuth";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { Layout } from "./components/Layout";
+import { NativeAuthBridge } from "./components/NativeAuthBridge";
 
 function App() {
   return (
-    <Layout>
+    <>
+      <NativeAuthBridge />
+      <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/sso-callback" element={<SsoCallbackPage />} />
+        <Route path="/oauth-native-callback" element={<OAuthNativeCallbackPage />} />
         <Route
           path="/onboarding/about-me"
           element={
@@ -216,7 +223,8 @@ function App() {
           }
         />
       </Routes>
-    </Layout>
+      </Layout>
+    </>
   );
 }
 

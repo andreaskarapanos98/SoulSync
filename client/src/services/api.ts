@@ -201,6 +201,7 @@ export function createApiClient(getToken: GetToken) {
       return res.blob();
     },
     deleteMyAccount: () => request<{ deleted: true }>("/api/v1/me", { method: "DELETE" }),
+    getMobileTicket: () => request<{ ticket: string }>("/api/v1/auth/mobile-ticket", { method: "POST" }),
   };
 }
 

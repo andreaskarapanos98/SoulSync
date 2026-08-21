@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, useSignIn } from "@clerk/clerk-react";
+import { Capacitor } from "@capacitor/core";
 import { Logo } from "./Logo";
 import { ProfileAvatarButton } from "./ProfileAvatarButton";
 import { ChatNavLink } from "./ChatNavLink";
@@ -13,6 +14,24 @@ import { CoinBalanceProvider } from "../hooks/useCoinBalance";
 import { ProfilePhotoProvider } from "../hooks/useProfilePhoto";
 
 export function Layout({ children }: { children: ReactNode }) {
+  const { signIn } = useSignIn();
+
+  // Google refuses to render its consent screen inside an embedded WebView, so Clerk's
+  // own modal Google button silently fails in the wrapped Android app — it can open
+  // Google in an external tab but nothing brings the user back afterwards. This button
+  // drives the same OAuth flow manually with an explicit round-trip: /sso-callback lets
+  // Clerk finish the exchange, then /oauth-native-callback bridges the resulting session
+  // back into the app's own WebView (see NativeAuthBridge.tsx). Desktop/regular web never
+  // hits this — Clerk's modal Google button already works fine there.
+  async function handleNativeGoogleSignIn() {
+    if (!signIn) return;
+    await signIn.authenticateWithRedirect({
+      strategy: "oauth_google",
+      redirectUrl: `${window.location.origin}/sso-callback`,
+      redirectUrlComplete: `${window.location.origin}/oauth-native-callback`,
+    });
+  }
+
   return (
     <UnreadCountProvider>
     <CoinBalanceProvider>
@@ -45,6 +64,16 @@ export function Layout({ children }: { children: ReactNode }) {
               </span>
             </SignedIn>
             <SignedOut>
+              {Capacitor.isNativePlatform() && (
+                <button
+                  type="button"
+                  onClick={handleNativeGoogleSignIn}
+                  title="Continue with Google"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 text-sm font-bold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                  G
+                </button>
+              )}
               <SignInButton mode="modal">
                 <button className="rounded-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800">
                   Sign in

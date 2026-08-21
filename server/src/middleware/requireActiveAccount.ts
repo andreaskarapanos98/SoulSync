@@ -4,7 +4,9 @@ import { UserAccountModel } from "../models/UserAccount.js";
 
 // /api/v1/me must stay reachable so a suspended/banned user's client can even find out
 // their own status; /api/v1/admin is gated separately by role via requireAdmin, not status.
-const EXEMPT_PREFIXES = ["/api/v1/me", "/api/v1/admin", "/api/health", "/uploads"];
+// /api/v1/auth (the native-app sign-in ticket bridge) has to work before the client has
+// any way to know its own status yet — same reasoning as /api/v1/me.
+const EXEMPT_PREFIXES = ["/api/v1/me", "/api/v1/admin", "/api/v1/auth", "/api/health", "/uploads"];
 
 /**
  * Blocks every other authenticated API call once an account is suspended or banned.

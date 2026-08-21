@@ -27,6 +27,7 @@ import { adminRouter } from "./routes/admin.js";
 import { reportsRouter } from "./routes/reports.js";
 import { blocksRouter } from "./routes/blocks.js";
 import { analyticsRouter } from "./routes/analytics.js";
+import { mobileAuthRouter } from "./routes/mobileAuth.js";
 import { requireActiveAccount } from "./middleware/requireActiveAccount.js";
 import { logSystemError } from "./services/errorLogService.js";
 
@@ -66,6 +67,7 @@ app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/reports", reportsRouter);
 app.use("/api/v1/blocks", blocksRouter);
 app.use("/api/v1/analytics", analyticsRouter);
+app.use("/api/v1/auth", mobileAuthRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(
