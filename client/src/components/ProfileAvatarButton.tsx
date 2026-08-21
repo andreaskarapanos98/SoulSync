@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth, useClerk } from "@clerk/clerk-react";
+import { useApi } from "../hooks/useApi";
 import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { DefaultAvatarIcon } from "./DefaultAvatarIcon";
 
@@ -13,8 +14,16 @@ export function ProfileAvatarButton({ openUpward = false }: { openUpward?: boole
   const { userId } = useAuth();
   const { signOut } = useClerk();
   const { photoUrl } = useProfilePhoto();
+  const api = useApi();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // AdminNavLink is desktop-only (hidden on the mobile tab bar), and the wrapped native
+  // app has no address bar to type /admin into — this is the only way to reach it there.
+  useEffect(() => {
+    api.getMe().then((me) => setIsAdmin(me.isAdmin)).catch(() => {});
+  }, [api]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -77,6 +86,15 @@ export function ProfileAvatarButton({ openUpward = false }: { openUpward?: boole
           >
             ⚙️ Account Settings
           </Link>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            >
+              🛠️ Admin
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => signOut()}
