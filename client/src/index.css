@@ -16,10 +16,12 @@
 
 html {
   color-scheme: light dark;
-  /* Set from native (MainActivity.java) to the on-screen keyboard's exact height in the
-     wrapped Android app; 0 elsewhere (regular web, keyboard closed). Chat's mobile
-     layout sizes itself off this directly instead of relying on dvh/native resize. */
+  /* Set from native (MainActivity.java) in the wrapped Android app; 0/unset elsewhere
+     (regular web). See MainActivity.java for why these exist instead of dvh/svh and
+     env(safe-area-inset-top), which turned out to be unreliable under this app's
+     edge-to-edge status bar. */
   --keyboard-inset: 0px;
+  --status-bar-inset: 0px;
 }
 
 body {

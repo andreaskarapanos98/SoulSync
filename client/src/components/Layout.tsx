@@ -21,7 +21,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-svh flex flex-col bg-gradient-to-b from-brand-50/60 via-white to-white dark:from-brand-950/10 dark:via-neutral-950 dark:to-neutral-950">
       <header
         className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        style={{ paddingTop: "var(--status-bar-inset, env(safe-area-inset-top))" }}
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link to="/">

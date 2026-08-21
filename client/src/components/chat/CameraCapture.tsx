@@ -110,7 +110,7 @@ export function CameraCapture({ onSend, onClose }: Props) {
         type="button"
         onClick={close}
         title="Close"
-        style={{ top: "calc(env(safe-area-inset-top) + 1rem)" }}
+        style={{ top: "calc(var(--status-bar-inset, env(safe-area-inset-top)) + 1rem)" }}
         className="absolute right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-xl text-white hover:bg-black/60"
       >
         ✕

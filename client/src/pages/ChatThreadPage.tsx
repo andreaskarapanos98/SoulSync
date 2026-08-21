@@ -236,13 +236,14 @@ export function ChatThreadPage() {
   return (
     // Fixed full-screen takeover on mobile (like Instagram/WhatsApp) so the on-screen
     // keyboard resizes the *message list* instead of scrolling the header out of view.
-    // Stays a constant 100svh (never shrinks) so it keeps fully covering the app's own
-    // header/tab bar underneath — shrinking the box itself instead just reveals them in
-    // the gap. Padding it by --keyboard-inset (set natively to the exact keyboard
-    // height, see MainActivity.java) pushes the composer up above the keyboard instead.
-    // --keyboard-inset defaults to 0px everywhere else, so this is inert on plain web.
+    // Sized off --app-height (the WebView's real measured height, see MainActivity.java)
+    // rather than 100svh, which doesn't reliably equal the true screen height under this
+    // app's edge-to-edge status bar — coming out shorter and exposing the tab bar
+    // underneath. Stays constant (never shrinks for the keyboard) so it keeps fully
+    // covering that tab bar; padding by --keyboard-inset pushes the composer up above
+    // the keyboard instead. Both default to inert values everywhere else (plain web).
     // Desktop/tablet (sm:) keeps the original inline layout, completely unchanged.
-    <div className="fixed inset-0 z-20 flex h-[100svh] flex-col bg-white pb-[var(--keyboard-inset,0px)] sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 sm:pb-8 dark:bg-neutral-950">
+    <div className="fixed inset-0 z-20 flex h-[var(--app-height,100svh)] flex-col bg-white pb-[var(--keyboard-inset,0px)] sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 sm:pb-8 dark:bg-neutral-950">
       {openingGift && (
         <GiftAnimationOverlay
           giftId={openingGift.giftId}
@@ -256,7 +257,7 @@ export function ChatThreadPage() {
       )}
       {cameraOpen && <CameraCapture onSend={sendPhotoFile} onClose={() => setCameraOpen(false)} />}
       <div
-        className="flex shrink-0 items-center gap-3 border-b border-neutral-200 px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-0 sm:pt-0 dark:border-neutral-800"
+        className="flex shrink-0 items-center gap-3 border-b border-neutral-200 px-4 pb-4 pt-[calc(var(--status-bar-inset,env(safe-area-inset-top))+0.75rem)] sm:px-0 sm:pt-0 dark:border-neutral-800"
       >
         <Link to="/chat" className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
           ←
