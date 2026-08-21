@@ -42,6 +42,19 @@ function sendGateErrorStatus(err: unknown): number | undefined {
   return undefined;
 }
 
+/**
+ * Body for a send-gate rejection. For a chat ban, includes the raw ISO expiry so the
+ * client can format it in the *viewer's* timezone — a message pre-formatted here would
+ * be baked into the server's timezone, which is misleading for anyone elsewhere.
+ */
+function sendGateErrorBody(err: unknown): { error: string; chatBanUntil?: string } {
+  const message = (err as Error).message;
+  if (err instanceof ChatBannedError && err.until) {
+    return { error: message, chatBanUntil: err.until.toISOString() };
+  }
+  return { error: message };
+}
+
 export const conversationsRouter = Router();
 
 const MAX_VOICE_MESSAGE_DURATION_SEC = 61;
@@ -173,7 +186,7 @@ conversationsRouter.post("/:otherClerkId/messages", async (req, res) => {
     }
     const status = sendGateErrorStatus(err);
     if (status) {
-      res.status(status).json({ error: (err as Error).message });
+      res.status(status).json(sendGateErrorBody(err));
       return;
     }
     throw err;
@@ -194,7 +207,7 @@ conversationsRouter.post("/:otherClerkId/voice-messages", upload.single("audio")
     await requireCanMessage(userId, req.params.otherClerkId);
   } catch (err) {
     const status = sendGateErrorStatus(err);
-    res.status(status ?? 403).json({ error: (err as Error).message });
+    res.status(status ?? 403).json(sendGateErrorBody(err));
     return;
   }
 
@@ -224,7 +237,7 @@ conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), asy
     await requireCanMessage(userId, req.params.otherClerkId);
   } catch (err) {
     const status = sendGateErrorStatus(err);
-    res.status(status ?? 403).json({ error: (err as Error).message });
+    res.status(status ?? 403).json(sendGateErrorBody(err));
     return;
   }
 
@@ -263,7 +276,7 @@ conversationsRouter.post("/:otherClerkId/gifts", async (req, res) => {
     }
     const status = sendGateErrorStatus(err);
     if (status) {
-      res.status(status).json({ error: (err as Error).message });
+      res.status(status).json(sendGateErrorBody(err));
       return;
     }
     throw err;

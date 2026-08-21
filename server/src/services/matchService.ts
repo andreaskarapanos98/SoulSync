@@ -7,7 +7,7 @@ import { ProfileModel, type Profile } from "../models/Profile.js";
 import { calculateAge } from "../utils/age.js";
 import { getPointGivingQuestions, roundScore, type PointGivingQuestion } from "./scoringEngine.js";
 import { computeScore, heightEliminates, miniScaleThresholdEliminates } from "./compatibilityScoring.js";
-import { getUnlockedClerkIds } from "./unlockService.js";
+import { getUnlockedEitherDirectionClerkIds } from "./unlockService.js";
 import { getMutuallyBlockedClerkIds } from "./blockService.js";
 import { recordMatchNotificationsIfNeeded } from "./notificationService.js";
 
@@ -198,7 +198,7 @@ export async function getMatches(viewerClerkId: string) {
   const { ids, aboutMeByClerkId, preferenceByClerkId, dealBreakersByClerkId, profileByClerkId, verifiedByClerkId } =
     await loadCandidatePool(viewerClerkId);
   const [unlockedClerkIds, blockedClerkIds] = await Promise.all([
-    getUnlockedClerkIds(viewerClerkId),
+    getUnlockedEitherDirectionClerkIds(viewerClerkId),
     getMutuallyBlockedClerkIds(viewerClerkId),
   ]);
 

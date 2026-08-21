@@ -53,7 +53,7 @@ export function ProfileAvatarButton({ openUpward = false }: { openUpward?: boole
               onClick={() => setOpen(false)}
               className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
-              View Profile
+              👤 View Profile
             </Link>
           )}
           <Link
@@ -61,28 +61,28 @@ export function ProfileAvatarButton({ openUpward = false }: { openUpward?: boole
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
           >
-            Edit Profile
+            ✏️ Edit Profile
           </Link>
           <Link
             to="/"
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
           >
-            Questionnaires
+            💕 Questionnaires
           </Link>
           <Link
             to="/account"
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
           >
-            Account Settings
+            ⚙️ Account Settings
           </Link>
           <button
             type="button"
             onClick={() => signOut()}
             className="block w-full px-4 py-2 text-left text-sm text-neutral-700 hover:bg-brand-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
           >
-            Sign Out
+            🚪 Sign Out
           </button>
         </div>
       )}

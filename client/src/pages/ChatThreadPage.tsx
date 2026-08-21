@@ -21,6 +21,18 @@ const POLL_INTERVAL_MS = 4000;
 const TYPING_PING_THROTTLE_MS = 1500;
 const TYPING_SOUND_THROTTLE_MS = 120;
 
+// A chat-ban error carries the raw expiry as an ISO string so it's rendered in the
+// *viewer's* timezone rather than baking in whatever timezone the server rendered it in.
+// Falls back to `.message` (never `String(err)`, which would prepend "Error: ").
+function formatChatError(err: unknown): string {
+  if (err instanceof ApiError && err.chatBanUntil) {
+    const until = new Date(err.chatBanUntil).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    return `You're restricted from chatting until ${until}`;
+  }
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
 export function ChatThreadPage() {
   const { clerkId } = useParams<{ clerkId: string }>();
   const api = useApi();
@@ -77,7 +89,7 @@ export function ChatThreadPage() {
         // nav badge immediately instead of waiting on its own independent poll timer.
         refreshUnreadCount();
       })
-      .catch((err) => setError(String(err)));
+      .catch((err) => setError(formatChatError(err)));
   }
 
   useEffect(() => {
@@ -138,7 +150,7 @@ export function ChatThreadPage() {
       setDraft("");
       load();
     } catch (err) {
-      setSendError(String(err));
+      setSendError(formatChatError(err));
     } finally {
       setSending(false);
     }
@@ -151,7 +163,7 @@ export function ChatThreadPage() {
       await api.sendVoiceMessage(clerkId, blob, durationSec);
       load();
     } catch (err) {
-      setSendError(String(err));
+      setSendError(formatChatError(err));
     }
   }
 
@@ -163,7 +175,7 @@ export function ChatThreadPage() {
       await api.sendMediaMessage(clerkId, file);
       load();
     } catch (err) {
-      setSendError(String(err));
+      setSendError(formatChatError(err));
     } finally {
       setUploadingMedia(false);
     }
@@ -185,7 +197,9 @@ export function ChatThreadPage() {
       load();
     } catch (err) {
       setSendError(
-        err instanceof ApiError && err.status === 402 ? "You don't have enough coins for that gift." : String(err),
+        err instanceof ApiError && err.status === 402
+          ? "You don't have enough coins for that gift."
+          : formatChatError(err),
       );
     }
   }
@@ -199,7 +213,7 @@ export function ChatThreadPage() {
         label: res.message.giftLabel ?? "Gift",
       });
     } catch (err) {
-      setSendError(String(err));
+      setSendError(formatChatError(err));
     }
   }
 
@@ -220,7 +234,11 @@ export function ChatThreadPage() {
   const lastMineSeen = lastMineIndex !== -1 && Boolean(messages[lastMineIndex].readAt);
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8">
+    // Fixed full-screen takeover on mobile (like Instagram/WhatsApp) so the on-screen
+    // keyboard resizes the *message list* instead of scrolling the header out of view —
+    // h-dvh tracks the visual viewport as the keyboard opens/closes, unlike svh/lvh.
+    // Desktop/tablet (sm:) keeps the original inline layout, completely unchanged.
+    <div className="fixed inset-0 z-20 flex h-dvh flex-col bg-white sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 dark:bg-neutral-950">
       {openingGift && (
         <GiftAnimationOverlay
           giftId={openingGift.giftId}
@@ -233,7 +251,9 @@ export function ChatThreadPage() {
         />
       )}
       {cameraOpen && <CameraCapture onSend={sendPhotoFile} onClose={() => setCameraOpen(false)} />}
-      <div className="flex items-center gap-3 border-b border-neutral-200 pb-4 dark:border-neutral-800">
+      <div
+        className="flex shrink-0 items-center gap-3 border-b border-neutral-200 px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:px-0 sm:pt-0 dark:border-neutral-800"
+      >
         <Link to="/chat" className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
           ←
         </Link>
@@ -315,7 +335,7 @@ export function ChatThreadPage() {
         />
       )}
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-6">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-6 sm:px-0">
         {messages.length === 0 ? (
           <p className="mt-10 text-center text-sm text-neutral-400">Say hello 👋</p>
         ) : (
@@ -339,7 +359,7 @@ export function ChatThreadPage() {
       </div>
 
       {sendError && (
-        <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
+        <p className="mx-4 mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 sm:mx-0 dark:bg-red-950/30 dark:text-red-400">
           {sendError}
         </p>
       )}
@@ -350,7 +370,7 @@ export function ChatThreadPage() {
           inline on a narrow phone alongside the text input — collapsed behind a
           single "+" toggle below sm, shown inline as before at sm and up. */}
       {showMobileActions && (
-        <div className="flex items-center gap-1 pb-2 sm:hidden">
+        <div className="flex items-center gap-1 px-4 pb-2 sm:hidden">
           <EmojiPicker onSelect={(emoji) => handleDraftChange(draft + emoji)} />
           <button
             type="button"
@@ -374,7 +394,9 @@ export function ChatThreadPage() {
         </div>
       )}
 
-      <div className="flex items-center gap-1 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+      <div
+        className="flex shrink-0 items-center gap-1 border-t border-neutral-200 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 sm:px-0 sm:pb-4 dark:border-neutral-800"
+      >
         <button
           type="button"
           onClick={() => setShowMobileActions((v) => !v)}

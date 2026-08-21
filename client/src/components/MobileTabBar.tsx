@@ -50,7 +50,6 @@ export function MobileTabBar() {
         className={`${tabClass(isActive("/profile") || isActive("/profiles") || isActive("/account"))} p-0`}
       >
         <ProfileAvatarButton openUpward />
-        <span className="pointer-events-none -mt-0.5">Profile</span>
       </div>
     </nav>
   );

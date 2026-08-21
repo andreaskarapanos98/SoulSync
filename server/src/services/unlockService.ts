@@ -5,14 +5,18 @@ import { getCompatibilityScore } from "./pairCompatibility.js";
 import { createProfileUnlockedNotification } from "./notificationService.js";
 import { track } from "./analyticsService.js";
 
-/** Spends coins and unlocks the profile. Already-unlocked is a free no-op (idempotent). */
+/**
+ * Spends coins and unlocks the profile. Free no-op (idempotent) once either side has
+ * already unlocked the other — that already grants both full profile access and chat
+ * (see isUnlockedEitherDirection), so charging the second person for their own direction's
+ * record would just be paying again for access they already have.
+ */
 export async function unlockUser(
   viewerClerkId: string,
   unlockedClerkId: string,
   perspective: UnlockPerspective,
 ): Promise<{ coinBalance?: number }> {
-  const existing = await UnlockModel.findOne({ viewerClerkId, unlockedClerkId });
-  if (existing) return {};
+  if (await isUnlockedEitherDirection(viewerClerkId, unlockedClerkId)) return {};
 
   // Recomputed server-side, never trusted from the client — but which of the two
   // directional scores to recompute *is* taken from the client, because "yourSoulmates"
@@ -39,9 +43,16 @@ export async function unlockUser(
   return { coinBalance };
 }
 
-export async function getUnlockedClerkIds(viewerClerkId: string): Promise<Set<string>> {
-  const docs = await UnlockModel.find({ viewerClerkId }).lean();
-  return new Set(docs.map((d) => d.unlockedClerkId));
+/**
+ * Every clerkId that counts as "unlocked" for this viewer, in either direction — used to
+ * decide whether a match card still shows a paid "Unlock" CTA. A candidate who already
+ * unlocked the viewer belongs here too, since that already grants full mutual access.
+ */
+export async function getUnlockedEitherDirectionClerkIds(clerkId: string): Promise<Set<string>> {
+  const docs = await UnlockModel.find({ $or: [{ viewerClerkId: clerkId }, { unlockedClerkId: clerkId }] }).lean();
+  const ids = new Set<string>();
+  for (const d of docs) ids.add(d.viewerClerkId === clerkId ? d.unlockedClerkId : d.viewerClerkId);
+  return ids;
 }
 
 export async function isUnlocked(viewerClerkId: string, targetClerkId: string): Promise<boolean> {

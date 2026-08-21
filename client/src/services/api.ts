@@ -32,11 +32,15 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 export class ApiError extends Error {
   status: number;
   issues?: string[];
+  // ISO timestamp for a chat-ban error — lets the UI format it in the viewer's own
+  // timezone instead of showing whatever timezone the server happened to render in.
+  chatBanUntil?: string;
 
-  constructor(status: number, issues?: string[]) {
+  constructor(status: number, issues?: string[], chatBanUntil?: string) {
     super(issues?.length ? issues.join("; ") : `API request failed with status ${status}`);
     this.status = status;
     this.issues = issues;
+    this.chatBanUntil = chatBanUntil;
   }
 }
 
@@ -56,7 +60,7 @@ export function createApiClient(getToken: GetToken) {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new ApiError(res.status, body.issues ?? (body.error ? [body.error] : undefined));
+      throw new ApiError(res.status, body.issues ?? (body.error ? [body.error] : undefined), body.chatBanUntil);
     }
     return res.json() as Promise<T>;
   }
@@ -71,7 +75,7 @@ export function createApiClient(getToken: GetToken) {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new ApiError(res.status, body.issues ?? (body.error ? [body.error] : undefined));
+      throw new ApiError(res.status, body.issues ?? (body.error ? [body.error] : undefined), body.chatBanUntil);
     }
     return res.json() as Promise<T>;
   }
