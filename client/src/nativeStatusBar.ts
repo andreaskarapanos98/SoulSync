@@ -9,6 +9,10 @@ import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 // env(safe-area-inset-top) so content still clears the clock/icons.
 export async function configureNativeStatusBar(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+
+  // Lets index.css target native-only rules (e.g. hiding Clerk's own Google button,
+  // which can't work inside a WebView — see NativeGoogleButton for the replacement).
+  document.documentElement.classList.add("native-app");
   try {
     await StatusBar.setOverlaysWebView({ overlay: true });
     await StatusBar.setStyle({ style: Style.Dark }); // dark icons/text, for our light header

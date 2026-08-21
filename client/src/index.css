@@ -24,6 +24,16 @@ html {
   --status-bar-inset: 0px;
 }
 
+/* Clerk renders its own social (Google) buttons inside SignIn/SignUp, and they can't work
+   in the wrapped app — Google blocks its consent screen in embedded WebViews, so tapping
+   one is a dead end. SignInPage/SignUpPage supply a working replacement, so hide Clerk's
+   copies here rather than showing two "Continue with Google" buttons. Clerk's own styles
+   beat both a `hidden` utility class and its `appearance` style objects, hence targeting
+   its documented cl-* classes with !important. Native only; plain web is untouched. */
+.native-app :is(.cl-socialButtons, .cl-socialButtonsBlockButton, .cl-socialButtonsIconButton, .cl-dividerRow) {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);

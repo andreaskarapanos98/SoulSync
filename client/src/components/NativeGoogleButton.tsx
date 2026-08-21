@@ -1,35 +1,42 @@
+import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
 
-// Opens the Google sign-in flow in a Chrome Custom Tab rather than navigating the app's
-// own WebView: Google refuses to render its consent screen inside an embedded WebView,
-// and Clerk ties a sign-in attempt to the browser context that started it — so the whole
-// flow has to begin and end in the system browser (see NativeOAuthStartPage). The app
-// gets the resulting session back via the soulsync:// deep link (NativeAuthBridge.tsx).
-export function NativeGoogleButton({ label }: { label: string }) {
-  async function handleClick() {
-    await Browser.open({ url: `${window.location.origin}/native-oauth-start` });
+/**
+ * Opens a URL in the phone's real browser, never in the app's own WebView.
+ *
+ * Prefers a Chrome Custom Tab, but falls back to handing Android an `intent:` URL, which
+ * the OS routes to the default browser without needing any plugin at all. The fallback
+ * matters: the web bundle updates the moment it's deployed, while native plugins only
+ * exist in a freshly built APK — without it, every install still running an older APK
+ * gets a dead button ("Browser plugin is not implemented on android").
+ */
+async function openInSystemBrowser(url: string): Promise<void> {
+  if (Capacitor.isPluginAvailable("Browser")) {
+    try {
+      await Browser.open({ url });
+      return;
+    } catch {
+      // Fall through to the intent: form below.
+    }
   }
+  const { host, pathname, search } = new URL(url);
+  window.location.href =
+    `intent://${host}${pathname}${search}` +
+    `#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+}
 
+// Google refuses to render its consent screen inside an embedded WebView, and Clerk ties
+// a sign-in attempt to the browser context that created it — so the whole flow has to
+// start and finish in the system browser (see NativeOAuthStartPage). The app gets the
+// resulting session back via the soulsync:// deep link (NativeAuthBridge.tsx).
+export function NativeGoogleButton({ label }: { label: string }) {
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={() => openInSystemBrowser(`${window.location.origin}/native-oauth-start`)}
       className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
     >
       {label}
     </button>
   );
 }
-
-// Clerk renders its own (non-functional in a WebView) Google button inside SignIn/SignUp.
-// Hide it with style objects rather than utility classes — Clerk's own CSS wins over a
-// bare `hidden` class, which is why two "Continue with Google" buttons were showing up.
-export const hideClerkSocialAppearance = {
-  elements: {
-    socialButtons: { display: "none" },
-    socialButtonsBlockButton: { display: "none" },
-    socialButtonsProviderIcon: { display: "none" },
-    dividerRow: { display: "none" },
-    cardBox: { boxShadow: "none" },
-  },
-} as const;

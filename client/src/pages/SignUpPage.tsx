@@ -1,5 +1,5 @@
 import { SignUp } from "@clerk/clerk-react";
-import { NativeGoogleButton, hideClerkSocialAppearance } from "../components/NativeGoogleButton";
+import { NativeGoogleButton } from "../components/NativeGoogleButton";
 
 // Native-only full page — see SignInPage.tsx, same reasoning. Google sign-up runs through
 // the same flow (Clerk creates the account automatically for a first-time Google user).
@@ -12,7 +12,7 @@ export function SignUpPage() {
         or
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
       </div>
-      <SignUp routing="virtual" fallbackRedirectUrl="/matches" appearance={hideClerkSocialAppearance} />
+      <SignUp routing="virtual" fallbackRedirectUrl="/matches" appearance={{ elements: { cardBox: "shadow-none" } }} />
     </div>
   );
 }
