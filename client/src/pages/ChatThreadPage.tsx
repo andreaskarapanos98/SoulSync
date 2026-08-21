@@ -236,14 +236,13 @@ export function ChatThreadPage() {
   return (
     // Fixed full-screen takeover on mobile (like Instagram/WhatsApp) so the on-screen
     // keyboard resizes the *message list* instead of scrolling the header out of view.
-    // Sized off --app-height (the WebView's real measured height, see MainActivity.java)
-    // rather than 100svh, which doesn't reliably equal the true screen height under this
-    // app's edge-to-edge status bar — coming out shorter and exposing the tab bar
-    // underneath. Stays constant (never shrinks for the keyboard) so it keeps fully
-    // covering that tab bar; padding by --keyboard-inset pushes the composer up above
-    // the keyboard instead. Both default to inert values everywhere else (plain web).
-    // Desktop/tablet (sm:) keeps the original inline layout, completely unchanged.
-    <div className="fixed inset-0 z-20 flex h-[var(--app-height,100svh)] flex-col bg-white pb-[var(--keyboard-inset,0px)] sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 sm:pb-8 dark:bg-neutral-950">
+    // 100svh is exactly right here and needs no keyboard compensation: the native window
+    // is already resized when the keyboard opens (windowSoftInputMode="adjustResize"), so
+    // the viewport 100svh resolves against *already* ends where the keyboard begins.
+    // Padding by --keyboard-inset on top of that double-counted the keyboard and left a
+    // gap of dead space above it (measured on-device: 570px viewport + 255px padding on
+    // a 255px keyboard). Desktop/tablet (sm:) keeps the original inline layout unchanged.
+    <div className="fixed inset-0 z-20 flex h-[100svh] flex-col bg-white sm:static sm:z-auto sm:mx-auto sm:h-auto sm:w-full sm:max-w-2xl sm:flex-1 sm:bg-transparent sm:px-6 sm:py-8 dark:bg-neutral-950">
       {openingGift && (
         <GiftAnimationOverlay
           giftId={openingGift.giftId}

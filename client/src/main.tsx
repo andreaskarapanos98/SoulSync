@@ -2,7 +2,6 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { BrowserRouter } from 'react-router-dom'
-import { Capacitor } from '@capacitor/core'
 import './index.css'
 import App from './App.tsx'
 import { configureNativeStatusBar } from './nativeStatusBar.ts'
@@ -28,14 +27,6 @@ const clerkAppearance = {
     borderRadius: '0.75rem',
     fontFamily: "'Segoe UI', system-ui, Roboto, sans-serif",
   },
-  // Google won't render its consent screen inside an embedded WebView, so Clerk's own
-  // Google button in this modal can't work in the wrapped Android app — Layout.tsx adds
-  // a separate working "Continue with Google" button that handles the OAuth round-trip
-  // manually instead. Hide the modal's own copy on native so there's only one (working)
-  // Google entry point; desktop/regular web keeps it exactly as before.
-  ...(Capacitor.isNativePlatform() && {
-    elements: { socialButtonsBlockButton: 'hidden', dividerRow: 'hidden' },
-  }),
 }
 
 createRoot(document.getElementById('root')!).render(

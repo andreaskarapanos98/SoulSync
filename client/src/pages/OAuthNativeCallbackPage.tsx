@@ -2,13 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { useApi } from "../hooks/useApi";
 
-// Reached in the external browser tab Google OAuth had to run in (Capacitor/Android
-// can't complete Google sign-in inside its own embedded WebView — see the native
-// Google button in Layout.tsx). By the time we're here, Clerk has already created a
-// session in THIS browser tab's cookie jar — but that's a separate, isolated cookie jar
-// from the app's own WebView, so the app itself still isn't signed in. Bridge the two:
-// mint a short-lived one-time ticket and hand it to the app via a custom-scheme
-// redirect; NativeAuthBridge.tsx picks it up and exchanges it for the app's own session.
+// Final hop of the native Google sign-in, running in the system browser (see
+// NativeOAuthStartPage for why the whole flow lives there). Clerk has just created a
+// session in THIS browser's cookie jar — which the app's WebView can't see — so mint a
+// short-lived one-time ticket and hand it to the app through the soulsync:// deep link;
+// NativeAuthBridge.tsx redeems it for a session on the app side.
 export function OAuthNativeCallbackPage() {
   const api = useApi();
   const { isLoaded, isSignedIn } = useAuth();
@@ -17,35 +15,44 @@ export function OAuthNativeCallbackPage() {
   const requestedRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || requestedRef.current) return;
+    if (!isLoaded || requestedRef.current) return;
+    // Signed out here means the sign-in didn't land in this browser at all (the failure
+    // this page used to hang forever on). Surface it instead of spinning.
+    if (!isSignedIn) {
+      setError("Sign-in didn't complete in this browser. Please head back to the app and try again.");
+      return;
+    }
     requestedRef.current = true;
     api
       .getMobileTicket()
       .then((res) => {
         const url = `soulsync://oauth-complete?ticket=${encodeURIComponent(res.ticket)}`;
         setTicketUrl(url);
+        // Browsers block custom-scheme navigation that isn't user-initiated, so this
+        // may silently no-op — hence the always-visible button below.
         window.location.href = url;
       })
-      .catch((err) => setError(String(err)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, isSignedIn]);
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+  }, [isLoaded, isSignedIn, api]);
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col items-center px-6 py-20 text-center">
-      <span className="text-4xl">🔗</span>
-      <h1 className="mt-4 text-2xl font-semibold text-neutral-900 dark:text-white">Taking you back to SoulSync…</h1>
+    <div className="mx-auto flex w-full max-w-sm flex-col items-center px-6 py-20 text-center">
+      <span className="text-4xl">{error ? "😕" : "🔗"}</span>
+      <h1 className="mt-4 text-2xl font-semibold text-neutral-900 dark:text-white">
+        {error ? "Couldn't finish sign-in" : "You're signed in!"}
+      </h1>
       <p className="mt-2 text-neutral-500 dark:text-neutral-400">
-        {error ? "Something went wrong finishing sign-in." : "This should only take a second."}
+        {error ?? "Tap below to return to SoulSync."}
       </p>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       {ticketUrl && (
         <a
           href={ticketUrl}
-          className="mt-6 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
+          className="mt-6 w-full rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
         >
-          Didn't open automatically? Tap here
+          Return to SoulSync
         </a>
       )}
+      {!ticketUrl && !error && <p className="mt-6 text-sm text-neutral-400">Finishing up…</p>}
     </div>
   );
 }

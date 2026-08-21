@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import { useSignIn } from "@clerk/clerk-react";
 
 // The other half of the native Google sign-in flow (see the "Continue with Google"
@@ -50,6 +51,10 @@ export function NativeAuthBridge() {
       } catch {
         // Ticket already used/expired (e.g. a stale deep link replayed) — nothing to
         // recover here; the user just tries signing in again.
+      } finally {
+        // Dismiss the Custom Tab the flow ran in, so the user lands back on the app
+        // rather than on a spent callback page. No-op if it's already closed.
+        Browser.close().catch(() => {});
       }
     });
 

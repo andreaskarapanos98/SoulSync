@@ -29,6 +29,7 @@ import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
 import { SsoCallbackPage } from "./pages/SsoCallbackPage";
 import { OAuthNativeCallbackPage } from "./pages/OAuthNativeCallbackPage";
+import { NativeOAuthStartPage } from "./pages/NativeOAuthStartPage";
 import { RequireAuth } from "./components/RequireAuth";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { Layout } from "./components/Layout";
@@ -43,6 +44,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/sso-callback" element={<SsoCallbackPage />} />
         <Route path="/oauth-native-callback" element={<OAuthNativeCallbackPage />} />
+        <Route path="/native-oauth-start" element={<NativeOAuthStartPage />} />
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route
