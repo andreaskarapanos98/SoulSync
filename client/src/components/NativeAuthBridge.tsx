@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
@@ -13,10 +13,24 @@ export function NativeAuthBridge() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const navigate = useNavigate();
 
+  // signIn/setActive get a new object identity on pretty much every Clerk client state
+  // change — with them in the effect's dependency array, a full OAuth round trip
+  // re-registers the appUrlOpen listener several times over without the previous one
+  // ever being torn down first (its cleanup is async), so the single incoming deep link
+  // gets raced by multiple stale listeners, all trying to redeem the same one-time
+  // ticket at once — confirmed live via remote debugging as a burst of duplicate
+  // /v1/client/sign_ins calls that Clerk starts rate-limiting (429). Keep the latest
+  // values in a ref instead, and register the listener exactly once on mount.
+  const latest = useRef({ signIn, setActive, isLoaded });
+  latest.current = { signIn, setActive, isLoaded };
+
   useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !isLoaded || !signIn || !setActive) return;
+    if (!Capacitor.isNativePlatform()) return;
 
     const handle = App.addListener("appUrlOpen", async ({ url }) => {
+      const { signIn, setActive, isLoaded } = latest.current;
+      if (!isLoaded || !signIn || !setActive) return;
+
       let parsed: URL;
       try {
         parsed = new URL(url);
@@ -42,7 +56,8 @@ export function NativeAuthBridge() {
     return () => {
       handle.then((h) => h.remove());
     };
-  }, [isLoaded, signIn, setActive, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 }
