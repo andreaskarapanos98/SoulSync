@@ -4,11 +4,12 @@ import { Browser } from "@capacitor/browser";
 /**
  * Opens a URL in the phone's real browser, never in the app's own WebView.
  *
- * Prefers a Chrome Custom Tab, but falls back to handing Android an `intent:` URL, which
- * the OS routes to the default browser without needing any plugin at all. The fallback
- * matters: the web bundle updates the moment it's deployed, while native plugins only
- * exist in a freshly built APK — without it, every install still running an older APK
- * gets a dead button ("Browser plugin is not implemented on android").
+ * Prefers a Chrome Custom Tab, but falls back to window.open(_blank), which Capacitor
+ * hands to the system browser. The fallback matters: the web bundle updates the moment
+ * it's deployed, while native plugins only exist in a freshly built APK — without it,
+ * every install still on an older APK gets a dead button ("Browser plugin is not
+ * implemented on android"). Both paths were verified on-device; an `intent:` URL was
+ * tried first and silently did nothing, so don't reach for that again.
  */
 async function openInSystemBrowser(url: string): Promise<void> {
   if (Capacitor.isPluginAvailable("Browser")) {
@@ -16,13 +17,10 @@ async function openInSystemBrowser(url: string): Promise<void> {
       await Browser.open({ url });
       return;
     } catch {
-      // Fall through to the intent: form below.
+      // Fall through to window.open below.
     }
   }
-  const { host, pathname, search } = new URL(url);
-  window.location.href =
-    `intent://${host}${pathname}${search}` +
-    `#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+  window.open(url, "_blank");
 }
 
 // Google refuses to render its consent screen inside an embedded WebView, and Clerk ties
