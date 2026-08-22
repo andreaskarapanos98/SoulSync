@@ -16,12 +16,19 @@ export function OAuthNativeCallbackPage() {
 
   useEffect(() => {
     if (!isLoaded || requestedRef.current) return;
-    // Signed out here means the sign-in didn't land in this browser at all (the failure
-    // this page used to hang forever on). Surface it instead of spinning.
+    // Don't call it a failure the instant we see a signed-out state: Clerk can report
+    // isLoaded before a development instance has finished handing the session across
+    // from its own domain, so the session often lands a moment later. Give it a grace
+    // period and only surface an error if it genuinely never arrives.
     if (!isSignedIn) {
-      setError("Sign-in didn't complete in this browser. Please head back to the app and try again.");
-      return;
+      const timer = setTimeout(() => {
+        if (!requestedRef.current) {
+          setError("Sign-in didn't complete in this browser. Please head back to the app and try again.");
+        }
+      }, 6000);
+      return () => clearTimeout(timer);
     }
+    setError(null);
     requestedRef.current = true;
     api
       .getMobileTicket()
@@ -50,6 +57,14 @@ export function OAuthNativeCallbackPage() {
           className="mt-6 w-full rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
         >
           Return to SoulSync
+        </a>
+      )}
+      {error && (
+        <a
+          href="/native-oauth-start"
+          className="mt-6 w-full rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
+        >
+          Try again
         </a>
       )}
       {!ticketUrl && !error && <p className="mt-6 text-sm text-neutral-400">Finishing up…</p>}

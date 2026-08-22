@@ -34,6 +34,27 @@ html {
   display: none !important;
 }
 
+/* Let Clerk's form sit inside our own card (NativeAuthCard) as one unit: drop its card
+   chrome and its heading, since the card already provides both. Same !important
+   reasoning as above — Clerk's own styles win over its `appearance` prop. */
+.native-auth-card :is(.cl-rootBox, .cl-cardBox, .cl-card) {
+  width: 100% !important;
+  max-width: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.native-auth-card .cl-card {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+}
+
+.native-auth-card .cl-header {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
