@@ -18,6 +18,7 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
   const [editDraft, setEditDraft] = useState(message.body);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -116,9 +117,13 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
           // items-end/items-start, which shrink-to-fit rather than stretch — a percentage
           // width has nothing definite to resolve against there, so the image would
           // silently fall back to its own natural pixel size instead of filling the bubble.
-          <a href={mediaUrl(message.imageUrl)} target="_blank" rel="noreferrer" className="block w-64 max-w-full overflow-hidden rounded-2xl">
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            className="block w-64 max-w-full overflow-hidden rounded-2xl"
+          >
             <img src={mediaUrl(message.imageUrl)} alt="" className="h-48 w-full object-cover" />
-          </a>
+          </button>
         ) : message.videoUrl ? (
           <div className="w-64 max-w-full overflow-hidden rounded-2xl">
             <video controls src={mediaUrl(message.videoUrl)} className="h-48 w-full object-cover" />
@@ -210,6 +215,15 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
           <button type="button" onClick={() => setConfirmingDelete(false)} disabled={busy} className="font-medium text-neutral-400">
             No
           </button>
+        </div>
+      )}
+
+      {lightboxOpen && message.imageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/90 p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <img src={mediaUrl(message.imageUrl)} alt="" className="max-h-full max-w-full cursor-default object-contain" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
 
