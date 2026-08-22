@@ -1,6 +1,5 @@
 import { MessageModel } from "../models/Message.js";
 import { UserAccountModel } from "../models/UserAccount.js";
-import { TypingStatusModel } from "../models/TypingStatus.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
 import { ProfileModel } from "../models/Profile.js";
@@ -43,10 +42,6 @@ export class ChatBannedError extends Error {
     );
   }
 }
-
-// A typing status is considered live for this long after the last ping — the client
-// re-pings every ~2s while the user keeps typing.
-const TYPING_TTL_MS = 4000;
 
 // Generous enough for real chat bursts, tight enough to block scripted spam.
 const MESSAGE_RATE_LIMIT_WINDOW_MS = 60_000;
@@ -222,23 +217,6 @@ export async function markConversationRead(clerkId: string, otherClerkId: string
     },
     { $set: { readAt: new Date() } },
   );
-}
-
-export async function setTyping(clerkId: string, otherClerkId: string): Promise<void> {
-  await TypingStatusModel.updateOne(
-    { conversationId: conversationIdFor(clerkId, otherClerkId), clerkId },
-    { $set: { updatedAt: new Date() } },
-    { upsert: true },
-  );
-}
-
-export async function isOtherTyping(clerkId: string, otherClerkId: string): Promise<boolean> {
-  const status = await TypingStatusModel.findOne({
-    conversationId: conversationIdFor(clerkId, otherClerkId),
-    clerkId: otherClerkId,
-  }).lean();
-  if (!status) return false;
-  return Date.now() - status.updatedAt.getTime() < TYPING_TTL_MS;
 }
 
 /** One row per conversation partner, most recently active first. */

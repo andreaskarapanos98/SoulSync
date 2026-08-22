@@ -18,6 +18,7 @@ import {
   MessageRateLimitError,
   NotGiftRecipientError,
   NotUnlockedError,
+  conversationIdFor,
   deleteMessage,
   editMessage,
   firstNameAndPhoto,
@@ -25,7 +26,6 @@ import {
   getLatestUnreadMessageAt,
   getMessages,
   getUnreadConversationCount,
-  isOtherTyping,
   markConversationRead,
   openGift,
   requireCanMessage,
@@ -33,8 +33,8 @@ import {
   sendMediaMessage,
   sendMessage,
   sendVoiceMessage,
-  setTyping,
 } from "../services/messageService.js";
+import { emitToUser } from "../realtime.js";
 
 function sendGateErrorStatus(err: unknown): number | undefined {
   if (err instanceof NotUnlockedError || err instanceof BlockedError || err instanceof ChatBannedError) return 403;
@@ -113,6 +113,26 @@ function toMessageDTO(m: Message & { _id: unknown }) {
   };
 }
 
+/**
+ * Pushes a just-created message to its recipient and refreshes their unread badge —
+ * called after responding to the sender, so the sender never waits on it. The new
+ * message is always the latest unread one for the recipient, so its own createdAt can
+ * stand in for latestUnreadMessageAt without an extra query.
+ */
+function notifyNewMessage(message: Message & { _id: unknown }, toClerkId: string): void {
+  const dto = toMessageDTO(message);
+  emitToUser(toClerkId, "message:new", { message: dto });
+  getUnreadConversationCount(toClerkId)
+    .then((count) => emitToUser(toClerkId, "unread:changed", { count, latestUnreadMessageAt: dto.createdAt }))
+    .catch(() => {});
+}
+
+/** Pushes an edit/delete/gift-open to whichever participant didn't just make the change. */
+function notifyMessageUpdated(message: Message & { _id: unknown }, actorClerkId: string): void {
+  const otherClerkId = message.fromClerkId === actorClerkId ? message.toClerkId : message.fromClerkId;
+  emitToUser(otherClerkId, "message:updated", { message: toMessageDTO(message) });
+}
+
 conversationsRouter.get("/unread-count", async (req, res) => {
   const { userId } = getAuth(req);
   if (!userId) {
@@ -147,10 +167,9 @@ conversationsRouter.get("/:otherClerkId/messages", async (req, res) => {
 
   await markConversationRead(userId, req.params.otherClerkId);
 
-  const [messages, other, otherTyping, otherCompatibility] = await Promise.all([
+  const [messages, other, otherCompatibility] = await Promise.all([
     getMessages(userId, req.params.otherClerkId),
     firstNameAndPhoto(req.params.otherClerkId),
-    isOtherTyping(userId, req.params.otherClerkId),
     getCompatibilityScore(userId, req.params.otherClerkId),
   ]);
 
@@ -158,9 +177,22 @@ conversationsRouter.get("/:otherClerkId/messages", async (req, res) => {
     messages: messages.map(toMessageDTO),
     otherFirstName: other.firstName,
     otherPhotoUrl: other.photoUrl,
-    otherIsTyping: otherTyping,
     otherCompatibility,
   });
+
+  // Fire after responding — the reader doesn't need to wait on these. Tells the other
+  // person's open thread (if any) that their message was just seen, and refreshes the
+  // reader's own unread badge instantly instead of on the next poll (there is no next
+  // poll now: this GET only runs when a socket event says something actually changed).
+  emitToUser(req.params.otherClerkId, "message:read", {
+    conversationId: conversationIdFor(userId, req.params.otherClerkId),
+    readerClerkId: userId,
+  });
+  const [count, latestUnreadMessageAt] = await Promise.all([
+    getUnreadConversationCount(userId),
+    getLatestUnreadMessageAt(userId),
+  ]);
+  emitToUser(userId, "unread:changed", { count, latestUnreadMessageAt });
 });
 
 conversationsRouter.post("/:otherClerkId/messages", async (req, res) => {
@@ -179,6 +211,7 @@ conversationsRouter.post("/:otherClerkId/messages", async (req, res) => {
   try {
     const message = await sendMessage(userId, req.params.otherClerkId, body);
     res.json({ message: toMessageDTO(message) });
+    notifyNewMessage(message, req.params.otherClerkId);
   } catch (err) {
     if (err instanceof ValidationError) {
       res.status(400).json({ error: "Validation failed", issues: err.issues });
@@ -221,6 +254,7 @@ conversationsRouter.post("/:otherClerkId/voice-messages", upload.single("audio")
   const { url } = await saveFile(req.file.buffer, "voice-messages", extension);
   const message = await sendVoiceMessage(userId, req.params.otherClerkId, url, durationSec);
   res.json({ message: toMessageDTO(message) });
+  notifyNewMessage(message, req.params.otherClerkId);
 });
 
 conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), async (req, res) => {
@@ -247,6 +281,7 @@ conversationsRouter.post("/:otherClerkId/media", uploadMedia.single("file"), asy
   const { url } = await saveFile(req.file.buffer, "chat-media", extension);
   const message = await sendMediaMessage(userId, req.params.otherClerkId, kind, url);
   res.json({ message: toMessageDTO(message) });
+  notifyNewMessage(message, req.params.otherClerkId);
 });
 
 conversationsRouter.post("/:otherClerkId/gifts", async (req, res) => {
@@ -265,6 +300,7 @@ conversationsRouter.post("/:otherClerkId/gifts", async (req, res) => {
   try {
     const { message, coinBalance } = await sendGiftMessage(userId, req.params.otherClerkId, giftId);
     res.json({ message: toMessageDTO(message), coinBalance });
+    notifyNewMessage(message, req.params.otherClerkId);
   } catch (err) {
     if (err instanceof UnknownGiftError) {
       res.status(400).json({ error: "Unknown gift" });
@@ -293,6 +329,7 @@ conversationsRouter.post("/messages/:messageId/open", async (req, res) => {
   try {
     const message = await openGift(userId, req.params.messageId);
     res.json({ message: toMessageDTO(message) });
+    notifyMessageUpdated(message, userId);
   } catch (err) {
     if (err instanceof ValidationError) {
       res.status(400).json({ error: "Validation failed", issues: err.issues });
@@ -322,6 +359,7 @@ conversationsRouter.patch("/messages/:messageId", async (req, res) => {
   try {
     const message = await editMessage(userId, req.params.messageId, body);
     res.json({ message: toMessageDTO(message) });
+    notifyMessageUpdated(message, userId);
   } catch (err) {
     if (err instanceof ValidationError) {
       res.status(400).json({ error: "Validation failed", issues: err.issues });
@@ -341,6 +379,7 @@ conversationsRouter.delete("/messages/:messageId", async (req, res) => {
   try {
     const message = await deleteMessage(userId, req.params.messageId);
     res.json({ message: toMessageDTO(message) });
+    notifyMessageUpdated(message, userId);
   } catch (err) {
     if (err instanceof ValidationError) {
       res.status(400).json({ error: "Validation failed", issues: err.issues });
@@ -348,15 +387,4 @@ conversationsRouter.delete("/messages/:messageId", async (req, res) => {
     }
     throw err;
   }
-});
-
-conversationsRouter.post("/:otherClerkId/typing", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
-  await setTyping(userId, req.params.otherClerkId);
-  res.json({ ok: true });
 });

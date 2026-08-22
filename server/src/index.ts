@@ -1,7 +1,9 @@
 import path from "node:path";
+import { createServer } from "node:http";
 import express from "express";
 import cors from "cors";
 import compression from "compression";
+import { initRealtime } from "./realtime.js";
 import multer from "multer";
 import { clerkMiddleware, getAuth } from "@clerk/express";
 import { env } from "./config/env.js";
@@ -106,9 +108,12 @@ process.on("unhandledRejection", (reason) => {
   void logSystemError(reason, { source: "unhandled_rejection" });
 });
 
+const httpServer = createServer(app);
+initRealtime(httpServer);
+
 connectDB()
   .then(() => {
-    app.listen(env.port, () => {
+    httpServer.listen(env.port, () => {
       console.log(`SoulSync API listening on http://localhost:${env.port}`);
     });
   })

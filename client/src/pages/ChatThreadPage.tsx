@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import type { MessageDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
-import { useUnreadCount } from "../hooks/useUnreadCount";
+import { useChatSocket } from "../hooks/useChatSocket";
 import { useCoinBalance } from "../hooks/useCoinBalance";
 import { LogoMark } from "../components/Logo";
 import { EmojiPicker } from "../components/chat/EmojiPicker";
@@ -18,9 +18,11 @@ import { compressImageForUpload } from "../utils/compressImage";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
-const POLL_INTERVAL_MS = 4000;
 const TYPING_PING_THROTTLE_MS = 1500;
 const TYPING_SOUND_THROTTLE_MS = 120;
+// How long "Typing…" stays visible after the last live typing event — mirrors the old
+// server-side TTL, just tracked client-side now instead of a DB row read back by a poll.
+const TYPING_INDICATOR_TTL_MS = 3000;
 
 // A chat-ban error carries the raw expiry as an ISO string so it's rendered in the
 // *viewer's* timezone rather than baking in whatever timezone the server rendered it in.
@@ -39,7 +41,7 @@ export function ChatThreadPage() {
   const api = useApi();
   const navigate = useNavigate();
   const { userId } = useAuth();
-  const { refresh: refreshUnreadCount } = useUnreadCount();
+  const socket = useChatSocket();
   const { setBalance } = useCoinBalance();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
   const [openingGift, setOpeningGift] = useState<{ giftId: string; emoji: string; label: string } | null>(null);
@@ -64,6 +66,7 @@ export function ChatThreadPage() {
   const seenMessageIdsRef = useRef<Set<string> | null>(null);
   const lastTypingPingRef = useRef(0);
   const lastTypingSoundRef = useRef(0);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function load() {
     if (!clerkId) return;
@@ -83,20 +86,63 @@ export function ChatThreadPage() {
         setMessages(res.messages);
         setOtherName(res.otherFirstName);
         setOtherPhoto(res.otherPhotoUrl);
-        setOtherIsTyping(res.otherIsTyping);
         setOtherCompatibility(res.otherCompatibility);
-
-        // Fetching messages marks this conversation read server-side — refresh the
-        // nav badge immediately instead of waiting on its own independent poll timer.
-        refreshUnreadCount();
+        // Fetching messages marks this conversation read server-side, which itself
+        // pushes a fresh unread:changed event over the socket — no need to also poll
+        // or refresh the badge from here.
       })
       .catch((err) => setError(formatChatError(err)));
   }
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clerkId]);
+
+  // Live updates replace the old 4s poll: refetch this thread only when a socket event
+  // says something in it actually changed, instead of blindly asking on a timer.
+  useEffect(() => {
+    if (!socket || !clerkId) return;
+
+    function onMessageNew({ message }: { message: MessageDTO }) {
+      if (message.fromClerkId === clerkId) load();
+    }
+    function onMessageUpdated({ message }: { message: MessageDTO }) {
+      if (message.fromClerkId === clerkId || message.toClerkId === clerkId) load();
+    }
+    function onMessageRead({ readerClerkId }: { readerClerkId: string }) {
+      if (readerClerkId === clerkId) load();
+    }
+    function onTyping({ fromClerkId }: { fromClerkId: string }) {
+      if (fromClerkId !== clerkId) return;
+      setOtherIsTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => setOtherIsTyping(false), TYPING_INDICATOR_TTL_MS);
+    }
+
+    socket.on("message:new", onMessageNew);
+    socket.on("message:updated", onMessageUpdated);
+    socket.on("message:read", onMessageRead);
+    socket.on("typing", onTyping);
+    return () => {
+      socket.off("message:new", onMessageNew);
+      socket.off("message:updated", onMessageUpdated);
+      socket.off("message:read", onMessageRead);
+      socket.off("typing", onTyping);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, clerkId]);
+
+  // Safety net for the socket having been suspended (e.g. the native app backgrounded):
+  // resync once whenever the tab/app becomes visible again, rather than trusting the
+  // live connection alone to have caught everything that happened while it was away.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") load();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clerkId]);
 
@@ -126,11 +172,11 @@ export function ChatThreadPage() {
 
   function handleDraftChange(value: string) {
     setDraft(value);
-    if (!clerkId || !value.trim()) return;
+    if (!clerkId || !value.trim() || !socket) return;
     const now = Date.now();
     if (now - lastTypingPingRef.current > TYPING_PING_THROTTLE_MS) {
       lastTypingPingRef.current = now;
-      api.sendTyping(clerkId).catch(() => {});
+      socket.emit("typing", { toClerkId: clerkId });
     }
   }
 

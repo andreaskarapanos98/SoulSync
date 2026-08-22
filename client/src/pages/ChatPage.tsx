@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ConversationSummaryDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
+import { useChatSocket } from "../hooks/useChatSocket";
 import { LogoMark } from "../components/Logo";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -18,12 +19,31 @@ function timeAgo(iso: string): string {
 
 export function ChatPage() {
   const api = useApi();
+  const socket = useChatSocket();
   const [conversations, setConversations] = useState<ConversationSummaryDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function load() {
     api.getConversations().then(({ conversations }) => setConversations(conversations)).catch((err) => setError(String(err)));
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api]);
+
+  // Keeps this list live (new last message, bumped to top, unread flips) without its own
+  // poll — refetches only when a socket event says a conversation actually changed.
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("message:new", load);
+    socket.on("message:updated", load);
+    return () => {
+      socket.off("message:new", load);
+      socket.off("message:updated", load);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]);
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load chats: {error}</p>;
   if (!conversations) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading your chats…</p>;

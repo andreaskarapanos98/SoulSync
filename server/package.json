@@ -11,6 +11,7 @@
     "seed:questions": "tsx src/scripts/seedQuestions.ts"
   },
   "dependencies": {
+    "@clerk/backend": "^3.16.10",
     "@clerk/express": "^2.1.51",
     "@soulsync/shared-types": "*",
     "compression": "^1.8.1",
@@ -19,6 +20,7 @@
     "express": "^4.19.2",
     "mongoose": "^9.9.1",
     "multer": "^2.2.0",
+    "socket.io": "^4.8.3",
     "stripe": "^22.4.0"
   },
   "devDependencies": {

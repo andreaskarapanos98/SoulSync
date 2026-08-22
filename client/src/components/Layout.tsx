@@ -12,9 +12,11 @@ import { MobileTabBar } from "./MobileTabBar";
 import { UnreadCountProvider } from "../hooks/useUnreadCount";
 import { CoinBalanceProvider } from "../hooks/useCoinBalance";
 import { ProfilePhotoProvider } from "../hooks/useProfilePhoto";
+import { ChatSocketProvider } from "../hooks/useChatSocket";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
+    <ChatSocketProvider>
     <UnreadCountProvider>
     <CoinBalanceProvider>
     <ProfilePhotoProvider>
@@ -117,5 +119,6 @@ export function Layout({ children }: { children: ReactNode }) {
     </ProfilePhotoProvider>
     </CoinBalanceProvider>
     </UnreadCountProvider>
+    </ChatSocketProvider>
   );
 }

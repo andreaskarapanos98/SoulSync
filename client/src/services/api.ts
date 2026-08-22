@@ -145,8 +145,6 @@ export function createApiClient(getToken: GetToken) {
         body: JSON.stringify({ perspective }),
       }),
     startVerification: () => request<StartVerificationResponseDTO>("/api/v1/verification/start", { method: "POST" }),
-    sendTyping: (otherClerkId: string) =>
-      request<{ ok: true }>(`/api/v1/conversations/${otherClerkId}/typing`, { method: "POST" }),
     getUnreadCount: () => request<UnreadCountDTO>("/api/v1/conversations/unread-count"),
     sendVoiceMessage: (otherClerkId: string, blob: Blob, durationSec: number) => {
       const formData = new FormData();
