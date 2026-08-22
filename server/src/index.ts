@@ -51,7 +51,14 @@ app.use(clerkMiddleware());
 app.use(requireActiveAccount);
 
 // Local-disk upload storage for now (see storageService.ts) — served directly.
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+// Filenames are UUIDs, so a given URL's bytes never change: cache hard. Without this
+// the browser revalidates every photo and voice note on each view, and a revalidation
+// costs a full round trip even when it comes back 304 — noticeable in a chat thread
+// full of images.
+app.use(
+  "/uploads",
+  express.static(path.resolve(process.cwd(), "uploads"), { maxAge: "365d", immutable: true }),
+);
 
 app.use("/api/health", healthRouter);
 app.use("/api/v1/me", meRouter);
