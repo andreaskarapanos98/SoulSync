@@ -1,6 +1,7 @@
 import path from "node:path";
 import express from "express";
 import cors from "cors";
+import compression from "compression";
 import multer from "multer";
 import { clerkMiddleware, getAuth } from "@clerk/express";
 import { env } from "./config/env.js";
@@ -33,7 +34,13 @@ import { logSystemError } from "./services/errorLogService.js";
 
 const app = express();
 
-app.use(cors());
+// maxAge lets the browser cache the CORS preflight instead of re-asking before every
+// single call. Without it each API request costs two round trips (OPTIONS then the real
+// one), which roughly doubles perceived latency on mobile networks.
+app.use(cors({ maxAge: 86400 }));
+// JSON payloads here (message lists, match lists) compress well; responses were going
+// out uncompressed.
+app.use(compression());
 // Stripe signature verification needs the exact raw body, so this is mounted with
 // express.raw() BEFORE the global express.json() below parses/consumes the body.
 app.use("/api/v1/coins/webhook", express.raw({ type: "application/json" }), stripeWebhookRouter);

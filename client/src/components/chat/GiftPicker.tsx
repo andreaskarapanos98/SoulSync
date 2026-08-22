@@ -35,12 +35,16 @@ export function GiftPicker({ onSend, disabled }: { onSend: (giftId: string) => v
       >
         🎁
       </button>
+      {/* On a phone this button sits mid-row, so anchoring the panel to its right edge
+          ran it off the left side of the screen and clipped the gifts. Below sm it
+          becomes a full-width sheet above the composer instead; sm and up keeps the
+          original dropdown anchored to the button. */}
       {open && (
-        <div className="absolute bottom-full right-0 mb-2 w-64 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="absolute bottom-full right-0 mb-2 w-64 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg max-sm:fixed max-sm:inset-x-2 max-sm:bottom-20 max-sm:z-30 max-sm:w-auto max-sm:p-3 dark:border-neutral-700 dark:bg-neutral-900">
           {!gifts ? (
             <p className="p-2 text-sm text-neutral-400">Loading…</p>
           ) : (
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid max-h-[50vh] grid-cols-3 gap-1 overflow-y-auto max-sm:grid-cols-4">
               {gifts.map((gift) => (
                 <button
                   key={gift.id}
