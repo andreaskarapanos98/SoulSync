@@ -14,6 +14,7 @@ import { CameraCapture } from "../components/chat/CameraCapture";
 import { MessageBubble } from "../components/chat/MessageBubble";
 import { ReportModal } from "../components/ReportModal";
 import { ApiError } from "../services/api";
+import { compressImageForUpload } from "../utils/compressImage";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -141,14 +142,22 @@ export function ChatThreadPage() {
     }
   }
 
+  // Every send endpoint returns the message it just created, so appending that is enough —
+  // the full re-fetch these used to do added a whole extra round trip before your own
+  // message showed up, on top of however long the send itself took.
+  function appendMessage(message: MessageDTO) {
+    setMessages((prev) => (prev ? [...prev, message] : [message]));
+    seenMessageIdsRef.current?.add(message.id);
+  }
+
   async function handleSend() {
     if (!clerkId || !draft.trim()) return;
     setSending(true);
     setSendError(null);
     try {
-      await api.sendMessage(clerkId, draft);
+      const res = await api.sendMessage(clerkId, draft);
       setDraft("");
-      load();
+      appendMessage(res.message);
     } catch (err) {
       setSendError(formatChatError(err));
     } finally {
@@ -160,8 +169,8 @@ export function ChatThreadPage() {
     if (!clerkId) return;
     setSendError(null);
     try {
-      await api.sendVoiceMessage(clerkId, blob, durationSec);
-      load();
+      const res = await api.sendVoiceMessage(clerkId, blob, durationSec);
+      appendMessage(res.message);
     } catch (err) {
       setSendError(formatChatError(err));
     }
@@ -172,8 +181,8 @@ export function ChatThreadPage() {
     setUploadingMedia(true);
     setSendError(null);
     try {
-      await api.sendMediaMessage(clerkId, file);
-      load();
+      const res = await api.sendMediaMessage(clerkId, await compressImageForUpload(file));
+      appendMessage(res.message);
     } catch (err) {
       setSendError(formatChatError(err));
     } finally {
@@ -194,7 +203,7 @@ export function ChatThreadPage() {
     try {
       const res = await api.sendGift(clerkId, giftId);
       setBalance(res.coinBalance);
-      load();
+      appendMessage(res.message);
     } catch (err) {
       setSendError(
         err instanceof ApiError && err.status === 402
