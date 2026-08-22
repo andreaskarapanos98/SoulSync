@@ -15,9 +15,8 @@ import { MessageBubble } from "../components/chat/MessageBubble";
 import { ReportModal } from "../components/ReportModal";
 import { ApiError } from "../services/api";
 import { compressImageForUpload } from "../utils/compressImage";
+import { mediaUrl } from "../utils/mediaUrl";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const TYPING_PING_THROTTLE_MS = 1500;
 const TYPING_SOUND_THROTTLE_MS = 120;
 // How long "Typing…" stays visible after the last live typing event — mirrors the old
@@ -323,7 +322,7 @@ export function ChatThreadPage() {
             className="block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700"
           >
             {otherPhoto ? (
-              <img src={`${API_URL}${otherPhoto}`} alt="" className="h-full w-full object-cover" />
+              <img src={mediaUrl(otherPhoto)} alt="" className="h-full w-full object-cover" />
             ) : (
               <span className="flex h-full w-full items-center justify-center bg-brand-50 dark:bg-brand-950/40">
                 <LogoMark size={16} />

@@ -1,8 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { useApi } from "./useApi";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { mediaUrl } from "../utils/mediaUrl";
 
 interface ProfilePhotoContextValue {
   photoUrl: string | null;
@@ -22,7 +21,7 @@ export function ProfilePhotoProvider({ children }: { children: ReactNode }) {
       .getProfile()
       .then((p) => {
         const photo = p.photos.find((ph) => ph.isPrimary) ?? p.photos[0];
-        setPhotoUrl(photo ? `${API_URL}${photo.url}` : null);
+        setPhotoUrl(photo ? mediaUrl(photo.url) : null);
       })
       .catch(() => {});
   }, [api, isSignedIn]);

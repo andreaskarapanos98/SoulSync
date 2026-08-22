@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import type { ConversationSummaryDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { useChatSocket } from "../hooks/useChatSocket";
+import { mediaUrl } from "../utils/mediaUrl";
 import { LogoMark } from "../components/Logo";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -74,7 +73,7 @@ export function ChatPage() {
             >
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
                 {c.photoUrl ? (
-                  <img src={`${API_URL}${c.photoUrl}`} alt="" className="h-full w-full object-cover" />
+                  <img src={mediaUrl(c.photoUrl)} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center bg-brand-50 dark:bg-brand-950/40">
                     <LogoMark size={20} />

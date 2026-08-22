@@ -1,15 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { env } from "../config/env.js";
 
-// Local-disk implementation for now. Target production backend: Cloudflare R2
-// (S3-compatible API). When we wire that up, only this file changes — saveFile()
-// will PUT to R2 via the S3 SDK and return the public R2 URL instead of a local
-// path; deleteFile() will issue a DeleteObject call. Every caller (routes,
-// profileService) only ever sees {url} back, so nothing outside this file needs
-// to change. Expected future env vars: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,
-// R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_URL.
-const UPLOADS_ROOT = path.resolve(process.cwd(), "uploads");
+// Cloudflare R2 (S3-compatible). Every caller only ever sees {url} back from saveFile
+// and a key parsed back out of that same url in deleteFile — nothing outside this file
+// needs to know storage lives in R2 rather than on local disk, which is what let this
+// migration happen without touching a single route or service that uploads a file.
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: `https://${env.r2AccountId}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: env.r2AccessKeyId,
+    secretAccessKey: env.r2SecretAccessKey,
+  },
+});
 
 export const ALLOWED_AUDIO_TYPES: Record<string, string> = {
   "audio/webm": "webm",
@@ -42,18 +46,13 @@ export async function saveFile(
   subfolder: "photos" | "voice-intros" | "voice-messages" | "chat-media",
   extension: string,
 ): Promise<{ url: string }> {
-  const dir = path.join(UPLOADS_ROOT, subfolder);
-  await mkdir(dir, { recursive: true });
-
-  const filename = `${randomUUID()}.${extension}`;
-  const filePath = path.join(dir, filename);
-  await writeFile(filePath, buffer);
-
-  return { url: `/uploads/${subfolder}/${filename}` };
+  const key = `${subfolder}/${randomUUID()}.${extension}`;
+  await s3.send(new PutObjectCommand({ Bucket: env.r2Bucket, Key: key, Body: buffer }));
+  return { url: `${env.r2PublicUrl}/${key}` };
 }
 
 export async function deleteFile(url: string): Promise<void> {
-  if (!url.startsWith("/uploads/")) return;
-  const filePath = path.join(UPLOADS_ROOT, url.slice("/uploads/".length));
-  await unlink(filePath).catch(() => {});
+  if (!url.startsWith(env.r2PublicUrl)) return;
+  const key = url.slice(env.r2PublicUrl.length + 1); // +1 for the separating '/'
+  await s3.send(new DeleteObjectCommand({ Bucket: env.r2Bucket, Key: key })).catch(() => {});
 }

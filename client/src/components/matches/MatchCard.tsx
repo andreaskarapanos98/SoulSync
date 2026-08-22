@@ -5,11 +5,11 @@ import { useApi } from "../../hooks/useApi";
 import { useCoinBalance } from "../../hooks/useCoinBalance";
 import { ApiError } from "../../services/api";
 import { unlockCostForCompatibility } from "../../utils/unlockCost";
+import { mediaUrl } from "../../utils/mediaUrl";
 import { LogoMark } from "../Logo";
 import { CoinIcon } from "../CoinIcon";
 import { VerifiedBadge } from "../VerifiedBadge";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export function MatchCard({
   match,
@@ -73,7 +73,7 @@ export function MatchCard({
     <div className="relative overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm shadow-brand-100/40 transition hover:shadow-md hover:shadow-brand-200/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
       <div className="relative aspect-[4/3] bg-brand-50 dark:bg-brand-950/20">
         {match.photoUrl ? (
-          <img src={`${API_URL}${match.photoUrl}`} alt="" className="h-full w-full object-cover" />
+          <img src={mediaUrl(match.photoUrl)} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <LogoMark size={40} className="opacity-40" />
@@ -86,7 +86,7 @@ export function MatchCard({
           <>
             <audio
               ref={audioRef}
-              src={`${API_URL}${match.voiceIntroUrl}`}
+              src={mediaUrl(match.voiceIntroUrl)}
               onPlay={() => setPlaying(true)}
               onPause={() => setPlaying(false)}
               onEnded={() => setPlaying(false)}

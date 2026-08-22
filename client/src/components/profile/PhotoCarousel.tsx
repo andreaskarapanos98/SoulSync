@@ -1,8 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { PhotoDTO } from "@soulsync/shared-types";
+import { mediaUrl } from "../../utils/mediaUrl";
 import { LogoMark } from "../Logo";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export function PhotoCarousel({ photos, badge }: { photos: PhotoDTO[]; badge?: ReactNode }) {
   const [index, setIndex] = useState(0);
@@ -25,7 +24,7 @@ export function PhotoCarousel({ photos, badge }: { photos: PhotoDTO[]; badge?: R
   return (
     <div>
       <div className="relative aspect-[4/3] overflow-hidden rounded-t-3xl bg-brand-50 dark:bg-brand-950/20">
-        <img src={`${API_URL}${current.url}`} alt="" className="h-full w-full object-cover" />
+        <img src={mediaUrl(current.url)} alt="" className="h-full w-full object-cover" />
         {badge}
         {photos.length > 1 && (
           <>
@@ -65,7 +64,7 @@ export function PhotoCarousel({ photos, badge }: { photos: PhotoDTO[]; badge?: R
           {photos.map((p, i) => (
             <button key={p.id} type="button" onClick={() => setIndex(i)} className="shrink-0">
               <img
-                src={`${API_URL}${p.url}`}
+                src={mediaUrl(p.url)}
                 alt=""
                 className={`h-16 w-16 rounded-lg object-cover ${i === index ? "ring-2 ring-brand-500" : "opacity-70"}`}
               />

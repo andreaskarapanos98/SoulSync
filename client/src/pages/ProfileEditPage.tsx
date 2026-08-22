@@ -8,8 +8,7 @@ import { VoiceRecorder } from "../components/profile/VoiceRecorder";
 import { VerifiedBadge } from "../components/VerifiedBadge";
 import { CoinIcon } from "../components/CoinIcon";
 import { ApiError } from "../services/api";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { mediaUrl } from "../utils/mediaUrl";
 
 export function ProfileEditPage() {
   const api = useApi();
@@ -176,7 +175,7 @@ export function ProfileEditPage() {
       <section className="mt-8">
         <h3 className="mb-3 text-sm font-semibold text-neutral-900 dark:text-white">Voice Introduction</h3>
         <VoiceRecorder
-          existingUrl={profile.voiceIntro ? `${API_URL}${profile.voiceIntro.url}` : null}
+          existingUrl={profile.voiceIntro ? mediaUrl(profile.voiceIntro.url) : null}
           onSave={handleSaveVoiceIntro}
           onDelete={handleDeleteVoiceIntro}
         />

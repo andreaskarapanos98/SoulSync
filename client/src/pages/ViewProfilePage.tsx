@@ -6,8 +6,7 @@ import { PhotoCarousel } from "../components/profile/PhotoCarousel";
 import { CompatibilityBreakdown } from "../components/profile/CompatibilityBreakdown";
 import { ReportModal } from "../components/ReportModal";
 import { VerifiedBadge } from "../components/VerifiedBadge";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+import { mediaUrl } from "../utils/mediaUrl";
 
 export function ViewProfilePage() {
   const { clerkId } = useParams<{ clerkId: string }>();
@@ -130,7 +129,7 @@ export function ViewProfilePage() {
           {profile.voiceIntro && (
             <div className="mt-4">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">Voice intro</p>
-              <audio controls src={`${API_URL}${profile.voiceIntro.url}`} className="w-full" />
+              <audio controls src={mediaUrl(profile.voiceIntro.url)} className="w-full" />
             </div>
           )}
 

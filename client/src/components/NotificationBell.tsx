@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import type { NotificationDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
+import { mediaUrl } from "../utils/mediaUrl";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const POLL_INTERVAL_MS = 15000;
 
 export function NotificationBell() {
@@ -79,7 +79,7 @@ export function NotificationBell() {
                   <>
                     <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
                       {n.otherPhotoUrl ? (
-                        <img src={`${API_URL}${n.otherPhotoUrl}`} alt="" className="h-full w-full object-cover" />
+                        <img src={mediaUrl(n.otherPhotoUrl)} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center bg-brand-50 text-xs dark:bg-brand-950/40">
                           {n.type === "account" ? "🔔" : "💘"}

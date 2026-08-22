@@ -28,4 +28,12 @@ export const env = {
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean),
+  // Cloudflare R2 (S3-compatible) — see storageService.ts.
+  r2AccountId: required("R2_ACCOUNT_ID"),
+  r2AccessKeyId: required("R2_ACCESS_KEY_ID"),
+  r2SecretAccessKey: required("R2_SECRET_ACCESS_KEY"),
+  r2Bucket: required("R2_BUCKET"),
+  // The bucket's public base URL (r2.dev for now, or a custom domain later) — never the
+  // S3 API endpoint itself, which isn't publicly readable.
+  r2PublicUrl: required("R2_PUBLIC_URL"),
 };
