@@ -1,6 +1,7 @@
 import { NotificationModel, notificationTypes, matchNotificationTiers } from "../models/Notification.js";
 import { firstNameAndPhoto } from "./messageService.js";
 import { track } from "./analyticsService.js";
+import { sendPushToUser } from "./pushService.js";
 
 export type NotificationType = (typeof notificationTypes)[number];
 export type MatchNotificationTier = (typeof matchNotificationTiers)[number];
@@ -68,8 +69,11 @@ export async function recordMatchNotificationsIfNeeded(
       { upsert: true },
     );
     // Only on a genuinely new insert — otherwise this fires on every /matches poll.
-    if (result.upsertedCount > 0 && tier === "perfect") {
-      await track(clerkId, "hundred_percent_match_discovered", { otherClerkId: c.clerkId });
+    if (result.upsertedCount > 0) {
+      sendPushToUser(clerkId, { title: copy.title, body: copy.body(c.compatibility) }).catch(() => {});
+      if (tier === "perfect") {
+        await track(clerkId, "hundred_percent_match_discovered", { otherClerkId: c.clerkId });
+      }
     }
   }
 }
@@ -77,18 +81,16 @@ export async function recordMatchNotificationsIfNeeded(
 /** Notifies the person who WAS unlocked (not the unlocker) — a one-off event, no dedup needed. */
 export async function createProfileUnlockedNotification(unlockedClerkId: string, unlockerClerkId: string): Promise<void> {
   const { firstName } = await firstNameAndPhoto(unlockerClerkId);
-  await NotificationModel.create({
-    clerkId: unlockedClerkId,
-    type: "profile_unlocked",
-    otherClerkId: unlockerClerkId,
-    title: "🔓 Someone unlocked your profile!",
-    message: `${firstName || "Someone"} just unlocked your profile and can now message you.`,
-  });
+  const title = "🔓 Someone unlocked your profile!";
+  const message = `${firstName || "Someone"} just unlocked your profile and can now message you.`;
+  await NotificationModel.create({ clerkId: unlockedClerkId, type: "profile_unlocked", otherClerkId: unlockerClerkId, title, message });
+  sendPushToUser(unlockedClerkId, { title, body: message }).catch(() => {});
 }
 
 /** Generic account-level notice (e.g. a status change) — no otherClerkId, not deduped. */
 export async function createAccountNotification(clerkId: string, title: string, message: string): Promise<void> {
   await NotificationModel.create({ clerkId, type: "account", title, message });
+  sendPushToUser(clerkId, { title, body: message }).catch(() => {});
 }
 
 export async function getNotifications(clerkId: string) {

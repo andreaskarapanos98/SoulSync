@@ -35,6 +35,7 @@ import {
   sendVoiceMessage,
 } from "../services/messageService.js";
 import { emitToUser } from "../realtime.js";
+import { sendPushToUser } from "../services/pushService.js";
 
 function sendGateErrorStatus(err: unknown): number | undefined {
   if (err instanceof NotUnlockedError || err instanceof BlockedError || err instanceof ChatBannedError) return 403;
@@ -125,6 +126,27 @@ function notifyNewMessage(message: Message & { _id: unknown }, toClerkId: string
   getUnreadConversationCount(toClerkId)
     .then((count) => emitToUser(toClerkId, "unread:changed", { count, latestUnreadMessageAt: dto.createdAt }))
     .catch(() => {});
+
+  // Push always fires alongside the socket event — on Android a "notification" payload
+  // only surfaces in the system tray while the app is backgrounded/closed, so this is a
+  // no-op (from the user's perspective) for anyone with the app open and looking at it.
+  firstNameAndPhoto(message.fromClerkId)
+    .then(({ firstName }) =>
+      sendPushToUser(toClerkId, {
+        title: firstName || "New message",
+        body: previewFor(message),
+        data: { type: "message", fromClerkId: message.fromClerkId },
+      }),
+    )
+    .catch(() => {});
+}
+
+function previewFor(message: Message): string {
+  if (message.giftId) return `🎁 Sent you a ${message.giftLabel}`;
+  if (message.imageUrl) return "📷 Photo";
+  if (message.videoUrl) return "🎥 Video";
+  if (message.audioUrl) return "🎤 Voice message";
+  return message.body ?? "";
 }
 
 /** Pushes an edit/delete/gift-open to whichever participant didn't just make the change. */

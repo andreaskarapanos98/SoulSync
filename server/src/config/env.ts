@@ -36,4 +36,6 @@ export const env = {
   // The bucket's public base URL (r2.dev for now, or a custom domain later) — never the
   // S3 API endpoint itself, which isn't publicly readable.
   r2PublicUrl: required("R2_PUBLIC_URL"),
+  // Firebase Admin SDK service account, base64-encoded — see pushService.ts.
+  firebaseServiceAccountB64: required("FIREBASE_SERVICE_ACCOUNT_B64"),
 };

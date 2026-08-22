@@ -34,11 +34,13 @@ import { RequireAuth } from "./components/RequireAuth";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { Layout } from "./components/Layout";
 import { NativeAuthBridge } from "./components/NativeAuthBridge";
+import { NativePushBridge } from "./components/NativePushBridge";
 
 function App() {
   return (
     <>
       <NativeAuthBridge />
+      <NativePushBridge />
       <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />

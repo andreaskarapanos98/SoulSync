@@ -30,6 +30,7 @@ import { reportsRouter } from "./routes/reports.js";
 import { blocksRouter } from "./routes/blocks.js";
 import { analyticsRouter } from "./routes/analytics.js";
 import { mobileAuthRouter } from "./routes/mobileAuth.js";
+import { pushTokensRouter } from "./routes/pushTokens.js";
 import { requireActiveAccount } from "./middleware/requireActiveAccount.js";
 import { logSystemError } from "./services/errorLogService.js";
 
@@ -74,6 +75,7 @@ app.use("/api/v1/reports", reportsRouter);
 app.use("/api/v1/blocks", blocksRouter);
 app.use("/api/v1/analytics", analyticsRouter);
 app.use("/api/v1/auth", mobileAuthRouter);
+app.use("/api/v1/me/push-token", pushTokensRouter);
 
 // Without this handler, Express would render its default HTML error page instead of JSON.
 app.use(
