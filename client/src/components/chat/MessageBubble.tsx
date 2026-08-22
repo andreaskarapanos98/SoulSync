@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MessageDTO } from "@soulsync/shared-types";
 import { mediaUrl } from "../../utils/mediaUrl";
+import { ImageLightbox } from "./ImageLightbox";
 
 interface Props {
   message: MessageDTO;
@@ -219,12 +220,7 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
       )}
 
       {lightboxOpen && message.imageUrl && (
-        <div
-          className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/90 p-4"
-          onClick={() => setLightboxOpen(false)}
-        >
-          <img src={mediaUrl(message.imageUrl)} alt="" className="max-h-full max-w-full cursor-default object-contain" onClick={(e) => e.stopPropagation()} />
-        </div>
+        <ImageLightbox src={mediaUrl(message.imageUrl)} onClose={() => setLightboxOpen(false)} />
       )}
 
       {(message.editedAt || showSeen) && (
