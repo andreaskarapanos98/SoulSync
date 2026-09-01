@@ -60,6 +60,9 @@ export function ChatThreadPage() {
   const [reportingUser, setReportingUser] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Starts true so the initial load still lands at the bottom; a scroll handler below
+  // keeps it in sync with whether the user is actually near the bottom.
+  const isNearBottomRef = useRef(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const seenMessageIdsRef = useRef<Set<string> | null>(null);
@@ -145,9 +148,19 @@ export function ChatThreadPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clerkId]);
 
+  // Only follow new content when the user was already at (or near) the bottom — a
+  // message/read-receipt refetch while they're scrolled up reading history shouldn't
+  // yank them back down.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isNearBottomRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
+
+  function handleMessagesScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -191,6 +204,7 @@ export function ChatThreadPage() {
   // the full re-fetch these used to do added a whole extra round trip before your own
   // message showed up, on top of however long the send itself took.
   function appendMessage(message: MessageDTO) {
+    isNearBottomRef.current = true;
     setMessages((prev) => (prev ? [...prev, message] : [message]));
     seenMessageIdsRef.current?.add(message.id);
   }
@@ -393,7 +407,7 @@ export function ChatThreadPage() {
         />
       )}
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-6 sm:px-0">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-6 sm:px-0" onScroll={handleMessagesScroll}>
         {messages.length === 0 ? (
           <p className="mt-10 text-center text-sm text-neutral-400">Say hello 👋</p>
         ) : (
