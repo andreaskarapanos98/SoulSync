@@ -3,6 +3,7 @@ import { getAuth } from "@clerk/express";
 import { assembleProfile } from "../services/profileService.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
+import { UserAccountModel } from "../models/UserAccount.js";
 import { getPointGivingQuestions, roundScore } from "../services/scoringEngine.js";
 import { computeScore, computeScoreByCategory } from "../services/compatibilityScoring.js";
 import { isUnlockedEitherDirection } from "../services/unlockService.js";
@@ -16,8 +17,23 @@ publicProfilesRouter.get("/:clerkId", async (req, res) => {
     return;
   }
 
-  const profile = await assembleProfile(req.params.clerkId);
   const isSelf = userId === req.params.clerkId;
+
+  // requireActiveAccount only blocks a banned/suspended user's OWN requests — it never
+  // checks the status of the profile being *viewed*. Without this, a banned user stays
+  // fully visible to anyone who already has a link to them (an existing match, unlock,
+  // or chat thread), even though loadCandidatePool() already excludes them from new
+  // match/browse discovery. Treat "not active" the same as "doesn't exist" rather than
+  // exposing the restricted state to the viewer.
+  if (!isSelf) {
+    const targetAccount = await UserAccountModel.findOne({ clerkId: req.params.clerkId }).select("status").lean();
+    if (!targetAccount || targetAccount.status !== "active") {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+  }
+
+  const profile = await assembleProfile(req.params.clerkId);
 
   // Comparing someone against themselves isn't a compatibility score — only compute
   // this when viewing someone else's profile.
