@@ -10,6 +10,17 @@ import { track } from "./analyticsService.js";
 // the compatibility engine, never rendered raw.
 const PUBLIC_TRAIT_CATEGORIES = ["lifestyle", "personality"] as const;
 
+export function toPhotoDTOs(profile: {
+  photos: { _id: unknown; url: string; isPrimary: boolean; focalPoint?: { x: number; y: number } | null }[];
+}) {
+  return profile.photos.map((p) => ({
+    id: String(p._id),
+    url: p.url,
+    isPrimary: p.isPrimary,
+    focalPoint: { x: p.focalPoint?.x ?? 50, y: p.focalPoint?.y ?? 50 },
+  }));
+}
+
 /**
  * Assembles a profile from AboutMeAnswer (identity + traits) and Profile (photos,
  * bio, voice intro) — Profile itself never duplicates data that already lives in

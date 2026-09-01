@@ -1,4 +1,4 @@
-import type { MatchesResponseDTO, VerificationStatus } from "@soulsync/shared-types";
+import type { MatchesResponseDTO, PhotoDTO, VerificationStatus } from "@soulsync/shared-types";
 import { ApiError } from "./api";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -166,7 +166,10 @@ export function createAdminApiClient(getToken: GetToken) {
         coinTransactions: AdminCoinTransaction[];
         unlockedCount: number;
         unlockedByCount: number;
+        photos: PhotoDTO[];
       }>(`/api/v1/admin/users/${clerkId}`),
+    deletePhoto: (clerkId: string, photoId: string) =>
+      request<{ photos: PhotoDTO[] }>(`/api/v1/admin/users/${clerkId}/photos/${photoId}`, { method: "DELETE" }),
     suspendUser: (clerkId: string, reason?: string) =>
       request<{ account: AdminUserSummary }>(`/api/v1/admin/users/${clerkId}/suspend`, {
         method: "POST",

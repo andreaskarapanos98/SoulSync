@@ -1,6 +1,14 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
-import { getUserDetail, listUsers, setChatBan, setUserStatus, setVerificationStatus, type ChatBanInput } from "../services/adminUserService.js";
+import {
+  deleteUserPhoto,
+  getUserDetail,
+  listUsers,
+  setChatBan,
+  setUserStatus,
+  setVerificationStatus,
+  type ChatBanInput,
+} from "../services/adminUserService.js";
 import { adjustCoinsByAdmin } from "../services/coinService.js";
 
 export const adminUsersRouter = Router();
@@ -77,6 +85,20 @@ adminUsersRouter.post("/:clerkId/verification", async (req, res) => {
   } catch (err) {
     if (err instanceof Error && err.message === "User not found") {
       res.status(404).json({ error: "User not found" });
+      return;
+    }
+    throw err;
+  }
+});
+
+adminUsersRouter.delete("/:clerkId/photos/:photoId", async (req, res) => {
+  const { userId: adminClerkId } = getAuth(req);
+  try {
+    const photos = await deleteUserPhoto(adminClerkId!, req.params.clerkId, req.params.photoId);
+    res.json({ photos });
+  } catch (err) {
+    if (err instanceof Error && err.message === "Photo not found") {
+      res.status(404).json({ error: "Photo not found" });
       return;
     }
     throw err;

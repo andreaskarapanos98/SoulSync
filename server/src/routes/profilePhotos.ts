@@ -3,7 +3,7 @@ import multer from "multer";
 import { getAuth } from "@clerk/express";
 import { ProfileModel } from "../models/Profile.js";
 import { ALLOWED_IMAGE_TYPES, deleteFile, saveFile } from "../services/storageService.js";
-import { advanceOnboardingIfProfileComplete } from "../services/profileService.js";
+import { advanceOnboardingIfProfileComplete, toPhotoDTOs } from "../services/profileService.js";
 
 export const profilePhotosRouter = Router();
 
@@ -20,17 +20,6 @@ const upload = multer({
     cb(null, true);
   },
 });
-
-function toPhotoDTOs(profile: {
-  photos: { _id: unknown; url: string; isPrimary: boolean; focalPoint?: { x: number; y: number } | null }[];
-}) {
-  return profile.photos.map((p) => ({
-    id: String(p._id),
-    url: p.url,
-    isPrimary: p.isPrimary,
-    focalPoint: { x: p.focalPoint?.x ?? 50, y: p.focalPoint?.y ?? 50 },
-  }));
-}
 
 profilePhotosRouter.post("/", upload.single("photo"), async (req, res) => {
   const { userId } = getAuth(req);

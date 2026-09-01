@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
+import type { PhotoDTO } from "@soulsync/shared-types";
 import { useAdminApi } from "../../hooks/useAdminApi";
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { CoinIcon } from "../../components/CoinIcon";
 import { VerifiedBadge } from "../../components/VerifiedBadge";
+import { mediaUrl } from "../../utils/mediaUrl";
 import type { AdminCoinTransaction, AdminUserSummary } from "../../services/adminApi";
 
 export function AdminUserDetailPage() {
@@ -11,6 +13,7 @@ export function AdminUserDetailPage() {
   const api = useAdminApi();
   const [account, setAccount] = useState<AdminUserSummary | null>(null);
   const [transactions, setTransactions] = useState<AdminCoinTransaction[]>([]);
+  const [photos, setPhotos] = useState<PhotoDTO[]>([]);
   const [unlockedCount, setUnlockedCount] = useState(0);
   const [unlockedByCount, setUnlockedByCount] = useState(0);
   const [reasonDraft, setReasonDraft] = useState("");
@@ -26,12 +29,28 @@ export function AdminUserDetailPage() {
     api.getUserDetail(clerkId).then((res) => {
       setAccount(res.account);
       setTransactions(res.coinTransactions);
+      setPhotos(res.photos);
       setUnlockedCount(res.unlockedCount);
       setUnlockedByCount(res.unlockedByCount);
     });
   }
 
   useEffect(load, [api, clerkId]);
+
+  async function handleDeletePhoto(photoId: string) {
+    if (!clerkId) return;
+    if (!window.confirm("Remove this photo from their profile? This can't be undone.")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await api.deletePhoto(clerkId, photoId);
+      setPhotos(res.photos);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleStatusAction(action: "suspend" | "ban" | "restore") {
     if (!clerkId) return;
@@ -145,7 +164,41 @@ export function AdminUserDetailPage() {
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-      <div className="mt-6 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+      <div className="mt-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Photos</h2>
+        {photos.length === 0 ? (
+          <p className="mt-2 text-sm text-neutral-400">No photos.</p>
+        ) : (
+          <div className="mt-2 flex flex-wrap gap-3">
+            {photos.map((photo) => (
+              <div key={photo.id} className="relative">
+                <img
+                  src={mediaUrl(photo.url)}
+                  alt=""
+                  className="h-32 w-32 rounded-lg object-cover"
+                  style={{ objectPosition: `${photo.focalPoint.x}% ${photo.focalPoint.y}%` }}
+                />
+                {photo.isPrimary && (
+                  <span className="absolute left-1 top-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    Primary
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleDeletePhoto(photo.id)}
+                  disabled={busy}
+                  title="Remove this photo"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white disabled:opacity-40"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Account actions</h2>
         <input
           type="text"

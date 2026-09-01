@@ -1,6 +1,9 @@
 import { UserAccountModel } from "../models/UserAccount.js";
 import { CoinTransactionModel } from "../models/CoinTransaction.js";
 import { UnlockModel } from "../models/Unlock.js";
+import { ProfileModel } from "../models/Profile.js";
+import { toPhotoDTOs } from "./profileService.js";
+import { deleteFile } from "./storageService.js";
 import { logAdminAction } from "./adminAuditService.js";
 import { createAccountNotification } from "./notificationService.js";
 
@@ -36,11 +39,12 @@ export async function listUsers(opts: { search?: string; page?: number; limit?: 
 }
 
 export async function getUserDetail(clerkId: string) {
-  const [account, coinTransactions, unlockedByThem, unlockedThem] = await Promise.all([
+  const [account, coinTransactions, unlockedByThem, unlockedThem, profile] = await Promise.all([
     UserAccountModel.findOne({ clerkId }).lean(),
     CoinTransactionModel.find({ clerkId }).sort({ createdAt: -1 }).limit(50).lean(),
     UnlockModel.find({ viewerClerkId: clerkId }).lean(),
     UnlockModel.find({ unlockedClerkId: clerkId }).lean(),
+    ProfileModel.findOne({ clerkId }).lean(),
   ]);
 
   const relatedEmailByClerkId = await resolveEmails(coinTransactions.map((t) => t.relatedClerkId));
@@ -54,7 +58,31 @@ export async function getUserDetail(clerkId: string) {
     coinTransactions: enrichedTransactions,
     unlockedCount: unlockedByThem.length,
     unlockedByCount: unlockedThem.length,
+    photos: profile ? toPhotoDTOs(profile) : [],
   };
+}
+
+/** Moderation action: removes one photo without banning the whole account. */
+export async function deleteUserPhoto(adminClerkId: string, targetClerkId: string, photoId: string) {
+  const profile = await ProfileModel.findOne({ clerkId: targetClerkId });
+  const idx = profile?.photos.findIndex((p) => String(p._id) === photoId) ?? -1;
+  if (!profile || idx === -1) throw new Error("Photo not found");
+
+  const [removed] = profile.photos.splice(idx, 1);
+  await deleteFile(removed.url);
+  if (removed.isPrimary && profile.photos.length > 0) {
+    profile.photos[0].isPrimary = true;
+  }
+  await profile.save();
+
+  await logAdminAction(adminClerkId, "user.photo.deleted", targetClerkId, { photoId });
+  await createAccountNotification(
+    targetClerkId,
+    "🖼️ A photo was removed from your profile",
+    "One of your photos was removed by an administrator for violating our Community Guidelines.",
+  );
+
+  return toPhotoDTOs(profile);
 }
 
 const STATUS_NOTIFICATION_COPY: Partial<Record<string, { title: string; message: string }>> = {
