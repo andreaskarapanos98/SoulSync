@@ -15,6 +15,7 @@ interface Traits {
   clerkId: string;
   firstName: string;
   gender?: string;
+  facialHair?: string;
   age?: number;
   country?: string;
   city?: string;
@@ -23,6 +24,7 @@ interface Traits {
 
 interface Prefs {
   genders: string[];
+  facialHair: string[];
   ageRange?: [number, number];
   countryPref?: "same_country" | "anywhere";
   languagePref: string[];
@@ -34,6 +36,7 @@ function traitsOf(clerkId: string, answers: Record<string, unknown>): Traits {
     clerkId,
     firstName: (answers.first_name as string) ?? "",
     gender: answers.gender as string | undefined,
+    facialHair: answers.facial_hair as string | undefined,
     age: dob ? calculateAge(dob) : undefined,
     country: (answers.country as string | undefined)?.trim().toLowerCase(),
     city: answers.city as string | undefined,
@@ -44,15 +47,19 @@ function traitsOf(clerkId: string, answers: Record<string, unknown>): Traits {
 function prefsOf(answers: Record<string, unknown>): Prefs {
   return {
     genders: (answers.gender as string[] | undefined) ?? [],
+    facialHair: (answers.facial_hair as string[] | undefined) ?? [],
     ageRange: answers.age_range as [number, number] | undefined,
     countryPref: answers.country as "same_country" | "anywhere" | undefined,
     languagePref: (answers.languages as string[] | undefined) ?? [],
   };
 }
 
-/** gender/age_range (hard_filter), and country "same_country" (relative_self). */
+/** gender/age_range/facial_hair (hard_filter), and country "same_country" (relative_self). */
 function passesHardFilters(prefs: Prefs, candidate: Traits, viewer: Traits): boolean {
   if (prefs.genders.length > 0 && candidate.gender && !prefs.genders.includes(candidate.gender)) {
+    return false;
+  }
+  if (prefs.facialHair.length > 0 && candidate.facialHair && !prefs.facialHair.includes(candidate.facialHair)) {
     return false;
   }
   if (prefs.ageRange && candidate.age !== undefined) {
