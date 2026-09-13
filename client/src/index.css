@@ -22,6 +22,9 @@ html {
      edge-to-edge status bar. */
   --keyboard-inset: 0px;
   --status-bar-inset: 0px;
+  /* Measured at runtime from the actual header in Layout.tsx (ResizeObserver) — this
+     default only covers the instant before that first measurement lands. */
+  --site-header-height: 69px;
 }
 
 /* Clerk renders its own social (Google) buttons inside SignIn/SignUp, and they can't work

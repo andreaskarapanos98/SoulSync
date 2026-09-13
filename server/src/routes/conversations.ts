@@ -198,6 +198,7 @@ conversationsRouter.get("/:otherClerkId/messages", async (req, res) => {
   res.json({
     messages: messages.map(toMessageDTO),
     otherFirstName: other.firstName,
+    otherGender: other.gender,
     otherPhotoUrl: other.photoUrl,
     otherCompatibility,
   });

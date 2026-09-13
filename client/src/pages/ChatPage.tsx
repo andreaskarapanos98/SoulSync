@@ -5,6 +5,7 @@ import { useApi } from "../hooks/useApi";
 import { useChatSocket } from "../hooks/useChatSocket";
 import { mediaUrl } from "../utils/mediaUrl";
 import { LogoMark } from "../components/Logo";
+import { GenderSymbol } from "../components/GenderSymbol";
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -90,6 +91,7 @@ export function ChatPage() {
                   }`}
                 >
                   {c.firstName || "Someone"}
+                  <GenderSymbol gender={c.gender} />
                   <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
                     {c.compatibility}%
                   </span>

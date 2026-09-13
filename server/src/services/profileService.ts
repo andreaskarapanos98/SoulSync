@@ -1,3 +1,4 @@
+import type { Gender } from "@soulsync/shared-types";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { ProfileModel } from "../models/Profile.js";
 import { QuestionDefinitionModel } from "../models/QuestionDefinition.js";
@@ -50,6 +51,7 @@ export async function assembleProfile(clerkId: string) {
 
   return {
     firstName: (answers.first_name as string) ?? "",
+    gender: answers.gender as Gender | undefined,
     age: dateOfBirth ? calculateAge(dateOfBirth) : undefined,
     nationality: answers.nationality as string | undefined,
     country: answers.country as string | undefined,

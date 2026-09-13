@@ -6,6 +6,7 @@ import { PhotoCarousel } from "../components/profile/PhotoCarousel";
 import { CompatibilityBreakdown } from "../components/profile/CompatibilityBreakdown";
 import { ReportModal } from "../components/ReportModal";
 import { VerifiedBadge } from "../components/VerifiedBadge";
+import { GenderSymbol } from "../components/GenderSymbol";
 import { mediaUrl } from "../utils/mediaUrl";
 
 export function ViewProfilePage() {
@@ -114,6 +115,7 @@ export function ViewProfilePage() {
         <div className="p-6">
           <h1 className="flex items-center gap-1.5 text-xl font-semibold text-neutral-900 dark:text-white">
             {profile.firstName || "Someone"}
+            <GenderSymbol gender={profile.gender} />
             {profile.verified && <VerifiedBadge size={18} />}
             {profile.age !== undefined && <span className="font-normal text-neutral-500"> · {profile.age}</span>}
           </h1>

@@ -9,6 +9,7 @@ import { mediaUrl } from "../../utils/mediaUrl";
 import { LogoMark } from "../Logo";
 import { CoinIcon } from "../CoinIcon";
 import { VerifiedBadge } from "../VerifiedBadge";
+import { GenderSymbol } from "../GenderSymbol";
 
 
 export function MatchCard({
@@ -124,6 +125,7 @@ export function MatchCard({
       <div className="p-4">
         <p className="flex items-center gap-1 font-semibold text-neutral-900 dark:text-white">
           {match.firstName || "Someone new"}
+          <GenderSymbol gender={match.gender} />
           {match.verified && <VerifiedBadge />}
           {match.age !== undefined && <span className="font-normal text-neutral-500"> · {match.age}</span>}
         </p>

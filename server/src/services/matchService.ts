@@ -1,4 +1,4 @@
-import type { MatchCardDTO } from "@soulsync/shared-types";
+import type { Gender, MatchCardDTO } from "@soulsync/shared-types";
 import { UserAccountModel } from "../models/UserAccount.js";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { PreferenceAnswerModel } from "../models/PreferenceAnswer.js";
@@ -167,6 +167,7 @@ function toCard(
   return {
     clerkId: traits.clerkId,
     firstName: traits.firstName,
+    gender: traits.gender as Gender | undefined,
     age: traits.age,
     city: traits.city,
     country: traits.country,

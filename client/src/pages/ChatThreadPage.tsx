@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
-import type { MessageDTO } from "@soulsync/shared-types";
+import type { Gender, MessageDTO } from "@soulsync/shared-types";
+import { GenderSymbol } from "../components/GenderSymbol";
 import { useApi } from "../hooks/useApi";
 import { useChatSocket } from "../hooks/useChatSocket";
 import { useCoinBalance } from "../hooks/useCoinBalance";
@@ -47,6 +48,7 @@ export function ChatThreadPage() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [otherName, setOtherName] = useState("");
+  const [otherGender, setOtherGender] = useState<Gender | undefined>();
   const [otherPhoto, setOtherPhoto] = useState<string | undefined>();
   const [otherIsTyping, setOtherIsTyping] = useState(false);
   const [otherCompatibility, setOtherCompatibility] = useState<number | null>(null);
@@ -87,6 +89,7 @@ export function ChatThreadPage() {
 
         setMessages(res.messages);
         setOtherName(res.otherFirstName);
+        setOtherGender(res.otherGender);
         setOtherPhoto(res.otherPhotoUrl);
         setOtherCompatibility(res.otherCompatibility);
         // Fetching messages marks this conversation read server-side, which itself
@@ -324,7 +327,13 @@ export function ChatThreadPage() {
       )}
       {cameraOpen && <CameraCapture onSend={sendPhotoFile} onClose={() => setCameraOpen(false)} />}
       <div
-        className="flex shrink-0 items-center gap-3 border-b border-neutral-200 px-4 pb-4 pt-[calc(var(--status-bar-inset,env(safe-area-inset-top))+0.75rem)] sm:px-0 sm:pt-0 dark:border-neutral-800"
+        // shrink-0 (mobile) already keeps this out of the fixed full-screen container's
+        // own scroll region — see the comment on that container above. Desktop drops the
+        // fixed takeover for normal in-page flow, so the whole page (this header
+        // included) scrolls with the browser viewport instead; sm:sticky pins it back in
+        // place just below the site's own sticky nav (--site-header-height, measured at
+        // runtime in Layout.tsx) once a long conversation scrolls past it.
+        className="flex shrink-0 items-center gap-3 border-b border-neutral-200 bg-white px-4 pb-4 pt-[calc(var(--status-bar-inset,env(safe-area-inset-top))+0.75rem)] sm:sticky sm:top-[var(--site-header-height)] sm:z-10 sm:bg-white/90 sm:px-4 sm:py-3 sm:backdrop-blur dark:border-neutral-800 dark:bg-neutral-950 dark:sm:bg-neutral-950/90"
       >
         <Link to="/chat" className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200">
           ←
@@ -347,6 +356,7 @@ export function ChatThreadPage() {
         <div className="flex-1">
           <p className="flex items-center gap-1.5 font-semibold text-neutral-900 dark:text-white">
             {otherName || "Someone"}
+            <GenderSymbol gender={otherGender} />
             {otherCompatibility !== null && (
               <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
                 {otherCompatibility}%

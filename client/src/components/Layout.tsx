@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { Capacitor } from "@capacitor/core";
@@ -15,6 +15,25 @@ import { ProfilePhotoProvider } from "../hooks/useProfilePhoto";
 import { ChatSocketProvider } from "../hooks/useChatSocket";
 
 export function Layout({ children }: { children: ReactNode }) {
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Exposes this header's actual rendered height as a CSS var so other fixed/sticky
+  // elements (e.g. ChatThreadPage's own sticky sub-header on desktop) can sit flush
+  // below it without a hardcoded pixel guess that would desync if this header's
+  // content/padding ever changes. ResizeObserver catches the native safe-area-inset
+  // padding changing too, not just window resizes.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      // contentRect excludes padding/border — offsetHeight is the full rendered height
+      // this header actually occupies, padding (incl. the safe-area inset) included.
+      document.documentElement.style.setProperty("--site-header-height", `${el.offsetHeight}px`);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <ChatSocketProvider>
     <UnreadCountProvider>
@@ -22,6 +41,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <ProfilePhotoProvider>
     <div className="min-h-svh flex flex-col bg-gradient-to-b from-brand-50/60 via-white to-white dark:from-brand-950/10 dark:via-neutral-950 dark:to-neutral-950">
       <header
+        ref={headerRef}
         className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80"
         style={{ paddingTop: "var(--status-bar-inset, env(safe-area-inset-top))" }}
       >

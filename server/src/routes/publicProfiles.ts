@@ -65,6 +65,7 @@ publicProfilesRouter.get("/:clerkId", async (req, res) => {
   if (!unlocked) {
     res.json({
       firstName: profile.firstName,
+      gender: profile.gender,
       age: profile.age,
       country: profile.country,
       city: profile.city,

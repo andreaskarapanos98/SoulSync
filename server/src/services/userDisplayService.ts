@@ -1,3 +1,4 @@
+import type { Gender } from "@soulsync/shared-types";
 import { AboutMeAnswerModel } from "../models/AboutMeAnswer.js";
 import { ProfileModel } from "../models/Profile.js";
 
@@ -8,6 +9,7 @@ export function nameAndPhotoFrom(
   const photo = profile?.photos.find((p) => p.isPrimary) ?? profile?.photos[0];
   return {
     firstName: (answers.first_name as string) ?? "",
+    gender: answers.gender as Gender | undefined,
     photoUrl: photo?.url as string | undefined,
   };
 }

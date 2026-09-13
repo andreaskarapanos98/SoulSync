@@ -8,6 +8,10 @@ export interface HealthCheckResponse {
 
 export type VerificationStatus = "unverified" | "pending" | "verified" | "failed";
 
+// Matches the "gender" About Me question's option values (seedQuestions.ts) — shown as
+// a symbol (♂/♀/⚧) next to a person's name wherever they appear.
+export type Gender = "man" | "woman" | "non_binary";
+
 export interface MeDTO {
   userId: string;
   email: string;
@@ -109,6 +113,7 @@ export interface CategoryCompatibilityDTO {
 
 export interface ProfileDTO {
   firstName: string;
+  gender?: Gender;
   age?: number;
   nationality?: string;
   country?: string;
@@ -155,6 +160,7 @@ export interface VoiceIntroResponseDTO {
 export interface MatchCardDTO {
   clerkId: string;
   firstName: string;
+  gender?: Gender;
   age?: number;
   city?: string;
   country?: string;
@@ -179,6 +185,7 @@ export interface MatchesResponseDTO {
 export interface ConversationSummaryDTO {
   clerkId: string;
   firstName: string;
+  gender?: Gender;
   photoUrl?: string;
   lastMessage: string;
   lastMessageAt: string;
@@ -218,6 +225,7 @@ export interface MessageDTO {
 export interface MessagesResponseDTO {
   messages: MessageDTO[];
   otherFirstName: string;
+  otherGender?: Gender;
   otherPhotoUrl?: string;
   // Same direction/number as their match card: how well they fit what you're looking for.
   otherCompatibility: number;

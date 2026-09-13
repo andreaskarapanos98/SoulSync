@@ -253,13 +253,14 @@ export async function getConversations(clerkId: string) {
         ProfileModel.findOne({ clerkId: otherClerkId }).lean(),
       ]);
       const otherAboutMe = otherAboutMeDoc ? Object.fromEntries(otherAboutMeDoc.answers) : {};
-      const { firstName, photoUrl } = nameAndPhotoFrom(otherAboutMe, otherProfile);
+      const { firstName, gender, photoUrl } = nameAndPhotoFrom(otherAboutMe, otherProfile);
       const compatibility = roundScore(
         computeScore({ questions, fullPoints, viewerPreferences, candidateAboutMe: otherAboutMe }),
       );
       return {
         clerkId: otherClerkId,
         firstName,
+        gender,
         photoUrl,
         lastMessage: lastMessage.deletedAt
           ? "Message deleted"
