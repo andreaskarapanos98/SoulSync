@@ -94,7 +94,7 @@ const aboutMeQuestions: SeedQuestion[] = [
   { key: "eye_color", category: "appearance", type: "single_select", label: "What's your eye color?", order: 4,
     options: opts(["brown", "Brown"], ["blue", "Blue"], ["green", "Green"], ["hazel", "Hazel"], ["grey", "Grey"], ["other", "Other"]) },
   { key: "facial_hair", category: "appearance", type: "single_select", label: "What's your facial hair shave?", order: 5,
-    options: opts(["clean_shaven", "Clean-shaven"], ["stubble", "Stubble"], ["short_beard", "Short beard"], ["long_beard", "Long beard"], ["mustache", "Mustache"], ["other", "Other"], ["not_applicable", "Not applicable"]) },
+    options: opts(["clean_shaven", "Clean-shaven"], ["stubble", "Stubble"], ["short_beard", "Short beard"], ["long_beard", "Long beard"], ["mustache", "Mustache"], ["other", "Other"]) },
   { key: "has_tattoos", category: "appearance", type: "single_select", label: "Do you have tattoos?", order: 6,
     options: opts(["none", "None"], ["minimal", "Small/minimal"], ["several", "Several"], ["heavily", "Heavily tattooed"]) },
   { key: "has_piercings", category: "appearance", type: "single_select", label: "Do you have piercings?", order: 7,
@@ -212,11 +212,10 @@ const preferenceQuestions: SeedQuestion[] = [
     options: opts(["brown", "Brown"], ["blue", "Blue"], ["green", "Green"], ["hazel", "Hazel"], ["grey", "Grey"], ["other", "Other"]) },
   // Hard filter (mirrors "gender" above) rather than ranked/scored: a candidate whose own
   // facial_hair isn't checked here is eliminated outright, same as an unwanted gender.
-  // Includes every about_me option (not_applicable included) so any candidate's answer has
-  // a matching checkbox here — otherwise someone who is e.g. not_applicable could never
-  // pass any viewer's filter no matter what they check, which would cap them below 100%.
+  // Mirrors the about_me options exactly (no "not_applicable" on either side, removed per
+  // product decision) so every candidate's answer has a matching checkbox here.
   { key: "facial_hair", category: "appearance", type: "multi_select", label: "Which facial hair styles are acceptable to you?", scoringMechanic: "hard_filter", order: 5,
-    options: opts(["clean_shaven", "Clean-shaven"], ["stubble", "Stubble"], ["short_beard", "Short beard"], ["long_beard", "Long beard"], ["mustache", "Mustache"], ["other", "Other"], ["not_applicable", "Not applicable"]) },
+    options: opts(["clean_shaven", "Clean-shaven"], ["stubble", "Stubble"], ["short_beard", "Short beard"], ["long_beard", "Long beard"], ["mustache", "Mustache"], ["other", "Other"]) },
   { key: "has_tattoos", category: "appearance", type: "single_select", label: "How do you feel about your soulmate having tattoos?", scoringMechanic: "mini_scale", order: 6,
     options: opts(["none", "Prefer none"], ["minimal", "Small/minimal is okay"], ["several", "Several are okay"], ["heavily", "Heavily tattooed is okay"], [DONT_CARE.value, DONT_CARE.label]) },
   { key: "has_piercings", category: "appearance", type: "single_select", label: "How do you feel about your soulmate having piercings?", scoringMechanic: "mini_scale", order: 7,
