@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { useApi } from "../hooks/useApi";
+import { friendlyError } from "../utils/friendlyError";
 
 // Final hop of the native Google sign-in, running in the system browser (see
 // NativeOAuthStartPage for why the whole flow lives there). Clerk has just created a
@@ -39,7 +40,7 @@ export function OAuthNativeCallbackPage() {
         // may silently no-op — hence the always-visible button below.
         window.location.href = url;
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setError(friendlyError(err)));
   }, [isLoaded, isSignedIn, api]);
 
   return (

@@ -10,6 +10,7 @@ import { LogoMark } from "../Logo";
 import { CoinIcon } from "../CoinIcon";
 import { VerifiedBadge } from "../VerifiedBadge";
 import { GenderSymbol } from "../GenderSymbol";
+import { friendlyError } from "../../utils/friendlyError";
 
 
 export function MatchCard({
@@ -63,7 +64,7 @@ export function MatchCard({
       setUnlockError(
         err instanceof ApiError && err.status === 402
           ? `You don't have enough coins for this. Unlocking costs ${unlockCost} coins.`
-          : String(err),
+          : friendlyError(err),
       );
     } finally {
       setUnlocking(false);
@@ -74,7 +75,7 @@ export function MatchCard({
     <div className="relative overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm shadow-brand-100/40 transition hover:shadow-md hover:shadow-brand-200/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
       <div className="relative aspect-[4/3] bg-brand-50 dark:bg-brand-950/20">
         {match.photoUrl ? (
-          <img src={mediaUrl(match.photoUrl)} alt="" className="h-full w-full object-cover" />
+          <img src={mediaUrl(match.photoUrl)} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <LogoMark size={40} className="opacity-40" />

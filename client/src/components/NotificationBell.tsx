@@ -79,7 +79,7 @@ export function NotificationBell() {
                   <>
                     <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
                       {n.otherPhotoUrl ? (
-                        <img src={mediaUrl(n.otherPhotoUrl)} alt="" className="h-full w-full object-cover" />
+                        <img src={mediaUrl(n.otherPhotoUrl)} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center bg-brand-50 text-xs dark:bg-brand-950/40">
                           {n.type === "account" ? "🔔" : "💘"}

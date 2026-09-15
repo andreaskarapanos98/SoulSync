@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { MatchesResponseDTO, UnlockCostTierDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { MatchCard } from "../components/matches/MatchCard";
+import { friendlyError } from "../utils/friendlyError";
+import { SkeletonCard } from "../components/Skeleton";
 
 const DEFAULT_UNLOCK_COST_TIERS: UnlockCostTierDTO[] = [
   { minCompatibility: 100, coins: 300 },
@@ -35,12 +37,25 @@ export function MatchesPage() {
         setMatches(res);
         if (res.yourSoulmates.length > 0) api.trackEvent("match_viewed");
       })
-      .catch((err) => setError(String(err)));
+      .catch((err) => setError(friendlyError(err)));
     api.getCoinPackages().then((res) => setUnlockCostTiers(res.unlockCostTiers)).catch(() => {});
   }, [api]);
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load matches: {error}</p>;
-  if (!matches) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Finding your matches…</p>;
+
+  if (!matches) {
+    return (
+      <div className="mx-auto w-full max-w-5xl px-6 py-12">
+        <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Matches</h1>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Finding people who fit what you're looking for…</p>
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // Unlocking moves someone out of Matches and into Unlocked — the two lists never overlap.
   const list = matches.yourSoulmates.filter((m) => (filter === "unlocked" ? m.unlocked : !m.unlocked));

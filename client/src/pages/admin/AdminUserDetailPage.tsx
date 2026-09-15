@@ -7,6 +7,7 @@ import { CoinIcon } from "../../components/CoinIcon";
 import { VerifiedBadge } from "../../components/VerifiedBadge";
 import { mediaUrl } from "../../utils/mediaUrl";
 import type { AdminCoinTransaction, AdminUserSummary } from "../../services/adminApi";
+import { friendlyError } from "../../utils/friendlyError";
 
 export function AdminUserDetailPage() {
   const { clerkId } = useParams<{ clerkId: string }>();
@@ -46,7 +47,7 @@ export function AdminUserDetailPage() {
       const res = await api.deletePhoto(clerkId, photoId);
       setPhotos(res.photos);
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -63,7 +64,7 @@ export function AdminUserDetailPage() {
       setReasonDraft("");
       load();
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -78,7 +79,7 @@ export function AdminUserDetailPage() {
       setReasonDraft("");
       load();
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -93,7 +94,7 @@ export function AdminUserDetailPage() {
       setReasonDraft("");
       load();
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -114,7 +115,7 @@ export function AdminUserDetailPage() {
       setAdjustReason("");
       load();
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }

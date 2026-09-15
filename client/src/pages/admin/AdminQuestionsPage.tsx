@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAdminApi } from "../../hooks/useAdminApi";
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import type { AdminQuestion } from "../../services/adminApi";
+import { friendlyError } from "../../utils/friendlyError";
 
 const QUESTION_TYPES = ["single_select", "multi_select", "scale", "number", "number_range", "text", "date"];
 const SCORING_MECHANICS = ["hard_filter", "ranking", "mini_scale", "relative_self", "checklist", "filler"];
@@ -68,7 +69,7 @@ export function AdminQuestionsPage() {
       setShowForm(false);
       load();
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }

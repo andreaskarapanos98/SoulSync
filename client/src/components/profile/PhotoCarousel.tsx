@@ -66,6 +66,8 @@ export function PhotoCarousel({ photos, badge }: { photos: PhotoDTO[]; badge?: R
               <img
                 src={mediaUrl(p.url)}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className={`h-16 w-16 rounded-lg object-cover ${i === index ? "ring-2 ring-brand-500" : "opacity-70"}`}
               />
             </button>

@@ -6,6 +6,8 @@ import { useChatSocket } from "../hooks/useChatSocket";
 import { mediaUrl } from "../utils/mediaUrl";
 import { LogoMark } from "../components/Logo";
 import { GenderSymbol } from "../components/GenderSymbol";
+import { friendlyError } from "../utils/friendlyError";
+import { SkeletonRow } from "../components/Skeleton";
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -24,7 +26,7 @@ export function ChatPage() {
   const [error, setError] = useState<string | null>(null);
 
   function load() {
-    api.getConversations().then(({ conversations }) => setConversations(conversations)).catch((err) => setError(String(err)));
+    api.getConversations().then(({ conversations }) => setConversations(conversations)).catch((err) => setError(friendlyError(err)));
   }
 
   useEffect(() => {
@@ -46,7 +48,19 @@ export function ChatPage() {
   }, [socket]);
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load chats: {error}</p>;
-  if (!conversations) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading your chats…</p>;
+
+  if (!conversations) {
+    return (
+      <div className="mx-auto w-full max-w-2xl px-6 py-12">
+        <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Chats</h1>
+        <div className="mt-6 flex flex-col gap-2">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12">
@@ -74,7 +88,7 @@ export function ChatPage() {
             >
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-brand-200 dark:border-neutral-700">
                 {c.photoUrl ? (
-                  <img src={mediaUrl(c.photoUrl)} alt="" className="h-full w-full object-cover" />
+                  <img src={mediaUrl(c.photoUrl)} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center bg-brand-50 dark:bg-brand-950/40">
                     <LogoMark size={20} />

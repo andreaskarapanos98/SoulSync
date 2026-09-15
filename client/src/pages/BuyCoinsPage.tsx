@@ -3,6 +3,7 @@ import type { CoinPackagesResponseDTO, UnlockCostTierDTO } from "@soulsync/share
 import { useApi } from "../hooks/useApi";
 import { ApiError } from "../services/api";
 import { CoinIcon } from "../components/CoinIcon";
+import { friendlyError } from "../utils/friendlyError";
 
 function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(cents / 100);
@@ -24,7 +25,7 @@ export function BuyCoinsPage() {
   const [buyingId, setBuyingId] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getCoinPackages().then(setData).catch((err) => setError(String(err)));
+    api.getCoinPackages().then(setData).catch((err) => setError(friendlyError(err)));
   }, [api]);
 
   async function handleBuy(packageId: string) {
@@ -37,7 +38,7 @@ export function BuyCoinsPage() {
       setError(
         err instanceof ApiError && err.status === 503
           ? "Coin purchases aren't set up yet — check back soon."
-          : String(err),
+          : friendlyError(err),
       );
       setBuyingId(null);
     }

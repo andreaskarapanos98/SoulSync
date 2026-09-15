@@ -9,6 +9,7 @@ import { VerifiedBadge } from "../components/VerifiedBadge";
 import { CoinIcon } from "../components/CoinIcon";
 import { ApiError } from "../services/api";
 import { mediaUrl } from "../utils/mediaUrl";
+import { friendlyError } from "../utils/friendlyError";
 
 export function ProfileEditPage() {
   const api = useApi();
@@ -30,7 +31,7 @@ export function ProfileEditPage() {
         setProfile(p);
         setBioDraft(p.bio);
       })
-      .catch((err) => setLoadError(String(err)));
+      .catch((err) => setLoadError(friendlyError(err)));
   }, []);
 
   if (loadError)
@@ -113,7 +114,7 @@ export function ProfileEditPage() {
       setVerificationError(
         insufficientFunds
           ? `You don't have enough coins for this. Verification costs ${profile?.verificationCostCoins ?? 60} coins.`
-          : String(err),
+          : friendlyError(err),
       );
       setStartingVerification(false);
     }

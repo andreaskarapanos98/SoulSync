@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSignIn } from "@clerk/clerk-react";
+import { friendlyError } from "../utils/friendlyError";
 
 // Entry point for the native app's Google sign-in, but loaded in the SYSTEM BROWSER
 // (opened as a Chrome Custom Tab by SignInPage/SignUpPage), never inside the app's
@@ -23,7 +24,7 @@ export function NativeOAuthStartPage() {
         redirectUrl: `${window.location.origin}/sso-callback`,
         redirectUrlComplete: `${window.location.origin}/oauth-native-callback`,
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+      .catch((err) => setError(friendlyError(err)));
   }, [isLoaded, signIn]);
 
   return (

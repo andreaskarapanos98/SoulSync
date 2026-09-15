@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useClerk } from "@clerk/clerk-react";
 import { useApi } from "../hooks/useApi";
+import { friendlyError } from "../utils/friendlyError";
 
 export function AccountSettingsPage() {
   const api = useApi();
@@ -24,7 +25,7 @@ export function AccountSettingsPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setExporting(false);
     }
@@ -39,7 +40,7 @@ export function AccountSettingsPage() {
       await signOut();
       navigate("/");
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
       setDeleting(false);
     }
   }

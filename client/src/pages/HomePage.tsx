@@ -4,6 +4,7 @@ import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
 import type { MeDTO } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { LogoMark } from "../components/Logo";
+import { friendlyError } from "../utils/friendlyError";
 
 const FEATURES = [
   {
@@ -257,7 +258,7 @@ function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getMe().then(setMe).catch((err) => setError(String(err)));
+    api.getMe().then(setMe).catch((err) => setError(friendlyError(err)));
   }, [api]);
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load your account: {error}</p>;

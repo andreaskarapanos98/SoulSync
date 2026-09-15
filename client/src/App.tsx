@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { OnboardingAboutMePage } from "./pages/OnboardingAboutMePage";
@@ -7,24 +8,6 @@ import { MatchesPage } from "./pages/MatchesPage";
 import { ChatPage } from "./pages/ChatPage";
 import { ChatThreadPage } from "./pages/ChatThreadPage";
 import { ViewProfilePage } from "./pages/ViewProfilePage";
-import { BuyCoinsPage } from "./pages/BuyCoinsPage";
-import { CoinsSuccessPage } from "./pages/CoinsSuccessPage";
-import { VerificationReturnPage } from "./pages/VerificationReturnPage";
-import { CoinsCancelPage } from "./pages/CoinsCancelPage";
-import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
-import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
-import { AdminUserDetailPage } from "./pages/admin/AdminUserDetailPage";
-import { AdminReportsPage } from "./pages/admin/AdminReportsPage";
-import { AdminPaymentsPage } from "./pages/admin/AdminPaymentsPage";
-import { AdminErrorsPage } from "./pages/admin/AdminErrorsPage";
-import { AdminQuestionsPage } from "./pages/admin/AdminQuestionsPage";
-import { AdminFunnelPage } from "./pages/admin/AdminFunnelPage";
-import { PrivacyPolicyPage } from "./pages/legal/PrivacyPolicyPage";
-import { TermsOfServicePage } from "./pages/legal/TermsOfServicePage";
-import { CommunityGuidelinesPage } from "./pages/legal/CommunityGuidelinesPage";
-import { CookiePolicyPage } from "./pages/legal/CookiePolicyPage";
-import { RefundPolicyPage } from "./pages/legal/RefundPolicyPage";
-import { AccountSettingsPage } from "./pages/AccountSettingsPage";
 import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
 import { SsoCallbackPage } from "./pages/SsoCallbackPage";
@@ -35,6 +18,37 @@ import { RequireAdmin } from "./components/RequireAdmin";
 import { Layout } from "./components/Layout";
 import { NativeAuthBridge } from "./components/NativeAuthBridge";
 import { NativePushBridge } from "./components/NativePushBridge";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { RouteFallback } from "./components/RouteFallback";
+
+// Split out of the main bundle: the admin dashboard is eight screens almost no account
+// can even open, and the legal pages and payment/verification returns are visited rarely
+// (often once, ever) — every user was downloading all of it before reaching their matches.
+// The hot paths above (matches, chat, profiles, onboarding, auth) stay eager so navigating
+// between the screens people actually live in never waits on a chunk.
+const page = <T extends Record<string, React.ComponentType>>(
+  loader: () => Promise<T>,
+  name: keyof T,
+) => lazy(() => loader().then((m) => ({ default: m[name] })));
+
+const BuyCoinsPage = page(() => import("./pages/BuyCoinsPage"), "BuyCoinsPage");
+const CoinsSuccessPage = page(() => import("./pages/CoinsSuccessPage"), "CoinsSuccessPage");
+const CoinsCancelPage = page(() => import("./pages/CoinsCancelPage"), "CoinsCancelPage");
+const VerificationReturnPage = page(() => import("./pages/VerificationReturnPage"), "VerificationReturnPage");
+const AccountSettingsPage = page(() => import("./pages/AccountSettingsPage"), "AccountSettingsPage");
+const AdminDashboardPage = page(() => import("./pages/admin/AdminDashboardPage"), "AdminDashboardPage");
+const AdminUsersPage = page(() => import("./pages/admin/AdminUsersPage"), "AdminUsersPage");
+const AdminUserDetailPage = page(() => import("./pages/admin/AdminUserDetailPage"), "AdminUserDetailPage");
+const AdminReportsPage = page(() => import("./pages/admin/AdminReportsPage"), "AdminReportsPage");
+const AdminPaymentsPage = page(() => import("./pages/admin/AdminPaymentsPage"), "AdminPaymentsPage");
+const AdminErrorsPage = page(() => import("./pages/admin/AdminErrorsPage"), "AdminErrorsPage");
+const AdminQuestionsPage = page(() => import("./pages/admin/AdminQuestionsPage"), "AdminQuestionsPage");
+const AdminFunnelPage = page(() => import("./pages/admin/AdminFunnelPage"), "AdminFunnelPage");
+const PrivacyPolicyPage = page(() => import("./pages/legal/PrivacyPolicyPage"), "PrivacyPolicyPage");
+const TermsOfServicePage = page(() => import("./pages/legal/TermsOfServicePage"), "TermsOfServicePage");
+const CommunityGuidelinesPage = page(() => import("./pages/legal/CommunityGuidelinesPage"), "CommunityGuidelinesPage");
+const CookiePolicyPage = page(() => import("./pages/legal/CookiePolicyPage"), "CookiePolicyPage");
+const RefundPolicyPage = page(() => import("./pages/legal/RefundPolicyPage"), "RefundPolicyPage");
 
 function App() {
   return (
@@ -42,6 +56,7 @@ function App() {
       <NativeAuthBridge />
       <NativePushBridge />
       <Layout>
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/sso-callback" element={<SsoCallbackPage />} />
@@ -230,7 +245,11 @@ function App() {
             </RequireAuth>
           }
         />
+        {/* Anything unrecognised — a mistyped URL, a stale link — landed on a blank page
+            before this. */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
       </Layout>
     </>
   );

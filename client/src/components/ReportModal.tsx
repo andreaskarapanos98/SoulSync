@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ReportContentType, ReportReason } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
+import { friendlyError } from "../utils/friendlyError";
 
 const REASONS: { value: ReportReason; label: string }[] = [
   { value: "inappropriate_content", label: "Inappropriate content" },
@@ -36,7 +37,7 @@ export function ReportModal({
       await api.createReport({ reportedClerkId, contentType, contentRef, reason, details: details.trim() || undefined });
       setDone(true);
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setSubmitting(false);
     }

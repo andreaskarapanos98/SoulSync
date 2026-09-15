@@ -154,7 +154,7 @@ export function MessageBubble({
             onClick={() => setLightboxOpen(true)}
             className="block w-64 max-w-full overflow-hidden rounded-2xl"
           >
-            <img src={mediaUrl(message.imageUrl)} alt="" className="h-48 w-full object-cover" />
+            <img src={mediaUrl(message.imageUrl)} alt="" className="h-48 w-full object-cover" loading="lazy" decoding="async" />
           </button>
         ) : message.videoUrl ? (
           <div className="w-64 max-w-full overflow-hidden rounded-2xl">

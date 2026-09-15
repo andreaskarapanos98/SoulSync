@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { PhotoDTO } from "@soulsync/shared-types";
 import { mediaUrl } from "../../utils/mediaUrl";
+import { friendlyError } from "../../utils/friendlyError";
 
 const MAX_PHOTOS = 5;
 
@@ -89,7 +90,7 @@ export function PhotoUploader({ photos, onUpload, onDelete, onSetPrimary, onSetF
     try {
       await onUpload(file);
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -115,7 +116,7 @@ export function PhotoUploader({ photos, onUpload, onDelete, onSetPrimary, onSetF
             key={photo.id}
             className={`relative flex aspect-square flex-col justify-end overflow-hidden rounded-lg border-2 ${photo.isPrimary ? "border-brand-500" : "border-transparent"}`}
           >
-            <img src={mediaUrl(photo.url)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <img src={mediaUrl(photo.url)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
             {photo.isPrimary ? (
               <span className="relative z-10 m-1 self-start rounded bg-brand-500 px-1.5 py-0.5 text-[11px] font-medium text-white">
                 Primary

@@ -20,6 +20,7 @@ import { ApiError } from "../services/api";
 import { compressImageForUpload } from "../utils/compressImage";
 import { mediaUrl } from "../utils/mediaUrl";
 import { dayLabel, groupsWithPrevious, isSameDay, timeLabel } from "../utils/chatTime";
+import { friendlyError } from "../utils/friendlyError";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
 
 /**
@@ -43,17 +44,10 @@ const TYPING_SOUND_THROTTLE_MS = 120;
 // server-side TTL, just tracked client-side now instead of a DB row read back by a poll.
 const TYPING_INDICATOR_TTL_MS = 3000;
 
-// A chat-ban error carries the raw expiry as an ISO string so it's rendered in the
-// *viewer's* timezone rather than baking in whatever timezone the server rendered it in.
-// Falls back to `.message` (never `String(err)`, which would prepend "Error: ").
-function formatChatError(err: unknown): string {
-  if (err instanceof ApiError && err.chatBanUntil) {
-    const until = new Date(err.chatBanUntil).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-    return `You're restricted from chatting until ${until}`;
-  }
-  if (err instanceof Error) return err.message;
-  return String(err);
-}
+// The chat-ban case (rendering the expiry in the viewer's own timezone) now lives in the
+// shared friendlyError alongside every other API failure, so this is just an alias kept
+// for readability at the call sites below.
+const formatChatError = friendlyError;
 
 export function ChatThreadPage() {
   const { clerkId } = useParams<{ clerkId: string }>();

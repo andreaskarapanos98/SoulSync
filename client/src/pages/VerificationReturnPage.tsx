@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { VerificationStatus } from "@soulsync/shared-types";
 import { useApi } from "../hooks/useApi";
 import { VerifiedBadge } from "../components/VerifiedBadge";
+import { friendlyError } from "../utils/friendlyError";
 
 const POLL_INTERVAL_MS = 4000;
 const SLOW_AFTER_MS = 75000;
@@ -23,7 +24,7 @@ export function VerificationReturnPage() {
           setStatus(me.verificationStatus);
           if (Date.now() - startedAtRef.current > SLOW_AFTER_MS) setSlow(true);
         })
-        .catch((err) => setError(String(err)));
+        .catch((err) => setError(friendlyError(err)));
     }
     poll();
     const interval = window.setInterval(poll, POLL_INTERVAL_MS);
@@ -37,7 +38,7 @@ export function VerificationReturnPage() {
       const { url } = await api.startVerification();
       window.location.href = url;
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
       setRetrying(false);
     }
   }

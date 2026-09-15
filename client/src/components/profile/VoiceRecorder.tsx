@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { friendlyError } from "../../utils/friendlyError";
 
 const PROMPTS = [
   "Tell us a little about yourself.",
@@ -95,7 +96,7 @@ export function VoiceRecorder({ existingUrl, onSave, onDelete }: Props) {
       await onSave(recordedBlob, elapsedSec);
       discardRecording();
     } catch (err) {
-      setError(String(err));
+      setError(friendlyError(err));
     } finally {
       setSaving(false);
     }

@@ -7,6 +7,7 @@ import { PreferenceQuestionField } from "../components/onboarding/PreferenceQues
 import { DealBreakerStep } from "../components/onboarding/DealBreakerStep";
 import { IntroScreen } from "../components/onboarding/IntroScreen";
 import { ABOUT_ME_CATEGORY_ORDER, CATEGORY_TITLES } from "../utils/onboardingCategories";
+import { friendlyError } from "../utils/friendlyError";
 
 function isEmptyValue(value: AnswerValue | undefined): boolean {
   return value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
@@ -57,7 +58,7 @@ export function OnboardingPreferencesPage() {
         setAnswers(defaultedAnswers);
         setDealBreakers(dealBreakersRes.dealBreakers);
       })
-      .catch((err) => setLoadError(String(err)));
+      .catch((err) => setLoadError(friendlyError(err)));
   }, []);
 
   if (showIntro) {
@@ -180,7 +181,7 @@ export function OnboardingPreferencesPage() {
         setStepIndex((i) => Math.min(Math.max(i + delta, 0), steps.length - 1));
       }
     } catch (err) {
-      setApiErrors(err instanceof ApiError && err.issues ? err.issues : [String(err)]);
+      setApiErrors(err instanceof ApiError && err.issues ? err.issues : [friendlyError(err)]);
     } finally {
       setSaving(false);
     }

@@ -6,6 +6,7 @@ import { ApiError } from "../services/api";
 import { QuestionField } from "../components/onboarding/QuestionField";
 import { IntroScreen } from "../components/onboarding/IntroScreen";
 import { ABOUT_ME_CATEGORY_ORDER, CATEGORY_TITLES } from "../utils/onboardingCategories";
+import { friendlyError } from "../utils/friendlyError";
 
 function isEmpty(value: AnswerValue | undefined): boolean {
   return value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
@@ -32,7 +33,7 @@ export function OnboardingAboutMePage() {
         setQuestions(questionsRes.questions);
         setAnswers(answersRes.answers);
       })
-      .catch((err) => setLoadError(String(err)));
+      .catch((err) => setLoadError(friendlyError(err)));
     api.trackEvent("onboarding_started");
     // api is a fresh object every render (memoized on getToken identity); safe to
     // omit here since we only want this to run once on mount.
@@ -128,7 +129,7 @@ export function OnboardingAboutMePage() {
         setStepIndex((i) => Math.min(Math.max(i + delta, 0), categories.length - 1));
       }
     } catch (err) {
-      setApiErrors(err instanceof ApiError && err.issues ? err.issues : [String(err)]);
+      setApiErrors(err instanceof ApiError && err.issues ? err.issues : [friendlyError(err)]);
     } finally {
       setSaving(false);
     }

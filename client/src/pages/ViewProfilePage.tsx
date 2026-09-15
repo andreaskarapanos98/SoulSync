@@ -8,6 +8,7 @@ import { ReportModal } from "../components/ReportModal";
 import { VerifiedBadge } from "../components/VerifiedBadge";
 import { GenderSymbol } from "../components/GenderSymbol";
 import { mediaUrl } from "../utils/mediaUrl";
+import { friendlyError } from "../utils/friendlyError";
 
 export function ViewProfilePage() {
   const { clerkId } = useParams<{ clerkId: string }>();
@@ -22,7 +23,7 @@ export function ViewProfilePage() {
 
   useEffect(() => {
     if (!clerkId) return;
-    api.getPublicProfile(clerkId).then(setProfile).catch((err) => setError(String(err)));
+    api.getPublicProfile(clerkId).then(setProfile).catch((err) => setError(friendlyError(err)));
   }, [api, clerkId]);
 
   useEffect(() => {
