@@ -125,6 +125,59 @@ h3 {
   animation: gift-glow-pulse 1.6s ease-in-out infinite;
 }
 
+/* Chat: new bubbles rise in rather than appearing instantly, so an arriving message reads
+   as movement in the corner of your eye instead of a silent layout jump. Deliberately
+   short — anything slower starts to feel like the app is lagging behind you. */
+@keyframes message-in {
+  0% { transform: translateY(8px) scale(0.98); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-message-in {
+  animation: message-in 0.18s ease-out;
+}
+
+/* Three-dot "typing…" indicator: each dot is offset by a fixed delay (set inline) so the
+   bounce travels left to right. */
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.animate-typing-dot {
+  animation: typing-dot 1.2s ease-in-out infinite;
+}
+
+/* Skeleton placeholder shimmer while the thread's first load is in flight. */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.75; }
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+/* The "new messages" pill that appears when something arrives while you're scrolled up. */
+@keyframes pill-in {
+  0% { transform: translateY(8px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-pill-in {
+  animation: pill-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Respect a user's reduced-motion setting: keep the app functional, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-message-in,
+  .animate-typing-dot,
+  .animate-skeleton-pulse,
+  .animate-pill-in {
+    animation: none;
+  }
+}
+
 @keyframes champagne-wobble {
   0% { transform: rotate(0deg); }
   20% { transform: rotate(-10deg); }

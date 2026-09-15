@@ -11,9 +11,32 @@ interface Props {
   onDelete: (id: string) => Promise<void>;
   onReport: (messageId: string) => void;
   onOpenGift: (id: string) => void;
+  /** Local-only state for a message that hasn't been accepted by the server yet. */
+  pending?: "sending" | "failed";
+  /** Re-attempt a failed send (only passed for pending: "failed"). */
+  onRetry?: () => void;
+  /** Drop a failed send for good — for a failure retrying won't fix (e.g. a chat ban). */
+  onDiscard?: () => void;
+  /** Attaches to the message above it (same sender, close in time) — tighter spacing. */
+  grouped?: boolean;
+  /** Pre-formatted clock time, shown only on the last message of a group. */
+  timestamp?: string;
 }
 
-export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onReport, onOpenGift }: Props) {
+export function MessageBubble({
+  message,
+  mine,
+  showSeen,
+  onEdit,
+  onDelete,
+  onReport,
+  onOpenGift,
+  pending,
+  onRetry,
+  onDiscard,
+  grouped = false,
+  timestamp,
+}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(message.body);
@@ -53,7 +76,7 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
 
   if (message.deleted) {
     return (
-      <div className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+      <div className={`animate-message-in flex flex-col ${mine ? "items-end" : "items-start"} ${grouped ? "-mt-1" : ""}`}>
         <p className="max-w-[75%] rounded-2xl bg-neutral-50 px-4 py-2 text-sm italic text-neutral-400 dark:bg-neutral-900 dark:text-neutral-600">
           {mine ? "You deleted this message" : "This message was deleted"}
         </p>
@@ -90,8 +113,18 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
   }
 
   return (
-    <div className={`group flex flex-col ${mine ? "items-end" : "items-start"}`}>
-      <div className={`flex items-center gap-1.5 ${mine ? "flex-row-reverse" : "flex-row"}`}>
+    // -mt-1 tightens the parent's gap-2 for a message that attaches to the one above it,
+    // so a burst from one person reads as a single block rather than evenly spaced rows.
+    <div
+      className={`group animate-message-in flex flex-col ${mine ? "items-end" : "items-start"} ${
+        grouped ? "-mt-1" : ""
+      } ${pending === "sending" ? "opacity-60" : ""}`}
+    >
+      {/* w-full matters: without it this row shrink-to-fits (the column above uses
+          items-end/items-start), so the bubble's max-w-[75%] resolved against the text's
+          own width instead of the thread's — long messages wrapped at roughly a third of
+          the width they were supposed to get. flex-row-reverse still keeps mine right-aligned. */}
+      <div className={`flex w-full items-center gap-1.5 ${mine ? "flex-row-reverse" : "flex-row"}`}>
         {message.giftId ? (
           mine || message.giftOpenedAt ? (
             <div
@@ -114,10 +147,8 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
             <audio controls src={mediaUrl(message.audioUrl)} className="h-9 w-56 max-w-full" />
           </div>
         ) : message.imageUrl ? (
-          // Fixed size (not w-full/max-w-%), deliberately: this sits in a flex item with
-          // items-end/items-start, which shrink-to-fit rather than stretch — a percentage
-          // width has nothing definite to resolve against there, so the image would
-          // silently fall back to its own natural pixel size instead of filling the bubble.
+          // Deliberately a fixed width rather than a percentage: a photo shouldn't grow to
+          // fill a wide desktop thread, and max-w-full still shrinks it on a narrow phone.
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}
@@ -138,7 +169,9 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
             {message.body}
           </p>
         )}
-        {mine && (
+        {/* No edit/delete while a send is still in flight or failed — the server has no
+            such message to act on yet. */}
+        {mine && !pending && (
           <div ref={menuRef} className="relative shrink-0 opacity-0 transition group-hover:opacity-100">
             <button
               type="button"
@@ -223,12 +256,25 @@ export function MessageBubble({ message, mine, showSeen, onEdit, onDelete, onRep
         <ImageLightbox src={mediaUrl(message.imageUrl)} onClose={() => setLightboxOpen(false)} />
       )}
 
-      {(message.editedAt || showSeen) && (
-        <span className="mt-0.5 text-xs text-neutral-400">
-          {message.editedAt ? "edited" : ""}
-          {message.editedAt && showSeen ? " · " : ""}
-          {showSeen ? "Seen" : ""}
+      {pending === "failed" ? (
+        <span className="mt-0.5 flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+          Not sent
+          <button type="button" onClick={onRetry} className="font-semibold underline underline-offset-2">
+            Retry
+          </button>
+          <button type="button" onClick={onDiscard} className="text-neutral-400 underline underline-offset-2">
+            Discard
+          </button>
         </span>
+      ) : (
+        (timestamp || message.editedAt || showSeen || pending === "sending") && (
+          <span className="mt-0.5 flex items-center gap-1 text-xs text-neutral-400">
+            {timestamp}
+            {message.editedAt && <span>· edited</span>}
+            {pending === "sending" && <span title="Sending">🕘</span>}
+            {showSeen && <span className="text-brand-500 dark:text-brand-400">· Seen</span>}
+          </span>
+        )
       )}
     </div>
   );

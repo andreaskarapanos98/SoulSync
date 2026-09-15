@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import type { Gender, MessageDTO } from "@soulsync/shared-types";
@@ -13,11 +13,30 @@ import { GiftPicker } from "../components/chat/GiftPicker";
 import { GiftAnimationOverlay } from "../components/chat/GiftAnimationOverlay";
 import { CameraCapture } from "../components/chat/CameraCapture";
 import { MessageBubble } from "../components/chat/MessageBubble";
+import { TypingDots } from "../components/chat/TypingDots";
+import { ChatSkeleton } from "../components/chat/ChatSkeleton";
 import { ReportModal } from "../components/ReportModal";
 import { ApiError } from "../services/api";
 import { compressImageForUpload } from "../utils/compressImage";
 import { mediaUrl } from "../utils/mediaUrl";
+import { dayLabel, groupsWithPrevious, isSameDay, timeLabel } from "../utils/chatTime";
 import { playIncomingSound, playTypingSound } from "../utils/sounds";
+
+/**
+ * A message the user has sent that the server hasn't accepted yet. Kept in its own list
+ * rather than mixed into `messages`, so the socket-driven refetches (which replace
+ * `messages` wholesale) can never wipe a send that's still in flight.
+ */
+interface PendingMessage {
+  tempId: string;
+  body: string;
+  /** Object URL for an image being uploaded — shown immediately, before the upload finishes. */
+  previewUrl?: string;
+  /** Kept so a failed send can be retried without re-picking the file. */
+  file?: File;
+  createdAt: string;
+  state: "sending" | "failed";
+}
 const TYPING_PING_THROTTLE_MS = 1500;
 const TYPING_SOUND_THROTTLE_MS = 120;
 // How long "Typing…" stays visible after the last live typing event — mirrors the old
@@ -44,6 +63,11 @@ export function ChatThreadPage() {
   const socket = useChatSocket();
   const { setBalance } = useCoinBalance();
   const [messages, setMessages] = useState<MessageDTO[] | null>(null);
+  const [pending, setPending] = useState<PendingMessage[]>([]);
+  // Mirrors isNearBottomRef for rendering (a ref alone can't drive the jump-to-latest pill),
+  // plus a count of what arrived while the user was reading further up.
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
+  const [missedWhileAway, setMissedWhileAway] = useState(0);
   const [openingGift, setOpeningGift] = useState<{ giftId: string; emoji: string; label: string } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
@@ -53,7 +77,6 @@ export function ChatThreadPage() {
   const [otherIsTyping, setOtherIsTyping] = useState(false);
   const [otherCompatibility, setOtherCompatibility] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -65,6 +88,10 @@ export function ChatThreadPage() {
   // Starts true so the initial load still lands at the bottom; a scroll handler below
   // keeps it in sync with whether the user is actually near the bottom.
   const isNearBottomRef = useRef(true);
+  // Latest pending list, for the unmount cleanup that revokes in-flight preview URLs
+  // (the cleanup runs once, so it can't close over the state value directly).
+  const pendingRef = useRef<PendingMessage[]>([]);
+  pendingRef.current = pending;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const seenMessageIdsRef = useRef<Set<string> | null>(null);
@@ -110,7 +137,11 @@ export function ChatThreadPage() {
     if (!socket || !clerkId) return;
 
     function onMessageNew({ message }: { message: MessageDTO }) {
-      if (message.fromClerkId === clerkId) load();
+      if (message.fromClerkId !== clerkId) return;
+      load();
+      // Reading further up shouldn't be interrupted (the auto-scroll deliberately doesn't
+      // follow there) — count what arrived instead and offer a jump down to it.
+      if (!isNearBottomRef.current) setMissedWhileAway((n) => n + 1);
     }
     function onMessageUpdated({ message }: { message: MessageDTO }) {
       if (message.fromClerkId === clerkId || message.toClerkId === clerkId) load();
@@ -158,12 +189,29 @@ export function ChatThreadPage() {
     if (isNearBottomRef.current) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, pending]);
 
   function handleMessagesScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
-    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+    isNearBottomRef.current = nearBottom;
+    setShowJumpToLatest(!nearBottom);
+    if (nearBottom) setMissedWhileAway(0);
   }
+
+  function jumpToLatest() {
+    isNearBottomRef.current = true;
+    setShowJumpToLatest(false);
+    setMissedWhileAway(0);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Object URLs for in-flight image previews outlive the component otherwise.
+  useEffect(() => {
+    return () => {
+      for (const p of pendingRef.current) if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+    };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -208,23 +256,65 @@ export function ChatThreadPage() {
   // message showed up, on top of however long the send itself took.
   function appendMessage(message: MessageDTO) {
     isNearBottomRef.current = true;
-    setMessages((prev) => (prev ? [...prev, message] : [message]));
+    // Guarded against duplicates: a load() triggered by some other socket event can land
+    // between a send leaving and its response arriving, in which case the server's copy of
+    // this message is already in the list.
+    setMessages((prev) => {
+      if (!prev) return [message];
+      return prev.some((m) => m.id === message.id) ? prev : [...prev, message];
+    });
     seenMessageIdsRef.current?.add(message.id);
   }
 
-  async function handleSend() {
-    if (!clerkId || !draft.trim()) return;
-    setSending(true);
+  function addPending(entry: PendingMessage) {
+    isNearBottomRef.current = true; // your own message always pulls the view down to it
+    setPending((prev) => [...prev.filter((p) => p.tempId !== entry.tempId), entry]);
+  }
+
+  function resolvePending(tempId: string, message: MessageDTO) {
+    setPending((prev) => {
+      const done = prev.find((p) => p.tempId === tempId);
+      if (done?.previewUrl) URL.revokeObjectURL(done.previewUrl);
+      return prev.filter((p) => p.tempId !== tempId);
+    });
+    appendMessage(message);
+  }
+
+  function failPending(tempId: string) {
+    setPending((prev) => prev.map((p) => (p.tempId === tempId ? { ...p, state: "failed" } : p)));
+  }
+
+  function discardPending(tempId: string) {
+    setPending((prev) => {
+      const dropped = prev.find((p) => p.tempId === tempId);
+      if (dropped?.previewUrl) URL.revokeObjectURL(dropped.previewUrl);
+      return prev.filter((p) => p.tempId !== tempId);
+    });
+  }
+
+  /**
+   * The message goes on screen before the request leaves, then swaps for the server's
+   * copy when it lands — the old flow waited for the full round trip first, so on a phone
+   * connection your own message visibly lagged a beat behind hitting send.
+   */
+  async function sendText(text: string, tempId = `temp-${crypto.randomUUID()}`) {
+    if (!clerkId) return;
     setSendError(null);
+    addPending({ tempId, body: text, createdAt: new Date().toISOString(), state: "sending" });
     try {
-      const res = await api.sendMessage(clerkId, draft);
-      setDraft("");
-      appendMessage(res.message);
+      const res = await api.sendMessage(clerkId, text);
+      resolvePending(tempId, res.message);
     } catch (err) {
+      failPending(tempId);
       setSendError(formatChatError(err));
-    } finally {
-      setSending(false);
     }
+  }
+
+  function handleSend() {
+    const text = draft.trim();
+    if (!clerkId || !text) return;
+    setDraft(""); // clear instantly — the composer shouldn't wait on the network either
+    void sendText(text);
   }
 
   async function handleSendVoice(blob: Blob, durationSec: number) {
@@ -238,18 +328,36 @@ export function ChatThreadPage() {
     }
   }
 
-  async function sendPhotoFile(file: File) {
+  async function sendPhotoFile(file: File, tempId = `temp-${crypto.randomUUID()}`) {
     if (!clerkId) return;
     setUploadingMedia(true);
     setSendError(null);
+    // An image can be shown straight from the local file while it compresses and uploads;
+    // a video can't be previewed in an <img>, so that one gets a text placeholder instead.
+    const isImage = file.type.startsWith("image/");
+    const previewUrl = isImage ? URL.createObjectURL(file) : undefined;
+    addPending({
+      tempId,
+      body: isImage ? "" : "🎬 Sending video…",
+      previewUrl,
+      file,
+      createdAt: new Date().toISOString(),
+      state: "sending",
+    });
     try {
       const res = await api.sendMediaMessage(clerkId, await compressImageForUpload(file));
-      appendMessage(res.message);
+      resolvePending(tempId, res.message);
     } catch (err) {
+      failPending(tempId);
       setSendError(formatChatError(err));
     } finally {
       setUploadingMedia(false);
     }
+  }
+
+  function retryPending(entry: PendingMessage) {
+    if (entry.file) void sendPhotoFile(entry.file, entry.tempId);
+    else void sendText(entry.body, entry.tempId);
   }
 
   async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -288,21 +396,45 @@ export function ChatThreadPage() {
     }
   }
 
+  // Both endpoints return the updated message, so patch that one row in place instead of
+  // refetching the whole thread — the old load() round trip made an edit or delete visibly
+  // lag the click, and briefly re-rendered every bubble.
+  function replaceMessage(updated: MessageDTO) {
+    setMessages((prev) => prev?.map((m) => (m.id === updated.id ? updated : m)) ?? prev);
+  }
+
   async function handleEditMessage(messageId: string, body: string) {
-    await api.editMessage(messageId, body);
-    load();
+    const res = await api.editMessage(messageId, body);
+    replaceMessage(res.message);
   }
 
   async function handleDeleteMessage(messageId: string) {
-    await api.deleteMessage(messageId);
-    load();
+    const res = await api.deleteMessage(messageId);
+    replaceMessage(res.message);
   }
 
   if (error) return <p className="mx-auto max-w-lg px-6 py-16 text-red-600">Couldn't load chat: {error}</p>;
-  if (!messages) return <p className="mx-auto max-w-lg px-6 py-16 text-neutral-500">Loading chat…</p>;
 
-  const lastMineIndex = [...messages].map((m) => m.fromClerkId === userId).lastIndexOf(true);
-  const lastMineSeen = lastMineIndex !== -1 && Boolean(messages[lastMineIndex].readAt);
+  const lastMineIndex = messages ? messages.map((m) => m.fromClerkId === userId).lastIndexOf(true) : -1;
+  const lastMineSeen = messages !== null && lastMineIndex !== -1 && Boolean(messages[lastMineIndex].readAt);
+
+  // Pending sends render after everything the server has confirmed, so the thread reads in
+  // the order the user actually sent things.
+  const rows: { key: string; message: MessageDTO; pending?: PendingMessage }[] = [
+    ...(messages ?? []).map((message) => ({ key: message.id, message })),
+    ...pending.map((p) => ({
+      key: p.tempId,
+      pending: p,
+      message: {
+        id: p.tempId,
+        fromClerkId: userId ?? "",
+        toClerkId: clerkId ?? "",
+        body: p.body,
+        imageUrl: p.previewUrl,
+        createdAt: p.createdAt,
+      } satisfies MessageDTO,
+    })),
+  ];
 
   return (
     // Fixed full-screen takeover on mobile (like Instagram/WhatsApp) so the on-screen
@@ -363,7 +495,7 @@ export function ChatThreadPage() {
               </span>
             )}
           </p>
-          {otherIsTyping && <p className="text-xs text-brand-500">Typing…</p>}
+          {otherIsTyping && <TypingDots />}
         </div>
 
         {clerkId && (
@@ -417,28 +549,78 @@ export function ChatThreadPage() {
         />
       )}
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-6 sm:px-0" onScroll={handleMessagesScroll}>
-        {messages.length === 0 ? (
-          <p className="mt-10 text-center text-sm text-neutral-400">Say hello 👋</p>
-        ) : (
-          messages.map((m, i) => {
-            const mine = m.fromClerkId === userId;
-            return (
-              <MessageBubble
-                key={m.id}
-                message={m}
-                mine={mine}
-                showSeen={mine && i === lastMineIndex && lastMineSeen}
-                onEdit={handleEditMessage}
-                onDelete={handleDeleteMessage}
-                onReport={setReportingMessageId}
-                onOpenGift={handleOpenGift}
-              />
-            );
-          })
-        )}
-        <div ref={bottomRef} />
-      </div>
+      {messages === null ? (
+        <ChatSkeleton />
+      ) : (
+        <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-6 sm:px-0" onScroll={handleMessagesScroll}>
+          {rows.length === 0 ? (
+            <p className="mt-10 text-center text-sm text-neutral-400">Say hello 👋</p>
+          ) : (
+            rows.map((row, i) => {
+              const previous = rows[i - 1]?.message;
+              const mine = row.message.fromClerkId === userId;
+              const newDay = !previous || !isSameDay(previous.createdAt, row.message.createdAt);
+              // Only the last message of a run carries a time, so a burst doesn't repeat
+              // the same clock reading down the thread.
+              const next = rows[i + 1]?.message;
+              const endsGroup = !next || !groupsWithPrevious(row.message, next);
+              return (
+                <Fragment key={row.key}>
+                  {newDay && (
+                    <div className="my-2 flex items-center gap-3">
+                      <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+                      <span className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+                        {dayLabel(row.message.createdAt)}
+                      </span>
+                      <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+                    </div>
+                  )}
+                  <MessageBubble
+                    message={row.message}
+                    mine={mine}
+                    showSeen={mine && !row.pending && row.message.id === messages[lastMineIndex]?.id && lastMineSeen}
+                    grouped={!newDay && groupsWithPrevious(previous, row.message)}
+                    timestamp={endsGroup ? timeLabel(row.message.createdAt) : undefined}
+                    pending={row.pending?.state}
+                    onRetry={row.pending ? () => retryPending(row.pending!) : undefined}
+                    onDiscard={row.pending ? () => discardPending(row.pending!.tempId) : undefined}
+                    onEdit={handleEditMessage}
+                    onDelete={handleDeleteMessage}
+                    onReport={setReportingMessageId}
+                    onOpenGift={handleOpenGift}
+                  />
+                </Fragment>
+              );
+            })
+          )}
+
+          {otherIsTyping && (
+            <div className="flex items-start">
+              <span className="animate-message-in rounded-2xl bg-neutral-100 px-4 py-2.5 dark:bg-neutral-800">
+                <TypingDots label="" />
+              </span>
+            </div>
+          )}
+
+          <div ref={bottomRef} />
+
+          {/* Zero-height sticky rail so the pill floats above the newest message without
+              taking a row of its own or shifting the list when it appears. */}
+          {(showJumpToLatest || missedWhileAway > 0) && (
+            <div className="sticky bottom-2 z-10 flex h-0 justify-center">
+              <button
+                type="button"
+                onClick={jumpToLatest}
+                className="animate-pill-in -translate-y-full rounded-full bg-neutral-900/90 px-4 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:bg-neutral-900 dark:bg-white/90 dark:text-neutral-900 dark:hover:bg-white"
+              >
+                {missedWhileAway > 0
+                  ? `${missedWhileAway} new message${missedWhileAway === 1 ? "" : "s"} ↓`
+                  : "Jump to latest ↓"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {sendError && (
         <p className="mx-4 mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 sm:mx-0 dark:bg-red-950/30 dark:text-red-400">
@@ -518,7 +700,7 @@ export function ChatThreadPage() {
           onChange={(e) => handleDraftChange(e.target.value)}
           onKeyDown={(e) => {
             handleKeyDownSound();
-            if (e.key === "Enter" && !sending) handleSend();
+            if (e.key === "Enter") handleSend();
           }}
           placeholder="Type a message…"
           className="min-w-0 flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:ring-brand-900"
@@ -533,7 +715,7 @@ export function ChatThreadPage() {
         <button
           type="button"
           onClick={handleSend}
-          disabled={sending || !draft.trim()}
+          disabled={!draft.trim()}
           className="shrink-0 rounded-full bg-brand-500 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50 sm:px-5"
         >
           <span className="sm:hidden">➤</span>
