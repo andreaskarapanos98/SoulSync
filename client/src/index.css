@@ -58,16 +58,23 @@ html {
   display: none !important;
 }
 
-body {
-  margin: 0;
-  font-family: var(--font-sans);
-  @apply bg-white text-neutral-700 dark:bg-neutral-950 dark:text-neutral-300;
-}
+/* These have to sit in @layer base. Unlayered rules beat *every* layered one in the
+   cascade regardless of specificity, and Tailwind v4 emits its utilities into layers — so
+   as plain top-level rules these silently overrode text colours on headings everywhere
+   (a text-white heading on the landing page's pink call-to-action was rendering
+   near-black). Inside @layer base, the utilities layer wins as intended. */
+@layer base {
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    @apply bg-white text-neutral-700 dark:bg-neutral-950 dark:text-neutral-300;
+  }
 
-h1,
-h2,
-h3 {
-  @apply text-neutral-900 dark:text-neutral-50;
+  h1,
+  h2,
+  h3 {
+    @apply text-neutral-900 dark:text-neutral-50;
+  }
 }
 
 @keyframes lock-crack-out {
@@ -168,12 +175,51 @@ h3 {
   animation: pill-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Respect a user's reduced-motion setting: keep the app functional, drop the movement. */
+/* Landing page: sections lift into place as they're scrolled to (see Reveal.tsx), which
+   is what stops a long marketing page from feeling like a static wall of text. */
+@keyframes reveal-up {
+  0% { transform: translateY(18px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.animate-reveal-up {
+  animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Slow drifting colour behind the hero. Two of these run at different speeds and offsets
+   so the background never quite repeats, without anything actually moving fast enough to
+   pull attention off the headline. */
+@keyframes hero-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(3%, -4%) scale(1.08); }
+  66% { transform: translate(-3%, 3%) scale(0.96); }
+}
+
+.animate-hero-drift {
+  animation: hero-drift 18s ease-in-out infinite;
+}
+
+/* Sweeps once across the primary call to action shortly after it appears. */
+@keyframes cta-shine {
+  0% { transform: translateX(-140%) skewX(-20deg); }
+  100% { transform: translateX(260%) skewX(-20deg); }
+}
+
+.animate-cta-shine {
+  animation: cta-shine 2.6s ease-in-out 1.2s infinite;
+}
+
+/* Respect a user's reduced-motion setting: keep the app functional, drop the movement.
+   Reveal.tsx still removes its opacity-0 once a section is in view, so with animation
+   switched off the content simply appears rather than staying invisible. */
 @media (prefers-reduced-motion: reduce) {
   .animate-message-in,
   .animate-typing-dot,
   .animate-skeleton-pulse,
-  .animate-pill-in {
+  .animate-pill-in,
+  .animate-reveal-up,
+  .animate-hero-drift,
+  .animate-cta-shine {
     animation: none;
   }
 }
